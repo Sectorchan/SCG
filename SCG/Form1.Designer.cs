@@ -112,7 +112,6 @@
             // 
             // bt_inter_sign_ca_name
             // 
-            bt_inter_sign_ca_name.Enabled = false;
             bt_inter_sign_ca_name.Location = new Point(630, 77);
             bt_inter_sign_ca_name.Name = "bt_inter_sign_ca_name";
             bt_inter_sign_ca_name.Size = new Size(75, 23);
@@ -147,7 +146,6 @@
             cb_inter_sign.TabIndex = 26;
             cb_inter_sign.Text = "Sign Intemediate";
             cb_inter_sign.UseVisualStyleBackColor = true;
-            cb_inter_sign.CheckedChanged += cb_inter_sign_changed;
             // 
             // tb_inter_cert_days
             // 
@@ -155,7 +153,7 @@
             tb_inter_cert_days.Name = "tb_inter_cert_days";
             tb_inter_cert_days.Size = new Size(158, 23);
             tb_inter_cert_days.TabIndex = 25;
-            tb_inter_cert_days.Text = "360";
+            tb_inter_cert_days.Text = "3650";
             // 
             // lbl_inter_cert_days
             // 
@@ -199,7 +197,7 @@
             tb_inter_key_pw2.Name = "tb_inter_key_pw2";
             tb_inter_key_pw2.Size = new Size(209, 23);
             tb_inter_key_pw2.TabIndex = 21;
-            tb_inter_key_pw2.Text = "qwer";
+            tb_inter_key_pw2.Text = "test2";
             // 
             // tb_inter_key_pw1
             // 
@@ -207,7 +205,7 @@
             tb_inter_key_pw1.Name = "tb_inter_key_pw1";
             tb_inter_key_pw1.Size = new Size(209, 23);
             tb_inter_key_pw1.TabIndex = 20;
-            tb_inter_key_pw1.Text = "qwer";
+            tb_inter_key_pw1.Text = "test2";
             // 
             // tb_inter_priv_name
             // 
@@ -342,7 +340,7 @@
             tb_ca_key_pw1.Name = "tb_ca_key_pw1";
             tb_ca_key_pw1.Size = new Size(209, 23);
             tb_ca_key_pw1.TabIndex = 6;
-            tb_ca_key_pw1.Text = "asdf";
+            tb_ca_key_pw1.Text = "test";
             // 
             // tb_ca_key_pw2
             // 
@@ -350,7 +348,7 @@
             tb_ca_key_pw2.Name = "tb_ca_key_pw2";
             tb_ca_key_pw2.Size = new Size(217, 23);
             tb_ca_key_pw2.TabIndex = 7;
-            tb_ca_key_pw2.Text = "asdf";
+            tb_ca_key_pw2.Text = "test";
             // 
             // label2
             // 
@@ -375,7 +373,7 @@
             tb_ca_cert_days.Name = "tb_ca_cert_days";
             tb_ca_cert_days.Size = new Size(158, 23);
             tb_ca_cert_days.TabIndex = 10;
-            tb_ca_cert_days.Text = "360";
+            tb_ca_cert_days.Text = "7300";
             // 
             // label3
             // 
@@ -486,7 +484,6 @@
             bt_cat_gen.TabIndex = 6;
             bt_cat_gen.Text = "Concatinate";
             bt_cat_gen.UseVisualStyleBackColor = false;
-            bt_cat_gen.Click += bt_cat_gen_Click;
             // 
             // tb_cat_res_name
             // 
@@ -538,11 +535,14 @@
             // 
             // tb_debugoutput
             // 
+            tb_debugoutput.ImeMode = ImeMode.NoControl;
             tb_debugoutput.Location = new Point(75, 407);
+            tb_debugoutput.MaxLength = 10000000;
             tb_debugoutput.Multiline = true;
             tb_debugoutput.Name = "tb_debugoutput";
             tb_debugoutput.Size = new Size(630, 184);
             tb_debugoutput.TabIndex = 21;
+            tb_debugoutput.UseWaitCursor = true;
             // 
             // Form1
             // 

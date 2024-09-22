@@ -1,4 +1,4 @@
-namespace WinFormsApp1
+﻿namespace WinFormsApp1
 {
     internal static class Program
     {
@@ -12,6 +12,8 @@ namespace WinFormsApp1
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             Application.Run(new Form1());
+            
         }
+       
     }
 }
