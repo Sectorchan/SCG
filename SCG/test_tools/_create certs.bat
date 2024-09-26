@@ -53,4 +53,6 @@ openssl2.exe ca -config ../certificates/server/openssl.cnf -passin pass:test -ex
 REM Server public cert certifing WSL
 openssl ca -config openssl-inter.cnf -extensions server_cert -passin pass:test2 -days 375 -batch -rand_serial -notext -md sha256 -in certificates/server/csr/server.csr.pem -out certificates/server/certs/server.cert.pem
 
+
+REM openssl2.exe ca -config openssl-inter.cnf -extensions server_cert -days 365 -batch -rand_serial -notext -md sha256 -in certificates/server/csr/grafana.csr.pem -out certificates/server/certs/grafana.cert.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang, DNS:grafana, IP:192.168.1.20"
 pause

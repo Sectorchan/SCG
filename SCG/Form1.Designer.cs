@@ -30,7 +30,7 @@
         {
             GroupBox gB_intermediate;
             bt_inter_sign_ca_name = new Button();
-            lbl_inter_sign_ca_name = new Label();
+            xx = new Label();
             tb_inter_sign_ca_name = new TextBox();
             cb_inter_sign = new CheckBox();
             tb_inter_cert_days = new TextBox();
@@ -44,6 +44,7 @@
             tb_inter_cert_name = new TextBox();
             label8 = new Label();
             label9 = new Label();
+            tb_appl_csr_name = new TextBox();
             bt_ca_key_gen = new Button();
             tb_ca_priv_name = new TextBox();
             label1 = new Label();
@@ -79,17 +80,33 @@
             tb_cat_inter_name = new TextBox();
             tb_cat_ca_name = new TextBox();
             tb_debugoutput = new TextBox();
+            gb_application = new GroupBox();
+            tb_appl_sign_inter_name = new TextBox();
+            label11 = new Label();
+            tb_appl_cert_days = new TextBox();
+            lbl_appl_cert_days = new Label();
+            tb_appl_key_pw_in = new TextBox();
+            bt_appl_sign_inter_name = new Button();
+            cb_appl_sign = new CheckBox();
+            bt_appl_csr_gen = new Button();
+            bt_appl_priv_gen2 = new Button();
+            tb_appl_key_pw2 = new TextBox();
+            tb_appl_priv_name = new TextBox();
+            tb_appl_key_pw1 = new TextBox();
+            label10 = new Label();
+            label6 = new Label();
             gB_intermediate = new GroupBox();
             gB_intermediate.SuspendLayout();
             menuStrip1.SuspendLayout();
             gB_Ca.SuspendLayout();
             Concantinate.SuspendLayout();
+            gb_application.SuspendLayout();
             SuspendLayout();
             // 
             // gB_intermediate
             // 
             gB_intermediate.Controls.Add(bt_inter_sign_ca_name);
-            gB_intermediate.Controls.Add(lbl_inter_sign_ca_name);
+            gB_intermediate.Controls.Add(xx);
             gB_intermediate.Controls.Add(tb_inter_sign_ca_name);
             gB_intermediate.Controls.Add(cb_inter_sign);
             gB_intermediate.Controls.Add(tb_inter_cert_days);
@@ -112,6 +129,7 @@
             // 
             // bt_inter_sign_ca_name
             // 
+            bt_inter_sign_ca_name.Enabled = false;
             bt_inter_sign_ca_name.Location = new Point(630, 77);
             bt_inter_sign_ca_name.Name = "bt_inter_sign_ca_name";
             bt_inter_sign_ca_name.Size = new Size(75, 23);
@@ -120,56 +138,58 @@
             bt_inter_sign_ca_name.UseVisualStyleBackColor = true;
             bt_inter_sign_ca_name.Click += bt_inter_sign_ca_name_Click;
             // 
-            // lbl_inter_sign_ca_name
+            // xx
             // 
-            lbl_inter_sign_ca_name.AutoSize = true;
-            lbl_inter_sign_ca_name.Location = new Point(178, 81);
-            lbl_inter_sign_ca_name.Name = "lbl_inter_sign_ca_name";
-            lbl_inter_sign_ca_name.Size = new Size(69, 15);
-            lbl_inter_sign_ca_name.TabIndex = 28;
-            lbl_inter_sign_ca_name.Text = "Against CA:";
+            xx.AutoSize = true;
+            xx.Location = new Point(434, 76);
+            xx.Name = "xx";
+            xx.Size = new Size(69, 15);
+            xx.TabIndex = 28;
+            xx.Text = "Against CA:";
             // 
             // tb_inter_sign_ca_name
             // 
-            tb_inter_sign_ca_name.Location = new Point(253, 77);
+            tb_inter_sign_ca_name.Location = new Point(509, 73);
             tb_inter_sign_ca_name.Name = "tb_inter_sign_ca_name";
             tb_inter_sign_ca_name.Size = new Size(100, 23);
             tb_inter_sign_ca_name.TabIndex = 27;
-            tb_inter_sign_ca_name.Text = "qw";
+            tb_inter_sign_ca_name.Text = "ca";
             // 
             // cb_inter_sign
             // 
             cb_inter_sign.AutoSize = true;
             cb_inter_sign.Location = new Point(54, 75);
             cb_inter_sign.Name = "cb_inter_sign";
-            cb_inter_sign.Size = new Size(115, 19);
+            cb_inter_sign.Size = new Size(119, 19);
             cb_inter_sign.TabIndex = 26;
-            cb_inter_sign.Text = "Sign Intemediate";
+            cb_inter_sign.Text = "Sign Intermediate";
             cb_inter_sign.UseVisualStyleBackColor = true;
+            cb_inter_sign.CheckStateChanged += cb_inter_sign_CheckStateChanged;
             // 
             // tb_inter_cert_days
             // 
-            tb_inter_cert_days.Location = new Point(331, 48);
+            tb_inter_cert_days.Location = new Point(378, 76);
             tb_inter_cert_days.Name = "tb_inter_cert_days";
-            tb_inter_cert_days.Size = new Size(158, 23);
+            tb_inter_cert_days.Size = new Size(50, 23);
             tb_inter_cert_days.TabIndex = 25;
             tb_inter_cert_days.Text = "3650";
             // 
             // lbl_inter_cert_days
             // 
             lbl_inter_cert_days.AutoSize = true;
-            lbl_inter_cert_days.Location = new Point(294, 51);
+            lbl_inter_cert_days.Location = new Point(331, 79);
             lbl_inter_cert_days.Name = "lbl_inter_cert_days";
-            lbl_inter_cert_days.Size = new Size(31, 15);
+            lbl_inter_cert_days.Size = new Size(56, 15);
             lbl_inter_cert_days.TabIndex = 18;
-            lbl_inter_cert_days.Text = "Tage";
+            lbl_inter_cert_days.Text = "Duration:";
             // 
             // tb_inter_key_pw_in
             // 
-            tb_inter_key_pw_in.Location = new Point(160, 46);
+            tb_inter_key_pw_in.Location = new Point(175, 75);
             tb_inter_key_pw_in.Name = "tb_inter_key_pw_in";
             tb_inter_key_pw_in.Size = new Size(100, 23);
             tb_inter_key_pw_in.TabIndex = 24;
+            tb_inter_key_pw_in.Text = "test";
             // 
             // bt_inter_csr_gen
             // 
@@ -201,7 +221,7 @@
             // 
             // tb_inter_key_pw1
             // 
-            tb_inter_key_pw1.Location = new Point(170, 17);
+            tb_inter_key_pw1.Location = new Point(177, 17);
             tb_inter_key_pw1.Name = "tb_inter_key_pw1";
             tb_inter_key_pw1.Size = new Size(209, 23);
             tb_inter_key_pw1.TabIndex = 20;
@@ -213,7 +233,7 @@
             tb_inter_priv_name.Name = "tb_inter_priv_name";
             tb_inter_priv_name.Size = new Size(100, 23);
             tb_inter_priv_name.TabIndex = 18;
-            tb_inter_priv_name.Text = "qwa";
+            tb_inter_priv_name.Text = "int";
             // 
             // tb_inter_cert_name
             // 
@@ -221,7 +241,7 @@
             tb_inter_cert_name.Name = "tb_inter_cert_name";
             tb_inter_cert_name.Size = new Size(100, 23);
             tb_inter_cert_name.TabIndex = 19;
-            tb_inter_cert_name.Text = "qwa";
+            tb_inter_cert_name.Text = "int";
             // 
             // label8
             // 
@@ -241,6 +261,15 @@
             label9.TabIndex = 19;
             label9.Text = "CSR";
             // 
+            // tb_appl_csr_name
+            // 
+            tb_appl_csr_name.Location = new Point(44, 45);
+            tb_appl_csr_name.Name = "tb_appl_csr_name";
+            tb_appl_csr_name.Size = new Size(100, 23);
+            tb_appl_csr_name.TabIndex = 22;
+            tb_appl_csr_name.Text = "grafana";
+            tb_appl_csr_name.TextChanged += tb_appl_csr_name_TextChanged;
+            // 
             // bt_ca_key_gen
             // 
             bt_ca_key_gen.Location = new Point(630, 15);
@@ -257,7 +286,7 @@
             tb_ca_priv_name.Name = "tb_ca_priv_name";
             tb_ca_priv_name.Size = new Size(100, 23);
             tb_ca_priv_name.TabIndex = 1;
-            tb_ca_priv_name.Text = "qw";
+            tb_ca_priv_name.Text = "ca";
             // 
             // label1
             // 
@@ -365,7 +394,7 @@
             tb_ca_cert_name.Name = "tb_ca_cert_name";
             tb_ca_cert_name.Size = new Size(100, 23);
             tb_ca_cert_name.TabIndex = 9;
-            tb_ca_cert_name.Text = "qw";
+            tb_ca_cert_name.Text = "ca";
             // 
             // tb_ca_cert_days
             // 
@@ -427,6 +456,7 @@
             tb_ca_key_pw_in.Name = "tb_ca_key_pw_in";
             tb_ca_key_pw_in.Size = new Size(100, 23);
             tb_ca_key_pw_in.TabIndex = 16;
+            tb_ca_key_pw_in.Text = "test";
             // 
             // label7
             // 
@@ -536,19 +566,168 @@
             // tb_debugoutput
             // 
             tb_debugoutput.ImeMode = ImeMode.NoControl;
-            tb_debugoutput.Location = new Point(75, 407);
-            tb_debugoutput.MaxLength = 10000000;
+            tb_debugoutput.Location = new Point(75, 536);
+            tb_debugoutput.MaxLength = 2000000000;
             tb_debugoutput.Multiline = true;
             tb_debugoutput.Name = "tb_debugoutput";
-            tb_debugoutput.Size = new Size(630, 184);
+            tb_debugoutput.Size = new Size(630, 55);
             tb_debugoutput.TabIndex = 21;
             tb_debugoutput.UseWaitCursor = true;
+            // 
+            // gb_application
+            // 
+            gb_application.Controls.Add(tb_appl_sign_inter_name);
+            gb_application.Controls.Add(label11);
+            gb_application.Controls.Add(tb_appl_cert_days);
+            gb_application.Controls.Add(lbl_appl_cert_days);
+            gb_application.Controls.Add(tb_appl_key_pw_in);
+            gb_application.Controls.Add(bt_appl_sign_inter_name);
+            gb_application.Controls.Add(cb_appl_sign);
+            gb_application.Controls.Add(bt_appl_csr_gen);
+            gb_application.Controls.Add(bt_appl_priv_gen2);
+            gb_application.Controls.Add(tb_appl_key_pw2);
+            gb_application.Controls.Add(tb_appl_priv_name);
+            gb_application.Controls.Add(tb_appl_key_pw1);
+            gb_application.Controls.Add(tb_appl_csr_name);
+            gb_application.Controls.Add(label10);
+            gb_application.Controls.Add(label6);
+            gb_application.Location = new Point(12, 392);
+            gb_application.Name = "gb_application";
+            gb_application.Size = new Size(711, 138);
+            gb_application.TabIndex = 22;
+            gb_application.TabStop = false;
+            gb_application.Text = "Application";
+            // 
+            // tb_appl_sign_inter_name
+            // 
+            tb_appl_sign_inter_name.Location = new Point(488, 87);
+            tb_appl_sign_inter_name.Name = "tb_appl_sign_inter_name";
+            tb_appl_sign_inter_name.Size = new Size(100, 23);
+            tb_appl_sign_inter_name.TabIndex = 40;
+            tb_appl_sign_inter_name.Text = "int";
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(408, 90);
+            label11.Name = "label11";
+            label11.Size = new Size(74, 15);
+            label11.TabIndex = 39;
+            label11.Text = "Against Inter";
+            // 
+            // tb_appl_cert_days
+            // 
+            tb_appl_cert_days.Location = new Point(341, 88);
+            tb_appl_cert_days.Name = "tb_appl_cert_days";
+            tb_appl_cert_days.Size = new Size(56, 23);
+            tb_appl_cert_days.TabIndex = 38;
+            tb_appl_cert_days.Text = "365";
+            // 
+            // lbl_appl_cert_days
+            // 
+            lbl_appl_cert_days.AutoSize = true;
+            lbl_appl_cert_days.Location = new Point(279, 92);
+            lbl_appl_cert_days.Name = "lbl_appl_cert_days";
+            lbl_appl_cert_days.Size = new Size(56, 15);
+            lbl_appl_cert_days.TabIndex = 37;
+            lbl_appl_cert_days.Text = "Duration:";
+            // 
+            // tb_appl_key_pw_in
+            // 
+            tb_appl_key_pw_in.Location = new Point(163, 92);
+            tb_appl_key_pw_in.Name = "tb_appl_key_pw_in";
+            tb_appl_key_pw_in.Size = new Size(100, 23);
+            tb_appl_key_pw_in.TabIndex = 36;
+            tb_appl_key_pw_in.Text = "test2";
+            // 
+            // bt_appl_sign_inter_name
+            // 
+            bt_appl_sign_inter_name.Location = new Point(618, 90);
+            bt_appl_sign_inter_name.Name = "bt_appl_sign_inter_name";
+            bt_appl_sign_inter_name.Size = new Size(75, 23);
+            bt_appl_sign_inter_name.TabIndex = 35;
+            bt_appl_sign_inter_name.Text = "Generate";
+            bt_appl_sign_inter_name.UseVisualStyleBackColor = true;
+            bt_appl_sign_inter_name.Click += bt_appl_sign_inter_name_Click;
+            // 
+            // cb_appl_sign
+            // 
+            cb_appl_sign.AutoSize = true;
+            cb_appl_sign.Location = new Point(44, 94);
+            cb_appl_sign.Name = "cb_appl_sign";
+            cb_appl_sign.Size = new Size(113, 19);
+            cb_appl_sign.TabIndex = 34;
+            cb_appl_sign.Text = "Sign Application";
+            cb_appl_sign.UseVisualStyleBackColor = true;
+            // 
+            // bt_appl_csr_gen
+            // 
+            bt_appl_csr_gen.Location = new Point(618, 51);
+            bt_appl_csr_gen.Name = "bt_appl_csr_gen";
+            bt_appl_csr_gen.Size = new Size(75, 23);
+            bt_appl_csr_gen.TabIndex = 33;
+            bt_appl_csr_gen.Text = "Generate";
+            bt_appl_csr_gen.UseVisualStyleBackColor = true;
+            bt_appl_csr_gen.Click += bt_appl_csr_gen_click;
+            // 
+            // bt_appl_priv_gen2
+            // 
+            bt_appl_priv_gen2.Location = new Point(618, 22);
+            bt_appl_priv_gen2.Name = "bt_appl_priv_gen2";
+            bt_appl_priv_gen2.Size = new Size(75, 23);
+            bt_appl_priv_gen2.TabIndex = 32;
+            bt_appl_priv_gen2.Text = "Generate";
+            bt_appl_priv_gen2.UseVisualStyleBackColor = true;
+            bt_appl_priv_gen2.Click += bt_appl_priv_gen_click;
+            // 
+            // tb_appl_key_pw2
+            // 
+            tb_appl_key_pw2.Location = new Point(368, 19);
+            tb_appl_key_pw2.Name = "tb_appl_key_pw2";
+            tb_appl_key_pw2.Size = new Size(209, 23);
+            tb_appl_key_pw2.TabIndex = 31;
+            tb_appl_key_pw2.Text = "test2";
+            // 
+            // tb_appl_priv_name
+            // 
+            tb_appl_priv_name.Location = new Point(44, 19);
+            tb_appl_priv_name.Name = "tb_appl_priv_name";
+            tb_appl_priv_name.Size = new Size(100, 23);
+            tb_appl_priv_name.TabIndex = 21;
+            tb_appl_priv_name.Text = "grafana";
+            // 
+            // tb_appl_key_pw1
+            // 
+            tb_appl_key_pw1.Location = new Point(153, 19);
+            tb_appl_key_pw1.Name = "tb_appl_key_pw1";
+            tb_appl_key_pw1.Size = new Size(209, 23);
+            tb_appl_key_pw1.TabIndex = 30;
+            tb_appl_key_pw1.Text = "test2";
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(10, 46);
+            label10.Name = "label10";
+            label10.Size = new Size(28, 15);
+            label10.TabIndex = 20;
+            label10.Text = "CSR";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(9, 19);
+            label6.Name = "label6";
+            label6.Size = new Size(29, 15);
+            label6.TabIndex = 19;
+            label6.Text = "Key:";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 658);
+            Controls.Add(gb_application);
             Controls.Add(tb_debugoutput);
             Controls.Add(Concantinate);
             Controls.Add(gB_intermediate);
@@ -568,6 +747,8 @@
             gB_Ca.PerformLayout();
             Concantinate.ResumeLayout(false);
             Concantinate.PerformLayout();
+            gb_application.ResumeLayout(false);
+            gb_application.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -601,7 +782,6 @@
         private Label label7;
         private GroupBox gB_Ca;
         private TextBox tb_inter_priv_name;
-        private TextBox tb_inter_cert_name;
         private Label label8;
         private Label label9;
         private TextBox tb_inter_key_pw1;
@@ -620,9 +800,26 @@
         private TextBox tb_cat_res_name;
         private Button bt_cat_gen;
         private CheckBox cb_inter_sign;
-        private Label lbl_inter_sign_ca_name;
+        private Label xx;
         private TextBox tb_inter_sign_ca_name;
         private Button bt_inter_sign_ca_name;
         private TextBox tb_debugoutput;
+        private GroupBox gb_application;
+        private Label label6;
+        private TextBox tb_appl_key_pw2;
+        private TextBox tb_appl_priv_name;
+        private TextBox tb_appl_key_pw1;
+        private TextBox tb_appl_csr_name;
+        private Label label10;
+        private Button bt_appl_priv_gen2;
+        private Button bt_appl_csr_gen;
+        private TextBox tb_appl_key_pw_in;
+        private Button bt_appl_sign_inter_name;
+        private CheckBox cb_appl_sign;
+        private TextBox tb_appl_cert_days;
+        private Label lbl_appl_cert_days;
+        private Label label11;
+        private TextBox tb_appl_sign_inter_name;
+        private TextBox tb_inter_cert_name;
     }
 }

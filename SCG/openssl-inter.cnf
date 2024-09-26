@@ -114,6 +114,7 @@ extendedKeyUsage = clientAuth, emailProtection
 basicConstraints = CA:FALSE
 nsCertType = server
 nsComment = "OpenSSL Generated Server Certificate for LANG Lan"
+extendedKeyUsage=serverAuth
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
