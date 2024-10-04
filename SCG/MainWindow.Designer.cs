@@ -1,6 +1,6 @@
 ﻿namespace WinFormsApp1
 {
-    partial class Form1
+    partial class MainWindow
     {
         /// <summary>
         ///  Required designer variable.
@@ -53,8 +53,8 @@
             toolStripMenuItem2 = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem4 = new ToolStripMenuItem();
-            toolStripMenuItem6 = new ToolStripMenuItem();
+            opensslCnfCa = new ToolStripMenuItem();
+            opensslCnfInt = new ToolStripMenuItem();
             copyToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem5 = new ToolStripMenuItem();
             toolStripMenuItem7 = new ToolStripMenuItem();
@@ -95,6 +95,7 @@
             tb_appl_key_pw1 = new TextBox();
             label10 = new Label();
             label6 = new Label();
+            pageSetupDialog1 = new PageSetupDialog();
             gB_intermediate = new GroupBox();
             gB_intermediate.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -326,22 +327,24 @@
             // 
             // editToolStripMenuItem
             // 
-            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem4, toolStripMenuItem6 });
+            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { opensslCnfCa, opensslCnfInt });
             editToolStripMenuItem.Name = "editToolStripMenuItem";
             editToolStripMenuItem.Size = new Size(86, 20);
             editToolStripMenuItem.Text = "configssl.cnf";
             // 
-            // toolStripMenuItem4
+            // opensslCnfCa
             // 
-            toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(141, 22);
-            toolStripMenuItem4.Text = "CA";
+            opensslCnfCa.Name = "opensslCnfCa";
+            opensslCnfCa.Size = new Size(180, 22);
+            opensslCnfCa.Text = "CA";
+            opensslCnfCa.Click += opensslCnfCa_click;
             // 
-            // toolStripMenuItem6
+            // opensslCnfInt
             // 
-            toolStripMenuItem6.Name = "toolStripMenuItem6";
-            toolStripMenuItem6.Size = new Size(141, 22);
-            toolStripMenuItem6.Text = "Intermediate";
+            opensslCnfInt.Name = "opensslCnfInt";
+            opensslCnfInt.Size = new Size(180, 22);
+            opensslCnfInt.Text = "Intermediate";
+            opensslCnfInt.Click += opensslCnfInt_click;
             // 
             // copyToolStripMenuItem
             // 
@@ -720,7 +723,7 @@
             label6.TabIndex = 19;
             label6.Text = "Key:";
             // 
-            // Form1
+            // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -735,7 +738,7 @@
             Controls.Add(label4);
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
-            Name = "Form1";
+            Name = "MainWindow";
             Text = "Form1";
             gB_intermediate.ResumeLayout(false);
             gB_intermediate.PerformLayout();
@@ -762,8 +765,8 @@
         private ToolStripMenuItem copyToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem2;
         private ToolStripMenuItem toolStripMenuItem3;
-        private ToolStripMenuItem toolStripMenuItem4;
-        private ToolStripMenuItem toolStripMenuItem6;
+        private ToolStripMenuItem opensslCnfCa;
+        private ToolStripMenuItem opensslCnfInt;
         private ToolStripMenuItem toolStripMenuItem5;
         private ToolStripMenuItem toolStripMenuItem7;
         private TextBox tb_ca_key_pw1;
@@ -819,5 +822,6 @@
         private Label label11;
         private TextBox tb_appl_sign_inter_name;
         private TextBox tb_inter_cert_name;
+        private PageSetupDialog pageSetupDialog1;
     }
 }

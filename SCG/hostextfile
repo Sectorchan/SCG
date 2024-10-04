@@ -1,3 +1,0 @@
-﻿basicConstraints=CA:FALSE
-extendedKeyUsage=serverAuth
-subjectAltName=email:my@other.address,RID:1.2.3.4
