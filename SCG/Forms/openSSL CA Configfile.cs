@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,13 +9,22 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
-namespace SCG.Forms;
+namespace WinFormsApp1.Forms;
 public partial class openSSL_CA_Configfile : Form
 {
+    public string opensslCaCnfPath
+    {
+        get { return tb_ca_cnf_path.Text; }
+        
+    }
+   
     public openSSL_CA_Configfile()
     {
         InitializeComponent();
+        
+        
     }
 
     private void button1_Click(object sender, EventArgs e)
@@ -23,7 +33,16 @@ public partial class openSSL_CA_Configfile : Form
         if (result == DialogResult.OK) // Test result.
         {
             string file = openFileDialog1.FileName;
-            textBox1.Text = file;
+            tb_ca_cnf_path.Text = file;
         }
+    }
+
+    private void bt_form2_close_Click(object sender, EventArgs e)
+    {
+
+
+
+        //string debug = tb_ca_name.Text;
+        Close();
     }
 }

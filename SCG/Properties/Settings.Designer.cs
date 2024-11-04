@@ -8,16 +8,16 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SCG {
+namespace SCG.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.8.0.0")]
-    internal sealed partial class Settings1 : global::System.Configuration.ApplicationSettingsBase {
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.11.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
-        private static Settings1 defaultInstance = ((Settings1)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings1())));
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
         
-        public static Settings1 Default {
+        public static Settings Default {
             get {
                 return defaultInstance;
             }
@@ -25,22 +25,25 @@ namespace SCG {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("test")]
-        public string Einstellung {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int CaIndex {
             get {
-                return ((string)(this["Einstellung"]));
+                return ((int)(this["CaIndex"]));
             }
             set {
-                this["Einstellung"] = value;
+                this["CaIndex"] = value;
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("fdfdfd")]
-        public string dsfa {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Database {
             get {
-                return ((string)(this["dsfa"]));
+                return ((string)(this["Database"]));
+            }
+            set {
+                this["Database"] = value;
             }
         }
     }
