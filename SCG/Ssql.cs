@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Data.Sqlite;
+using PL;
 using WinFormsApp1;
 
 namespace SCG;
@@ -71,7 +72,7 @@ public class Ssql
         var _option = "";
         var _table = "";
         var PrivCreateDT = DateTime.Now.ToString();
-
+        
         using var connection = new SqliteConnection(database);
         connection.Open();
 
@@ -105,9 +106,9 @@ public class Ssql
                 _table = "user";
                 break;
         }
-        //var sql = $"{_option} {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+        var sql = $"{_option} {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
         //SELECT CustomerName, City FROM Customers;
-        var sql = "SELECT name FROM ca";
+        //var sql = "SELECT name FROM ca";
         using var command = new SqliteCommand(sql, connection);
         command.Parameters.AddWithValue("@Ca_Name", CaName);
         command.Parameters.AddWithValue("@priv_bits", Privbits);
@@ -115,27 +116,7 @@ public class Ssql
         command.Parameters.AddWithValue("@priv_content", Privkey);
         command.Parameters.AddWithValue("@priv_createDT", PrivCreateDT);
         var rowInserted = command.ExecuteNonQuery();
-    }
-    public void SqlSelect(string database, string column, SQLTable table)
-    {
-        using var connection = new SqliteConnection(database);
-        string _table = "ca";
-        connection.Open();
-        var sql = $"SELECT {column} FROM {_table}";
-        using var command = new SqliteCommand(sql, connection);
-        using var reader = command.ExecuteReader();
-        if (reader.HasRows)
-        {
-            while (reader.Read())
-            {
-                var name = reader.GetString(0);
-                
-            }
-        }
-        else
-        {
-            MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
-        }
+        
     }
 
 
