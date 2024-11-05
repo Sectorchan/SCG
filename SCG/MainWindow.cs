@@ -26,8 +26,6 @@ using static SCG.Ssql;
 
 namespace WinFormsApp1
 {
-
-
     public partial class MainWindow : Form
     {
         string xml = @"certificates\ca\xml.xml";
@@ -80,6 +78,36 @@ namespace WinFormsApp1
                 MessageBox.Show("Fehler bei Debugoutput", ex.Message, MessageBoxButtons.OK);
                 SSLargument1 = "Fehler bei Debugoutput";
                 return SSLargument1;
+            }
+        }
+        public void UseOpenSSL(string SSLargument1)
+        {
+            try
+            {
+                Process process = new Process();
+                process.StartInfo.FileName = openSSL_bin;
+                process.StartInfo.Arguments = SSLargument1;
+                //process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                //process.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
+                //{
+                //    // Prepend line numbers to each line of the output.
+                //    if (!string.IsNullOrEmpty(e.Data))
+                //    {
+                //        tb_debugoutput.Text += e.Data;
+                //    }
+                //});
+                process.Start();
+                process.WaitForExit();
+                process.Close();
+                process.StartInfo.ErrorDialog = true;
+                int result = process.ExitCode;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error with OpenSSL", ex.Message, MessageBoxButtons.OK);
             }
         }
 
@@ -176,7 +204,6 @@ namespace WinFormsApp1
             attribute.Value = DateTime.Now.ToString();
             doc.Save(file);
         }
-
         public void AddCaPrivKey(string xmlfile)
         {
 
@@ -199,7 +226,6 @@ namespace WinFormsApp1
             ChangeDateModifiedXml(xmlfile);
             RefreshCaPrivLb(xmlfile);
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             RefreshCaPrivLb(xml);
@@ -215,7 +241,6 @@ namespace WinFormsApp1
                 MessageBox.Show(xe.Element("id").Value);
             }
         }
-        
         /// <summary>
         /// Creates the CA private Key
         /// </summary>
@@ -223,7 +248,6 @@ namespace WinFormsApp1
         /// <param name="e"></param>
         private void ca_priv_key_gen_click(object sender, EventArgs e)
         {
-           
             //Openssl command: openssl2.exe genrsa -aes256 -passout pass:test -out certificates/ca/private/ca.key.pem 4096
             if (!string.IsNullOrWhiteSpace(tb_ca_priv_name.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw1.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw2.Text))// Check if no box is empty.
             {
@@ -231,26 +255,32 @@ namespace WinFormsApp1
                 {
                     if (tb_ca_key_pw1.Text.Equals(tb_ca_key_pw2.Text))
                     {
-                        SSLargument = @"genrsa -aes256 -passout pass:" + tb_ca_key_pw1.Text + " -out certificates/ca/private/" + tb_ca_priv_name.Text + ".kkey.pem 4096";
+
 
                         RSA rsa = RSA.Create();
                         rsa.KeySize = 4096;
-                        
 
                         var CaName = tb_ca_priv_name.Text;
                         var Privbits = rsa.KeySize;
                         var Privpass = tb_ca_key_pw1.Text;
                         var Privkey = rsa.ExportRSAPrivateKeyPem();
-                        var PrivCreateDT = DateTime.Now.ToString();
 
-                        #region WriteCertToFile
-                        using (StreamWriter outputFile = new StreamWriter("certificates/ca/private/" + tb_ca_cert_name.Text + "key.pem"))
-                        { outputFile.WriteLine(rsa.ExportPkcs8PrivateKeyPem()); }
-                        #endregion
+                        if (Global.UseOpenSSL)
+                        {
+                            SSLargument = @"genrsa -aes256 -passout pass:" + tb_ca_key_pw1.Text + " -out certificates/ca/private/" + tb_ca_priv_name.Text + ".kkey.pem 4096";
+                            UseOpenSSL(SSLargument);
+                        }
+                        else
+                        {
+                            Ssqlc(Global.database, SQLOption.INSERT_INTO, SQLTable.ca, CaName, Privbits, Privpass, Privkey);
+                            if (Global.WriteToFile)
+                            {
+                                using (StreamWriter outputFile = new StreamWriter("certificates/ca/private/" + tb_ca_cert_name.Text + "key.pem"))
+                                { outputFile.WriteLine(rsa.ExportPkcs8PrivateKeyPem()); }
+                            }
+                        }
 
-                        Ssqlc(Global.database, SQLOption.INSERT_INTO, SQLTable.ca, CaName, Privbits, Privpass, Privkey);
-
-                        tb_debugoutput.Text = debugoutput(SSLargument);
+                        //tb_debugoutput.Text = debugoutput(SSLargument);
                         return;
                     }
                     else
@@ -261,7 +291,6 @@ namespace WinFormsApp1
             else { _error = ["Eingabe unvollständig", "Fehlende Information"]; }
             MessageBox.Show(_error[0], _error[1]);
         }
-
         /// <summary>
         /// Creates the CA public certificate
         /// </summary>
@@ -330,7 +359,6 @@ namespace WinFormsApp1
             else { _error = ["Eingabe unvollständig", "Fehlende Information"]; }
             MessageBox.Show(_error[0], _error[1]);
         }
-
         /// <summary>
         /// Creates the Intermediate private key
         /// </summary>
@@ -392,7 +420,6 @@ namespace WinFormsApp1
                 tb_debugoutput.Text = debugoutput(SSLargument);
             }
         }
-
         private void cb_inter_sign_CheckStateChanged(object sender, EventArgs e)
         {
             if (cb_inter_sign.Checked)
@@ -404,7 +431,6 @@ namespace WinFormsApp1
                 bt_inter_sign_ca_name.Enabled = false;
             }
         }
-
         /// <summary>
         /// Creates the application or server private key
         /// </summary>
@@ -435,10 +461,6 @@ namespace WinFormsApp1
             SSLargument = @"ca -config " + openSSLcnf_inter + " -passin pass:" + tb_inter_key_pw1.Text + " -extensions server_cert  -rand_serial -batch -days " + tb_appl_cert_days.Text + " -md sha256 -in certificates/server/csr/" + tb_appl_priv_name.Text + ".csr.pem -out certificates/server/certs/" + tb_appl_csr_name.Text + ".cert.pem ";    //-subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang, DNS:grafana, IP:192.168.1.20\"";
             tb_debugoutput.Text = debugoutput(SSLargument);
         }
-
-
-
-
         private void opensslCnfCa_click(object sender, EventArgs e)
         {
             openSSL_CA_Configfile form2 = new openSSL_CA_Configfile();
@@ -446,13 +468,11 @@ namespace WinFormsApp1
             tb_cat_ca_name.Text = form2.opensslCaCnfPath;
 
         }
-
         private void opensslCnfInt_click(object sender, EventArgs e)
         {
 
 
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             XDocument d = new XDocument(
@@ -476,18 +496,34 @@ namespace WinFormsApp1
 
             d.Save("ApplicationSettings.xml");
         }
-
         private void serverConfigList_click(object sender, EventArgs e)
         {
             Server form3 = new Server();
             form3.ShowDialog();
         }
-
         private void Main_onLoad(object sender, EventArgs e)
         {
             RefreshCaPrivLb(xml);
-        }
+            using var connection = new SqliteConnection(Global.database);
+            connection.Open();
+            var sql = "SELECT name FROM ca";
+            using var command = new SqliteCommand(sql, connection);
+            using var reader = command.ExecuteReader();
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    var name = reader.GetString(0);
+                    lb_ca_priv.Items.Add(name);
+                }
+            }
+            else
+            {
+                MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+            }
 
+        }
+        
 
     }
 
@@ -495,6 +531,8 @@ namespace WinFormsApp1
     {
         public static string database = @"Data Source=database.db";
         public static string ca_cnf = "openssl-ca.cnf";
+        public static bool WriteToFile = true;
+        public static bool UseOpenSSL = false;
     }
 
 }

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using WinFormsApp1;
 namespace SCG;
 public class Ssql
 {
+    #region properties
     public string update;
     public string select;
     public string where;
@@ -36,7 +38,8 @@ public class Ssql
     public int Count { get; }
     public SQLTable SSL_Type { get; set; }
     public SQLOption SQL_Option { get; set; }
-
+    #endregion
+    #region enum
     public enum SQLTable
     {
         ca,
@@ -48,8 +51,10 @@ public class Ssql
     {
         INSERT_INTO,
         UPDATE,
-        DELETE
+        DELETE,
+        SELECT
     }
+    #endregion
 
     /// <summary>
     /// Execute SQL Statement
@@ -63,58 +68,90 @@ public class Ssql
     /// <param name="Privkey">Teh private key of rsa.ExportRSAPrivateKeyPem()</param>
     public static void Ssqlc(string database, SQLOption option, SQLTable table, string CaName, int Privbits, string Privpass, string Privkey)
     {
-
+        var _option = "";
+        var _table = "";
         var PrivCreateDT = DateTime.Now.ToString();
 
-        var sql = "INSERT INTO ca (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
         using var connection = new SqliteConnection(database);
         connection.Open();
 
+        switch (option)
+        {
+            case (SQLOption.INSERT_INTO):
+                _option = "INSERT INTO";
+                break;
+            case (SQLOption.UPDATE):
+                _option = "UPDATE";
+                break;
+            case (SQLOption.DELETE):
+                _option = "DELETE";
+                break;
+            case (SQLOption.SELECT):
+                _option = "SELECT";
+                break;
+        }
+        switch (table)
+        {
+            case (SQLTable.ca):
+                _table = "ca";
+                break;
+            case (SQLTable.intermediate):
+                _table = "intermediate";
+                break;
+            case (SQLTable.server):
+                _table = "server";
+                break;
+            case (SQLTable.user):
+                _table = "user";
+                break;
+        }
+        //var sql = $"{_option} {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+        //SELECT CustomerName, City FROM Customers;
+        var sql = "SELECT name FROM ca";
         using var command = new SqliteCommand(sql, connection);
         command.Parameters.AddWithValue("@Ca_Name", CaName);
         command.Parameters.AddWithValue("@priv_bits", Privbits);
         command.Parameters.AddWithValue("@priv_pass", Privpass);
         command.Parameters.AddWithValue("@priv_content", Privkey);
         command.Parameters.AddWithValue("@priv_createDT", PrivCreateDT);
-        switch (option)
-        {
-            case (SQLOption.INSERT_INTO):
-                var _option = "INSERT INTO";
-                command.Parameters.AddWithValue("@sqloption", _option);
-                break;
-            case (SQLOption.UPDATE):
-                command.Parameters.AddWithValue("@sqloption", "UPDATE");
-                break;
-            case (SQLOption.DELETE):
-                command.Parameters.AddWithValue("@sqloption", "DELETE"); ;
-                break;
-
-        }
-        switch (table)
-        {
-            case (SQLTable.ca):
-                var _table = "ca";
-                command.Parameters.AddWithValue("@table", _table);
-                break;
-            case (SQLTable.intermediate):
-                command.Parameters.AddWithValue("@table", "intermediate");
-                break;
-            case (SQLTable.server):
-                command.Parameters.AddWithValue("@table", "server");
-                break;
-            case (SQLTable.user):
-                command.Parameters.AddWithValue("@table", "user");
-                break;
-        }
-
-
         var rowInserted = command.ExecuteNonQuery();
-
     }
+    public void SqlSelect(string database, string column, SQLTable table)
+    {
+        using var connection = new SqliteConnection(database);
+        string _table = "ca";
+        connection.Open();
+        var sql = $"SELECT {column} FROM {_table}";
+        using var command = new SqliteCommand(sql, connection);
+        using var reader = command.ExecuteReader();
+        if (reader.HasRows)
+        {
+            while (reader.Read())
+            {
+                var name = reader.GetString(0);
+                
+            }
+        }
+        else
+        {
+            MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+        }
+    }
+
 
     public int GetEntryCount()
     {
         return Count;
+      
+    }
+
+    public static string CreatePrivKey(int KeySize)
+    {
+        RSA rsa = RSA.Create();
+        rsa.KeySize = KeySize;
+        var Privkey = rsa.ExportRSAPrivateKeyPem();
+
+        return Privkey;
     }
 
 

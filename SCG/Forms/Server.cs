@@ -39,27 +39,13 @@ public partial class Server : Form
                 while (reader.Read())
                 {
                     var Name = reader.GetString(1);
+                    lb_server_certs.Items.Add(Name);
                 }
             }
             else
-            {
-                MessageBox.Show("No entries yet");
-            }
+            { MessageBox.Show("No entries yet"); }
         }
-        catch (SqliteException ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-
-        //Searches in a folder and list all files in a listBox
-        //DirectoryInfo d = new DirectoryInfo(@"./certificates/server/private");
-        //foreach (var file in d.GetFiles("*.*"))
-        //{
-        //    lb_server_certs.Items.Add(file.Name);
-        //}
-
-
-
+        catch (SqliteException ex) { MessageBox.Show(ex.Message); }
     }
 
     public void Cblist_read(bool refreshList)
@@ -112,11 +98,19 @@ public partial class Server : Form
         string[] array = [
             serverType.ToString(),
             tb_ca_name.Text,
-            tb_priv_bits.Text, tb_priv_passwd.Text];
+            tb_priv_bits.Text,
+            tb_priv_passwd.Text];
 
         //int i = int.Parse(array[1]);
         //int ii = i + 19;
         //MessageBox.Show($"id: " + ii.ToString());
 
+    }
+
+    private void Bt_gen_priv_onClick(object sender, EventArgs e)
+    {
+        //string Privkey = CreatePrivKey(4096);
+       
+        //Ssql.Ssqlc(Global.database, Ssql.SQLOption.INSERT_INTO, Ssql.SQLTable.ca, tb_ca_name.Text, tb_priv_bits.Text, tb_priv_passwd, Privkey);
     }
 }
