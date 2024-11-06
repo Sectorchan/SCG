@@ -43,6 +43,7 @@ public class Ssql
     #region enum
     public enum SQLTable
     {
+        undefined,
         ca,
         intermediate,
         server,

@@ -83,24 +83,28 @@ public partial class Server : Form
     //    }
     //}
 
-    private string CertType()
+    private Ssql.SQLTable CertType()
     {
-        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
-        string Table = "";
+Ssql.SQLTable Table = Ssql.SQLTable.undefined;
+        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
+        
         switch (serverType)
         {
             case "CA":
-                Table = "Ssql.SQLTable.ca";
+                Table = Ssql.SQLTable.ca;
                 break;
-        //    case "Intermediate":
-        //        Table = Ssql.SQLTable.intermediate;
-        //        break;
-        //    case "Server":
-        //        Table = Ssql.SQLTable.server;
-        //        break;
-        //    case "User":
-        //        Table = Ssql.SQLTable.user;
-        //        break;
+            case "Intermediate":
+                Table = Ssql.SQLTable.intermediate;
+                break;
+            case "Server":
+                Table = Ssql.SQLTable.server;
+                break;
+            case "User":
+                Table = Ssql.SQLTable.user;
+                break;
+            case "undefined":
+                MessageBox.Show("UNDEFINED CHECKBOX", "ERROR", MessageBoxButtons.CancelTryContinue, MessageBoxIcon.Warning) ;
+                return Table = 0;
         }
         return Table;
     }
@@ -126,14 +130,17 @@ public partial class Server : Form
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
     {
         int PrivateBits = int.Parse(cb_priv_bits.Text);
-        var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-       string Certtype = CertType();
-        Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+        string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
+        Ssql.SQLTable Certtype = CertType();
+        if (Certtype != Ssql.SQLTable.undefined)
+        {
+            Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+        }
     }
 
     private void Cb_new_server_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_server.Checked)
+        if (cb_new_server.Checked && (lb_priv_bits.Text != ""))
         {
             Bt_gen_priv.Enabled = true;
         }

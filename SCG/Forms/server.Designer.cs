@@ -69,9 +69,9 @@ partial class Server
         rb_intermediate = new RadioButton();
         rb_server = new RadioButton();
         panel1 = new Panel();
+        rb_user = new RadioButton();
         bt_add_server = new Button();
         Bt_gen_priv = new Button();
-        rb_user = new RadioButton();
         gb_default_disti_names.SuspendLayout();
         gb_private.SuspendLayout();
         gb_public.SuspendLayout();
@@ -296,6 +296,7 @@ partial class Server
         cb_priv_bits.Name = "cb_priv_bits";
         cb_priv_bits.Size = new Size(102, 23);
         cb_priv_bits.TabIndex = 24;
+        cb_priv_bits.Text = "4096";
         // 
         // tb_priv_filename
         // 
@@ -415,6 +416,7 @@ partial class Server
         // rb_ca
         // 
         rb_ca.AutoSize = true;
+        rb_ca.Checked = true;
         rb_ca.Location = new Point(3, 3);
         rb_ca.Name = "rb_ca";
         rb_ca.Size = new Size(41, 19);
@@ -430,7 +432,6 @@ partial class Server
         rb_intermediate.Name = "rb_intermediate";
         rb_intermediate.Size = new Size(92, 19);
         rb_intermediate.TabIndex = 19;
-        rb_intermediate.TabStop = true;
         rb_intermediate.Text = "Intermediate";
         rb_intermediate.UseVisualStyleBackColor = true;
         // 
@@ -441,7 +442,6 @@ partial class Server
         rb_server.Name = "rb_server";
         rb_server.Size = new Size(57, 19);
         rb_server.TabIndex = 20;
-        rb_server.TabStop = true;
         rb_server.Text = "Server";
         rb_server.UseVisualStyleBackColor = true;
         // 
@@ -455,6 +455,16 @@ partial class Server
         panel1.Name = "panel1";
         panel1.Size = new Size(94, 113);
         panel1.TabIndex = 21;
+        // 
+        // rb_user
+        // 
+        rb_user.AutoSize = true;
+        rb_user.Location = new Point(3, 76);
+        rb_user.Name = "rb_user";
+        rb_user.Size = new Size(48, 19);
+        rb_user.TabIndex = 21;
+        rb_user.Text = "User";
+        rb_user.UseVisualStyleBackColor = true;
         // 
         // bt_add_server
         // 
@@ -476,17 +486,6 @@ partial class Server
         Bt_gen_priv.Text = "Generate Private Key";
         Bt_gen_priv.UseVisualStyleBackColor = true;
         Bt_gen_priv.Click += Bt_gen_priv_onClick;
-        // 
-        // rb_user
-        // 
-        rb_user.AutoSize = true;
-        rb_user.Location = new Point(3, 76);
-        rb_user.Name = "rb_user";
-        rb_user.Size = new Size(48, 19);
-        rb_user.TabIndex = 21;
-        rb_user.TabStop = true;
-        rb_user.Text = "User";
-        rb_user.UseVisualStyleBackColor = true;
         // 
         // Server
         // 
