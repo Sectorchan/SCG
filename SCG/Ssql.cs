@@ -126,7 +126,7 @@ public class Ssql
       
     }
 
-    public static string CreatePrivKey(int KeySize)
+    public static string CreatePrivKey2(int KeySize)
     {
         RSA rsa = RSA.Create();
         rsa.KeySize = KeySize;

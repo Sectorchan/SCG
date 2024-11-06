@@ -10,15 +10,20 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Microsoft.Data.Sqlite;
+using PL;
 using WinFormsApp1;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using static SCG.Ssql;
 using RadioButton = System.Windows.Forms.RadioButton;
+
 
 namespace SCG.Forms;
 public partial class Server : Form
 {
     //string database = @"Data Source=database.db";
     string xml = @"certificates\ca\xml.xml";
+
+    
 
     public Server()
     {
@@ -27,27 +32,14 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
-        var sql = "SELECT * FROM ca";
-        try
+        Bt_gen_priv.Enabled = false;
+        foreach (var item in Utils.Sql.SqlSelect(Global.database, "name", Ssql.SQLTable.ca))
         {
-            using var connection = new SqliteConnection(Global.database);
-            connection.Open();
-            using var command = new SqliteCommand(sql, connection);
-            using var reader = command.ExecuteReader();
-            if (reader.HasRows)
-            {
-                while (reader.Read())
-                {
-                    var Name = reader.GetString(1);
-                    lb_server_certs.Items.Add(Name);
-                }
-            }
-            else
-            { MessageBox.Show("No entries yet"); }
+            lb_server_certs.Items.Add(item);
         }
-        catch (SqliteException ex) { MessageBox.Show(ex.Message); }
+        lb_server_certs.Sorted = true;
     }
-
+    //Nutzlos? TBD
     public void Cblist_read(bool refreshList)
     {
 
@@ -91,15 +83,39 @@ public partial class Server : Form
     //    }
     //}
 
+    private string CertType()
+    {
+        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
+        string Table = "";
+        switch (serverType)
+        {
+            case "CA":
+                Table = "Ssql.SQLTable.ca";
+                break;
+        //    case "Intermediate":
+        //        Table = Ssql.SQLTable.intermediate;
+        //        break;
+        //    case "Server":
+        //        Table = Ssql.SQLTable.server;
+        //        break;
+        //    case "User":
+        //        Table = Ssql.SQLTable.user;
+        //        break;
+        }
+        return Table;
+    }
+
+    //Nutzlos? TBD
     private void bt_add_server_Click(object sender, EventArgs e)
     {
-        var serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
+        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
+        serverType.ToLower();
 
-        string[] array = [
-            serverType.ToString(),
-            tb_ca_name.Text,
-            tb_priv_bits.Text,
-            tb_priv_passwd.Text];
+        //string[] array = [
+        //    serverType.ToString(),
+        //    tb_ca_name.Text,
+        //    //tb_priv_bits.Text,
+        //    tb_priv_passwd.Text];
 
         //int i = int.Parse(array[1]);
         //int ii = i + 19;
@@ -109,8 +125,23 @@ public partial class Server : Form
 
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
     {
-        //string Privkey = CreatePrivKey(4096);
-       
-        //Ssql.Ssqlc(Global.database, Ssql.SQLOption.INSERT_INTO, Ssql.SQLTable.ca, tb_ca_name.Text, tb_priv_bits.Text, tb_priv_passwd, Privkey);
+        int PrivateBits = int.Parse(cb_priv_bits.Text);
+        var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
+       string Certtype = CertType();
+        Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
     }
+
+    private void Cb_new_server_CheckedChanged(object sender, EventArgs e)
+    {
+        if (cb_new_server.Checked)
+        {
+            Bt_gen_priv.Enabled = true;
+        }
+        else
+        {
+            Bt_gen_priv.Enabled = false;
+        }
+    }
+
+
 }

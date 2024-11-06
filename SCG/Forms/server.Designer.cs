@@ -51,9 +51,9 @@ partial class Server
         tb_ca_cnf_path = new TextBox();
         lb_server_certs = new ListBox();
         gb_private = new GroupBox();
+        cb_priv_bits = new ComboBox();
         tb_priv_filename = new TextBox();
         tb_priv_passwd = new TextBox();
-        tb_priv_bits = new TextBox();
         lb_priv_filename = new Label();
         lb_priv_pass = new Label();
         lb_priv_bits = new Label();
@@ -64,13 +64,14 @@ partial class Server
         lb_pub_conffile = new Label();
         lb_pub_passwd = new Label();
         lb_pub_duration = new Label();
-        cb_new_entry = new CheckBox();
+        cb_new_server = new CheckBox();
         rb_ca = new RadioButton();
         rb_intermediate = new RadioButton();
         rb_server = new RadioButton();
         panel1 = new Panel();
         bt_add_server = new Button();
-        button1 = new Button();
+        Bt_gen_priv = new Button();
+        rb_user = new RadioButton();
         gb_default_disti_names.SuspendLayout();
         gb_private.SuspendLayout();
         gb_public.SuspendLayout();
@@ -274,9 +275,9 @@ partial class Server
         // 
         // gb_private
         // 
+        gb_private.Controls.Add(cb_priv_bits);
         gb_private.Controls.Add(tb_priv_filename);
         gb_private.Controls.Add(tb_priv_passwd);
-        gb_private.Controls.Add(tb_priv_bits);
         gb_private.Controls.Add(lb_priv_filename);
         gb_private.Controls.Add(lb_priv_pass);
         gb_private.Controls.Add(lb_priv_bits);
@@ -286,6 +287,15 @@ partial class Server
         gb_private.TabIndex = 15;
         gb_private.TabStop = false;
         gb_private.Text = "Private";
+        // 
+        // cb_priv_bits
+        // 
+        cb_priv_bits.FormattingEnabled = true;
+        cb_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
+        cb_priv_bits.Location = new Point(59, 22);
+        cb_priv_bits.Name = "cb_priv_bits";
+        cb_priv_bits.Size = new Size(102, 23);
+        cb_priv_bits.TabIndex = 24;
         // 
         // tb_priv_filename
         // 
@@ -300,13 +310,6 @@ partial class Server
         tb_priv_passwd.Name = "tb_priv_passwd";
         tb_priv_passwd.Size = new Size(100, 23);
         tb_priv_passwd.TabIndex = 4;
-        // 
-        // tb_priv_bits
-        // 
-        tb_priv_bits.Location = new Point(61, 21);
-        tb_priv_bits.Name = "tb_priv_bits";
-        tb_priv_bits.Size = new Size(100, 23);
-        tb_priv_bits.TabIndex = 3;
         // 
         // lb_priv_filename
         // 
@@ -398,20 +401,21 @@ partial class Server
         lb_pub_duration.TabIndex = 0;
         lb_pub_duration.Text = "Duration";
         // 
-        // cb_new_entry
+        // cb_new_server
         // 
-        cb_new_entry.AutoSize = true;
-        cb_new_entry.Location = new Point(153, 45);
-        cb_new_entry.Name = "cb_new_entry";
-        cb_new_entry.Size = new Size(85, 19);
-        cb_new_entry.TabIndex = 17;
-        cb_new_entry.Text = "New Server";
-        cb_new_entry.UseVisualStyleBackColor = true;
+        cb_new_server.AutoSize = true;
+        cb_new_server.Location = new Point(153, 45);
+        cb_new_server.Name = "cb_new_server";
+        cb_new_server.Size = new Size(85, 19);
+        cb_new_server.TabIndex = 17;
+        cb_new_server.Text = "New Server";
+        cb_new_server.UseVisualStyleBackColor = true;
+        cb_new_server.CheckStateChanged += Cb_new_server_CheckedChanged;
         // 
         // rb_ca
         // 
         rb_ca.AutoSize = true;
-        rb_ca.Location = new Point(5, 3);
+        rb_ca.Location = new Point(3, 3);
         rb_ca.Name = "rb_ca";
         rb_ca.Size = new Size(41, 19);
         rb_ca.TabIndex = 18;
@@ -443,12 +447,13 @@ partial class Server
         // 
         // panel1
         // 
+        panel1.Controls.Add(rb_user);
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(542, 45);
+        panel1.Location = new Point(215, 96);
         panel1.Name = "panel1";
-        panel1.Size = new Size(94, 73);
+        panel1.Size = new Size(94, 113);
         panel1.TabIndex = 21;
         // 
         // bt_add_server
@@ -461,26 +466,37 @@ partial class Server
         bt_add_server.UseVisualStyleBackColor = true;
         bt_add_server.Click += bt_add_server_Click;
         // 
-        // button1
+        // Bt_gen_priv
         // 
-        button1.Location = new Point(24, 344);
-        button1.Margin = new Padding(2);
-        button1.Name = "button1";
-        button1.Size = new Size(76, 47);
-        button1.TabIndex = 23;
-        button1.Text = "Generate Private Key";
-        button1.UseVisualStyleBackColor = true;
-        button1.Click += Bt_gen_priv_onClick;
+        Bt_gen_priv.Location = new Point(24, 344);
+        Bt_gen_priv.Margin = new Padding(2);
+        Bt_gen_priv.Name = "Bt_gen_priv";
+        Bt_gen_priv.Size = new Size(76, 47);
+        Bt_gen_priv.TabIndex = 23;
+        Bt_gen_priv.Text = "Generate Private Key";
+        Bt_gen_priv.UseVisualStyleBackColor = true;
+        Bt_gen_priv.Click += Bt_gen_priv_onClick;
+        // 
+        // rb_user
+        // 
+        rb_user.AutoSize = true;
+        rb_user.Location = new Point(3, 76);
+        rb_user.Name = "rb_user";
+        rb_user.Size = new Size(48, 19);
+        rb_user.TabIndex = 21;
+        rb_user.TabStop = true;
+        rb_user.Text = "User";
+        rb_user.UseVisualStyleBackColor = true;
         // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(796, 428);
-        Controls.Add(button1);
+        Controls.Add(Bt_gen_priv);
         Controls.Add(bt_add_server);
         Controls.Add(panel1);
-        Controls.Add(cb_new_entry);
+        Controls.Add(cb_new_server);
         Controls.Add(gb_public);
         Controls.Add(gb_private);
         Controls.Add(lb_server_certs);
@@ -535,7 +551,6 @@ partial class Server
     private Label lb_priv_bits;
     private TextBox tb_priv_filename;
     private TextBox tb_priv_passwd;
-    private TextBox tb_priv_bits;
     private Label lb_priv_filename;
     private Label lb_priv_pass;
     private GroupBox gb_public;
@@ -545,11 +560,13 @@ partial class Server
     private Label lb_pub_conffile;
     private Label lb_pub_passwd;
     private Label lb_pub_duration;
-    private CheckBox cb_new_entry;
+    private CheckBox cb_new_server;
     private RadioButton rb_ca;
     private RadioButton rb_intermediate;
     private RadioButton rb_server;
     private Panel panel1;
     private Button bt_add_server;
-    private Button button1;
+    private Button Bt_gen_priv;
+    private ComboBox cb_priv_bits;
+    private RadioButton rb_user;
 }
