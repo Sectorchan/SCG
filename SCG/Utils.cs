@@ -6,6 +6,9 @@ using System.Text;
 using FluentResults;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using SCG;
+using WinFormsApp1;
+using FluentResults;
 using static SCG.Ssql;
 using System.Diagnostics.Contracts;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -94,9 +97,16 @@ public class Utils
             else
             {
                 MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
-                return null;
+                return 0;
             }
         }
+
+        public void ReadCaList(object sender)
+        {
+            MessageBox.Show(sender.ToString());
+        }
+
+
     }
     public class Certs
     {
