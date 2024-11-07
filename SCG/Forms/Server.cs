@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using FluentResults;
 using Microsoft.Data.Sqlite;
 using PL;
 using WinFormsApp1;
@@ -22,9 +23,6 @@ public partial class Server : Form
 {
     //string database = @"Data Source=database.db";
     string xml = @"certificates\ca\xml.xml";
-
-    
-
     public Server()
     {
         InitializeComponent();
@@ -33,11 +31,19 @@ public partial class Server : Form
     private void server_onLoad(object sender, EventArgs e)
     {
         Bt_gen_priv.Enabled = false;
-        foreach (var item in Utils.Sql.SqlSelect(Global.database, "name", Ssql.SQLTable.ca))
+        List<string> list = Utils.Sql.SqlSelect(Global.database, "name", Ssql.SQLTable.ca);
+        if (list.Count != null)
         {
-            lb_server_certs.Items.Add(item);
+            foreach (var item in list)
+            {
+                lb_server_certs.Items.Add(item);
+            }
+            lb_server_certs.Sorted = true;
         }
-        lb_server_certs.Sorted = true;
+        else
+        {
+            return;
+        }
     }
     //Nutzlos? TBD
     public void Cblist_read(bool refreshList)
@@ -85,57 +91,40 @@ public partial class Server : Form
 
     private Ssql.SQLTable CertType()
     {
-Ssql.SQLTable Table = Ssql.SQLTable.undefined;
-        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
-        
+        string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
+        string Table = "";
         switch (serverType)
         {
             case "CA":
                 Table = Ssql.SQLTable.ca;
                 break;
-            case "Intermediate":
-                Table = Ssql.SQLTable.intermediate;
-                break;
-            case "Server":
-                Table = Ssql.SQLTable.server;
-                break;
-            case "User":
-                Table = Ssql.SQLTable.user;
-                break;
-            case "undefined":
-                MessageBox.Show("UNDEFINED CHECKBOX", "ERROR", MessageBoxButtons.CancelTryContinue, MessageBoxIcon.Warning) ;
-                return Table = 0;
+        //    case "Intermediate":
+        //        Table = Ssql.SQLTable.intermediate;
+        //        break;
+        //    case "Server":
+        //        Table = Ssql.SQLTable.server;
+        //        break;
+        //    case "User":
+        //        Table = Ssql.SQLTable.user;
+        //        break;
         }
         return Table;
     }
-
     //Nutzlos? TBD
     private void bt_add_server_Click(object sender, EventArgs e)
     {
         string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Name;
         serverType.ToLower();
-
-        //string[] array = [
-        //    serverType.ToString(),
-        //    tb_ca_name.Text,
-        //    //tb_priv_bits.Text,
-        //    tb_priv_passwd.Text];
-
-        //int i = int.Parse(array[1]);
-        //int ii = i + 19;
-        //MessageBox.Show($"id: " + ii.ToString());
-
     }
 
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
     {
         int PrivateBits = int.Parse(cb_priv_bits.Text);
-        string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-        Ssql.SQLTable Certtype = CertType();
-        if (Certtype != Ssql.SQLTable.undefined)
-        {
-            Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
-        }
+        var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
+       string Certtype = CertType();
+        Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+    }
+
     }
 
     private void Cb_new_server_CheckedChanged(object sender, EventArgs e)
@@ -149,6 +138,4 @@ Ssql.SQLTable Table = Ssql.SQLTable.undefined;
             Bt_gen_priv.Enabled = false;
         }
     }
-
-
 }

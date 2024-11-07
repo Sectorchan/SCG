@@ -5,6 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using SCG;
+using WinFormsApp1;
+using FluentResults;
 using static SCG.Ssql;
 
 namespace PL;
@@ -24,39 +27,45 @@ public class Utils
         /// <returns></returns>
         public static int InsertInto(string database, SQLTable table, string CaName, string Privpass, string Privkey, int Privbits = 4096)
         {
-            var _table = "";
-
-            using var connection = new SqliteConnection(database);
-            connection.Open();
-
-            switch (table)
+            try
             {
-                case (SQLTable.ca):
-                    _table = "ca";
-                    break;
-                case (SQLTable.intermediate):
-                    _table = "intermediate";
-                    break;
-                case (SQLTable.server):
-                    _table = "server";
-                    break;
-                case (SQLTable.user):
-                    _table = "user";
-                    break;
+
+                string _table = "";
+                using var connection = new SqliteConnection(database);
+                connection.Open();
+
+                switch (table)
+                {
+                    case (SQLTable.ca):
+                        _table = "ca";
+                        break;
+                    case (SQLTable.intermediate):
+                        _table = "intermediate";
+                        break;
+                    case (SQLTable.server):
+                        _table = "server";
+                        break;
+                    case (SQLTable.user):
+                        _table = "user";
+                        break;
+                }
+                var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@Ca_Name", CaName);
+                command.Parameters.AddWithValue("@priv_bits", Privbits);
+                command.Parameters.AddWithValue("@priv_pass", Privpass);
+                command.Parameters.AddWithValue("@priv_content", Privkey);
+                command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
+                int rowInserted = command.ExecuteNonQuery();
+
+                return rowInserted;
+            } catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString(), "EXCEPTION", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 666;
             }
-            var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
-          
-            using var command = new SqliteCommand(sql, connection);
-            command.Parameters.AddWithValue("@Ca_Name", CaName);
-            command.Parameters.AddWithValue("@priv_bits", Privbits);
-            command.Parameters.AddWithValue("@priv_pass", Privpass);
-            command.Parameters.AddWithValue("@priv_content", Privkey);
-            command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
-            int rowInserted = command.ExecuteNonQuery();
-
-            return rowInserted;
         }
-
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
@@ -71,7 +80,7 @@ public class Utils
             connection.Open();
             var sql = $"SELECT {column} FROM {_table}";
             using var command = new SqliteCommand(sql, connection);
-            using var reader = command.ExecuteReader();
+            using SqliteDataReader reader = command.ExecuteReader();
             if (reader.HasRows)
             {
                 List<string> columns = new List<string>();
@@ -84,9 +93,16 @@ public class Utils
             else
             {
                 MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
-                return null;
+                return 0;
             }
         }
+
+        public void ReadCaList(object sender)
+        {
+            MessageBox.Show(sender.ToString());
+        }
+
+
     }
     public class Certs
     {
