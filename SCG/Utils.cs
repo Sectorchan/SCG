@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using FluentResults;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using static SCG.Ssql;
+using System.Diagnostics.Contracts;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PL;
 public class Utils
@@ -24,37 +27,44 @@ public class Utils
         /// <returns></returns>
         public static int InsertInto(string database, SQLTable table, string CaName, string Privpass, string Privkey, int Privbits = 4096)
         {
-            var _table = "";
-
-            using var connection = new SqliteConnection(database);
-            connection.Open();
-
-            switch (table)
+            try
             {
-                case (SQLTable.ca):
-                    _table = "ca";
-                    break;
-                case (SQLTable.intermediate):
-                    _table = "intermediate";
-                    break;
-                case (SQLTable.server):
-                    _table = "server";
-                    break;
-                case (SQLTable.user):
-                    _table = "user";
-                    break;
-            }
-            var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
-          
-            using var command = new SqliteCommand(sql, connection);
-            command.Parameters.AddWithValue("@Ca_Name", CaName);
-            command.Parameters.AddWithValue("@priv_bits", Privbits);
-            command.Parameters.AddWithValue("@priv_pass", Privpass);
-            command.Parameters.AddWithValue("@priv_content", Privkey);
-            command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
-            int rowInserted = command.ExecuteNonQuery();
+                string _table = "";
+                using var connection = new SqliteConnection(database);
+                connection.Open();
 
-            return rowInserted;
+                switch (table)
+                {
+                    case (SQLTable.ca):
+                        _table = "ca";
+                        break;
+                    case (SQLTable.intermediate):
+                        _table = "intermediate";
+                        break;
+                    case (SQLTable.server):
+                        _table = "server";
+                        break;
+                    case (SQLTable.user):
+                        _table = "user";
+                        break;
+                }
+                var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@Ca_Name", CaName);
+                command.Parameters.AddWithValue("@priv_bits", Privbits);
+                command.Parameters.AddWithValue("@priv_pass", Privpass);
+                command.Parameters.AddWithValue("@priv_content", Privkey);
+                command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
+                int rowInserted = command.ExecuteNonQuery();
+
+                return rowInserted;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString(), "EXCEPTION", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 666;
+            }
         }
 
         /// <summary>
@@ -63,7 +73,7 @@ public class Utils
         /// <param name="database"></param>
         /// <param name="column"></param>
         /// <param name="table"></param>
-        /// <returns></returns>
+        /// <returns>Result<List<string>></returns>
         public static List<string> SqlSelect(string database, string column, SQLTable table)
         {
             using var connection = new SqliteConnection(database);
@@ -71,7 +81,7 @@ public class Utils
             connection.Open();
             var sql = $"SELECT {column} FROM {_table}";
             using var command = new SqliteCommand(sql, connection);
-            using var reader = command.ExecuteReader();
+            using SqliteDataReader reader = command.ExecuteReader();
             if (reader.HasRows)
             {
                 List<string> columns = new List<string>();

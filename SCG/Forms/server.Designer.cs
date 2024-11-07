@@ -80,18 +80,20 @@ partial class Server
         // 
         // bt_form2_close
         // 
-        bt_form2_close.Location = new Point(656, 393);
+        bt_form2_close.Location = new Point(1125, 786);
+        bt_form2_close.Margin = new Padding(5, 6, 5, 6);
         bt_form2_close.Name = "bt_form2_close";
-        bt_form2_close.Size = new Size(128, 23);
+        bt_form2_close.Size = new Size(219, 46);
         bt_form2_close.TabIndex = 13;
         bt_form2_close.Text = "save n close";
         bt_form2_close.UseVisualStyleBackColor = true;
         // 
         // tb_ca_name
         // 
-        tb_ca_name.Location = new Point(95, 155);
+        tb_ca_name.Location = new Point(163, 310);
+        tb_ca_name.Margin = new Padding(5, 6, 5, 6);
         tb_ca_name.Name = "tb_ca_name";
-        tb_ca_name.Size = new Size(100, 23);
+        tb_ca_name.Size = new Size(169, 35);
         tb_ca_name.TabIndex = 12;
         // 
         // gb_default_disti_names
@@ -110,139 +112,157 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(448, 139);
+        gb_default_disti_names.Location = new Point(768, 278);
+        gb_default_disti_names.Margin = new Padding(5, 6, 5, 6);
         gb_default_disti_names.Name = "gb_default_disti_names";
-        gb_default_disti_names.Size = new Size(229, 239);
+        gb_default_disti_names.Padding = new Padding(5, 6, 5, 6);
+        gb_default_disti_names.Size = new Size(393, 478);
         gb_default_disti_names.TabIndex = 11;
         gb_default_disti_names.TabStop = false;
         gb_default_disti_names.Text = "Default Distinguished Names";
         // 
         // tb_sub_email
         // 
-        tb_sub_email.Location = new Point(113, 180);
+        tb_sub_email.Location = new Point(194, 360);
+        tb_sub_email.Margin = new Padding(5, 6, 5, 6);
         tb_sub_email.Name = "tb_sub_email";
-        tb_sub_email.Size = new Size(100, 23);
+        tb_sub_email.Size = new Size(169, 35);
         tb_sub_email.TabIndex = 13;
         // 
         // tb_sub_cn
         // 
-        tb_sub_cn.Location = new Point(113, 154);
+        tb_sub_cn.Location = new Point(194, 308);
+        tb_sub_cn.Margin = new Padding(5, 6, 5, 6);
         tb_sub_cn.Name = "tb_sub_cn";
-        tb_sub_cn.Size = new Size(100, 23);
+        tb_sub_cn.Size = new Size(169, 35);
         tb_sub_cn.TabIndex = 12;
         // 
         // textBox6
         // 
-        textBox6.Location = new Point(113, 130);
+        textBox6.Location = new Point(194, 260);
+        textBox6.Margin = new Padding(5, 6, 5, 6);
         textBox6.Name = "textBox6";
-        textBox6.Size = new Size(100, 23);
+        textBox6.Size = new Size(169, 35);
         textBox6.TabIndex = 11;
         // 
         // tb_sub_ou
         // 
-        tb_sub_ou.Location = new Point(113, 106);
+        tb_sub_ou.Location = new Point(194, 212);
+        tb_sub_ou.Margin = new Padding(5, 6, 5, 6);
         tb_sub_ou.Name = "tb_sub_ou";
-        tb_sub_ou.Size = new Size(100, 23);
+        tb_sub_ou.Size = new Size(169, 35);
         tb_sub_ou.TabIndex = 10;
         // 
         // tb_sub_loc
         // 
-        tb_sub_loc.Location = new Point(113, 81);
+        tb_sub_loc.Location = new Point(194, 162);
+        tb_sub_loc.Margin = new Padding(5, 6, 5, 6);
         tb_sub_loc.Name = "tb_sub_loc";
-        tb_sub_loc.Size = new Size(100, 23);
+        tb_sub_loc.Size = new Size(169, 35);
         tb_sub_loc.TabIndex = 9;
         // 
         // tb_sub_st
         // 
-        tb_sub_st.Location = new Point(113, 56);
+        tb_sub_st.Location = new Point(194, 112);
+        tb_sub_st.Margin = new Padding(5, 6, 5, 6);
         tb_sub_st.Name = "tb_sub_st";
-        tb_sub_st.Size = new Size(100, 23);
+        tb_sub_st.Size = new Size(169, 35);
         tb_sub_st.TabIndex = 8;
         // 
         // tb_sub_c
         // 
-        tb_sub_c.Location = new Point(113, 30);
+        tb_sub_c.Location = new Point(194, 60);
+        tb_sub_c.Margin = new Padding(5, 6, 5, 6);
         tb_sub_c.Name = "tb_sub_c";
-        tb_sub_c.Size = new Size(100, 23);
+        tb_sub_c.Size = new Size(169, 35);
         tb_sub_c.TabIndex = 7;
         // 
         // lbl_def_email
         // 
         lbl_def_email.AutoSize = true;
-        lbl_def_email.Location = new Point(66, 183);
+        lbl_def_email.Location = new Point(113, 366);
+        lbl_def_email.Margin = new Padding(5, 0, 5, 0);
         lbl_def_email.Name = "lbl_def_email";
-        lbl_def_email.Size = new Size(41, 15);
+        lbl_def_email.Size = new Size(72, 30);
         lbl_def_email.TabIndex = 6;
         lbl_def_email.Text = "E-Mail";
         // 
         // lbl_def_commonName
         // 
         lbl_def_commonName.AutoSize = true;
-        lbl_def_commonName.Location = new Point(14, 162);
+        lbl_def_commonName.Location = new Point(24, 324);
+        lbl_def_commonName.Margin = new Padding(5, 0, 5, 0);
         lbl_def_commonName.Name = "lbl_def_commonName";
-        lbl_def_commonName.Size = new Size(93, 15);
+        lbl_def_commonName.Size = new Size(160, 30);
         lbl_def_commonName.TabIndex = 5;
         lbl_def_commonName.Text = "Common Name";
         // 
         // lbl_def_organisationUnit
         // 
         lbl_def_organisationUnit.AutoSize = true;
-        lbl_def_organisationUnit.Location = new Point(69, 138);
+        lbl_def_organisationUnit.Location = new Point(118, 276);
+        lbl_def_organisationUnit.Margin = new Padding(5, 0, 5, 0);
         lbl_def_organisationUnit.Name = "lbl_def_organisationUnit";
-        lbl_def_organisationUnit.Size = new Size(38, 15);
+        lbl_def_organisationUnit.Size = new Size(68, 30);
         lbl_def_organisationUnit.TabIndex = 4;
         lbl_def_organisationUnit.Text = "label5";
         // 
         // lbl_def_organisation
         // 
         lbl_def_organisation.AutoSize = true;
-        lbl_def_organisation.Location = new Point(46, 109);
+        lbl_def_organisation.Location = new Point(79, 218);
+        lbl_def_organisation.Margin = new Padding(5, 0, 5, 0);
         lbl_def_organisation.Name = "lbl_def_organisation";
-        lbl_def_organisation.Size = new Size(61, 15);
+        lbl_def_organisation.Size = new Size(108, 30);
         lbl_def_organisation.TabIndex = 3;
         lbl_def_organisation.Text = "Orga. Unit";
         // 
         // lbl_def_location
         // 
         lbl_def_location.AutoSize = true;
-        lbl_def_location.Location = new Point(54, 84);
+        lbl_def_location.Location = new Point(93, 168);
+        lbl_def_location.Margin = new Padding(5, 0, 5, 0);
         lbl_def_location.Name = "lbl_def_location";
-        lbl_def_location.Size = new Size(53, 15);
+        lbl_def_location.Size = new Size(92, 30);
         lbl_def_location.TabIndex = 2;
         lbl_def_location.Text = "Location";
         // 
         // lbl_def_state
         // 
         lbl_def_state.AutoSize = true;
-        lbl_def_state.Location = new Point(74, 56);
+        lbl_def_state.Location = new Point(127, 112);
+        lbl_def_state.Margin = new Padding(5, 0, 5, 0);
         lbl_def_state.Name = "lbl_def_state";
-        lbl_def_state.Size = new Size(33, 15);
+        lbl_def_state.Size = new Size(59, 30);
         lbl_def_state.TabIndex = 1;
         lbl_def_state.Text = "State";
         // 
         // lbl_def_country
         // 
         lbl_def_country.AutoSize = true;
-        lbl_def_country.Location = new Point(57, 33);
+        lbl_def_country.Location = new Point(98, 66);
+        lbl_def_country.Margin = new Padding(5, 0, 5, 0);
         lbl_def_country.Name = "lbl_def_country";
-        lbl_def_country.Size = new Size(50, 15);
+        lbl_def_country.Size = new Size(86, 30);
         lbl_def_country.TabIndex = 0;
         lbl_def_country.Text = "Country";
         // 
         // lbl_ca_name
         // 
         lbl_ca_name.AutoSize = true;
-        lbl_ca_name.Location = new Point(12, 158);
+        lbl_ca_name.Location = new Point(21, 316);
+        lbl_ca_name.Margin = new Padding(5, 0, 5, 0);
         lbl_ca_name.Name = "lbl_ca_name";
-        lbl_ca_name.Size = new Size(77, 15);
+        lbl_ca_name.Size = new Size(137, 30);
         lbl_ca_name.TabIndex = 10;
         lbl_ca_name.Text = "Server Name:";
         // 
         // bt_ca_cnf_search
         // 
-        bt_ca_cnf_search.Location = new Point(405, 12);
+        bt_ca_cnf_search.Location = new Point(694, 24);
+        bt_ca_cnf_search.Margin = new Padding(5, 6, 5, 6);
         bt_ca_cnf_search.Name = "bt_ca_cnf_search";
-        bt_ca_cnf_search.Size = new Size(75, 23);
+        bt_ca_cnf_search.Size = new Size(129, 46);
         bt_ca_cnf_search.TabIndex = 9;
         bt_ca_cnf_search.Text = "search";
         bt_ca_cnf_search.UseVisualStyleBackColor = true;
@@ -250,27 +270,29 @@ partial class Server
         // lbl_loc_cnf_ca
         // 
         lbl_loc_cnf_ca.AutoSize = true;
-        lbl_loc_cnf_ca.Location = new Point(12, 14);
+        lbl_loc_cnf_ca.Location = new Point(21, 28);
+        lbl_loc_cnf_ca.Margin = new Padding(5, 0, 5, 0);
         lbl_loc_cnf_ca.Name = "lbl_loc_cnf_ca";
-        lbl_loc_cnf_ca.Size = new Size(56, 15);
+        lbl_loc_cnf_ca.Size = new Size(97, 30);
         lbl_loc_cnf_ca.TabIndex = 8;
         lbl_loc_cnf_ca.Text = "Location:";
         // 
         // tb_ca_cnf_path
         // 
-        tb_ca_cnf_path.Location = new Point(73, 12);
+        tb_ca_cnf_path.Location = new Point(125, 24);
+        tb_ca_cnf_path.Margin = new Padding(5, 6, 5, 6);
         tb_ca_cnf_path.Name = "tb_ca_cnf_path";
-        tb_ca_cnf_path.Size = new Size(326, 23);
+        tb_ca_cnf_path.Size = new Size(556, 35);
         tb_ca_cnf_path.TabIndex = 7;
         // 
         // lb_server_certs
         // 
         lb_server_certs.FormattingEnabled = true;
-        lb_server_certs.ItemHeight = 15;
-        lb_server_certs.Location = new Point(12, 41);
-        lb_server_certs.Margin = new Padding(2);
+        lb_server_certs.ItemHeight = 30;
+        lb_server_certs.Location = new Point(21, 82);
+        lb_server_certs.Margin = new Padding(3, 4, 3, 4);
         lb_server_certs.Name = "lb_server_certs";
-        lb_server_certs.Size = new Size(124, 79);
+        lb_server_certs.Size = new Size(210, 154);
         lb_server_certs.TabIndex = 14;
         // 
         // gb_private
@@ -281,9 +303,11 @@ partial class Server
         gb_private.Controls.Add(lb_priv_filename);
         gb_private.Controls.Add(lb_priv_pass);
         gb_private.Controls.Add(lb_priv_bits);
-        gb_private.Location = new Point(12, 206);
+        gb_private.Location = new Point(21, 412);
+        gb_private.Margin = new Padding(5, 6, 5, 6);
         gb_private.Name = "gb_private";
-        gb_private.Size = new Size(180, 119);
+        gb_private.Padding = new Padding(5, 6, 5, 6);
+        gb_private.Size = new Size(309, 238);
         gb_private.TabIndex = 15;
         gb_private.TabStop = false;
         gb_private.Text = "Private";
@@ -292,50 +316,56 @@ partial class Server
         // 
         cb_priv_bits.FormattingEnabled = true;
         cb_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_priv_bits.Location = new Point(59, 22);
+        cb_priv_bits.Location = new Point(101, 44);
+        cb_priv_bits.Margin = new Padding(5, 6, 5, 6);
         cb_priv_bits.Name = "cb_priv_bits";
-        cb_priv_bits.Size = new Size(102, 23);
+        cb_priv_bits.Size = new Size(172, 38);
         cb_priv_bits.TabIndex = 24;
         cb_priv_bits.Text = "4096";
         // 
         // tb_priv_filename
         // 
-        tb_priv_filename.Location = new Point(61, 83);
+        tb_priv_filename.Location = new Point(105, 166);
+        tb_priv_filename.Margin = new Padding(5, 6, 5, 6);
         tb_priv_filename.Name = "tb_priv_filename";
-        tb_priv_filename.Size = new Size(100, 23);
+        tb_priv_filename.Size = new Size(169, 35);
         tb_priv_filename.TabIndex = 5;
         // 
         // tb_priv_passwd
         // 
-        tb_priv_passwd.Location = new Point(61, 53);
+        tb_priv_passwd.Location = new Point(105, 106);
+        tb_priv_passwd.Margin = new Padding(5, 6, 5, 6);
         tb_priv_passwd.Name = "tb_priv_passwd";
-        tb_priv_passwd.Size = new Size(100, 23);
+        tb_priv_passwd.Size = new Size(169, 35);
         tb_priv_passwd.TabIndex = 4;
         // 
         // lb_priv_filename
         // 
         lb_priv_filename.AutoSize = true;
-        lb_priv_filename.Location = new Point(6, 86);
+        lb_priv_filename.Location = new Point(10, 172);
+        lb_priv_filename.Margin = new Padding(5, 0, 5, 0);
         lb_priv_filename.Name = "lb_priv_filename";
-        lb_priv_filename.Size = new Size(55, 15);
+        lb_priv_filename.Size = new Size(96, 30);
         lb_priv_filename.TabIndex = 2;
         lb_priv_filename.Text = "Filename";
         // 
         // lb_priv_pass
         // 
         lb_priv_pass.AutoSize = true;
-        lb_priv_pass.Location = new Point(6, 56);
+        lb_priv_pass.Location = new Point(10, 112);
+        lb_priv_pass.Margin = new Padding(5, 0, 5, 0);
         lb_priv_pass.Name = "lb_priv_pass";
-        lb_priv_pass.Size = new Size(57, 15);
+        lb_priv_pass.Size = new Size(99, 30);
         lb_priv_pass.TabIndex = 1;
         lb_priv_pass.Text = "Password";
         // 
         // lb_priv_bits
         // 
         lb_priv_bits.AutoSize = true;
-        lb_priv_bits.Location = new Point(35, 27);
+        lb_priv_bits.Location = new Point(60, 54);
+        lb_priv_bits.Margin = new Padding(5, 0, 5, 0);
         lb_priv_bits.Name = "lb_priv_bits";
-        lb_priv_bits.Size = new Size(26, 15);
+        lb_priv_bits.Size = new Size(46, 30);
         lb_priv_bits.TabIndex = 0;
         lb_priv_bits.Text = "Bits";
         // 
@@ -347,79 +377,89 @@ partial class Server
         gb_public.Controls.Add(lb_pub_conffile);
         gb_public.Controls.Add(lb_pub_passwd);
         gb_public.Controls.Add(lb_pub_duration);
-        gb_public.Location = new Point(215, 206);
+        gb_public.Location = new Point(369, 412);
+        gb_public.Margin = new Padding(5, 6, 5, 6);
         gb_public.Name = "gb_public";
-        gb_public.Size = new Size(190, 119);
+        gb_public.Padding = new Padding(5, 6, 5, 6);
+        gb_public.Size = new Size(326, 238);
         gb_public.TabIndex = 16;
         gb_public.TabStop = false;
         gb_public.Text = "Public";
         // 
         // tb_pub_cnf
         // 
-        tb_pub_cnf.Location = new Point(73, 83);
+        tb_pub_cnf.Location = new Point(125, 166);
+        tb_pub_cnf.Margin = new Padding(5, 6, 5, 6);
         tb_pub_cnf.Name = "tb_pub_cnf";
-        tb_pub_cnf.Size = new Size(100, 23);
+        tb_pub_cnf.Size = new Size(169, 35);
         tb_pub_cnf.TabIndex = 6;
         // 
         // tb_pub_passwd
         // 
-        tb_pub_passwd.Location = new Point(73, 54);
+        tb_pub_passwd.Location = new Point(125, 108);
+        tb_pub_passwd.Margin = new Padding(5, 6, 5, 6);
         tb_pub_passwd.Name = "tb_pub_passwd";
-        tb_pub_passwd.Size = new Size(100, 23);
+        tb_pub_passwd.Size = new Size(169, 35);
         tb_pub_passwd.TabIndex = 5;
         // 
         // tb_pub_dura
         // 
-        tb_pub_dura.Location = new Point(73, 22);
+        tb_pub_dura.Location = new Point(125, 44);
+        tb_pub_dura.Margin = new Padding(5, 6, 5, 6);
         tb_pub_dura.Name = "tb_pub_dura";
-        tb_pub_dura.Size = new Size(100, 23);
+        tb_pub_dura.Size = new Size(169, 35);
         tb_pub_dura.TabIndex = 4;
         // 
         // lb_pub_conffile
         // 
         lb_pub_conffile.AutoSize = true;
-        lb_pub_conffile.Location = new Point(28, 88);
+        lb_pub_conffile.Location = new Point(48, 176);
+        lb_pub_conffile.Margin = new Padding(5, 0, 5, 0);
         lb_pub_conffile.Name = "lb_pub_conffile";
-        lb_pub_conffile.Size = new Size(43, 15);
+        lb_pub_conffile.Size = new Size(74, 30);
         lb_pub_conffile.TabIndex = 2;
         lb_pub_conffile.Text = "Config";
         // 
         // lb_pub_passwd
         // 
         lb_pub_passwd.AutoSize = true;
-        lb_pub_passwd.Location = new Point(18, 56);
+        lb_pub_passwd.Location = new Point(31, 112);
+        lb_pub_passwd.Margin = new Padding(5, 0, 5, 0);
         lb_pub_passwd.Name = "lb_pub_passwd";
-        lb_pub_passwd.Size = new Size(57, 15);
+        lb_pub_passwd.Size = new Size(99, 30);
         lb_pub_passwd.TabIndex = 1;
         lb_pub_passwd.Text = "Password";
         // 
         // lb_pub_duration
         // 
         lb_pub_duration.AutoSize = true;
-        lb_pub_duration.Location = new Point(18, 27);
+        lb_pub_duration.Location = new Point(31, 54);
+        lb_pub_duration.Margin = new Padding(5, 0, 5, 0);
         lb_pub_duration.Name = "lb_pub_duration";
-        lb_pub_duration.Size = new Size(53, 15);
+        lb_pub_duration.Size = new Size(94, 30);
         lb_pub_duration.TabIndex = 0;
         lb_pub_duration.Text = "Duration";
         // 
         // cb_new_server
         // 
         cb_new_server.AutoSize = true;
-        cb_new_server.Location = new Point(153, 45);
+        cb_new_server.Location = new Point(262, 90);
+        cb_new_server.Margin = new Padding(5, 6, 5, 6);
         cb_new_server.Name = "cb_new_server";
-        cb_new_server.Size = new Size(85, 19);
+        cb_new_server.Size = new Size(144, 34);
         cb_new_server.TabIndex = 17;
         cb_new_server.Text = "New Server";
         cb_new_server.UseVisualStyleBackColor = true;
-        cb_new_server.CheckStateChanged += Cb_new_server_CheckedChanged;
+        cb_new_server.CheckedChanged += cb_new_server_CheckedChanged;
         // 
         // rb_ca
         // 
         rb_ca.AutoSize = true;
         rb_ca.Checked = true;
-        rb_ca.Location = new Point(3, 3);
+        rb_ca.Location = new Point(5, 6);
+        rb_ca.Margin = new Padding(5, 6, 5, 6);
         rb_ca.Name = "rb_ca";
-        rb_ca.Size = new Size(41, 19);
+        rb_ca.Size = new Size(65, 34);
         rb_ca.TabIndex = 18;
         rb_ca.TabStop = true;
         rb_ca.Text = "CA";
@@ -428,9 +468,10 @@ partial class Server
         // rb_intermediate
         // 
         rb_intermediate.AutoSize = true;
-        rb_intermediate.Location = new Point(3, 28);
+        rb_intermediate.Location = new Point(5, 56);
+        rb_intermediate.Margin = new Padding(5, 6, 5, 6);
         rb_intermediate.Name = "rb_intermediate";
-        rb_intermediate.Size = new Size(92, 19);
+        rb_intermediate.Size = new Size(156, 34);
         rb_intermediate.TabIndex = 19;
         rb_intermediate.Text = "Intermediate";
         rb_intermediate.UseVisualStyleBackColor = true;
@@ -438,9 +479,10 @@ partial class Server
         // rb_server
         // 
         rb_server.AutoSize = true;
-        rb_server.Location = new Point(3, 53);
+        rb_server.Location = new Point(5, 106);
+        rb_server.Margin = new Padding(5, 6, 5, 6);
         rb_server.Name = "rb_server";
-        rb_server.Size = new Size(57, 19);
+        rb_server.Size = new Size(95, 34);
         rb_server.TabIndex = 20;
         rb_server.Text = "Server";
         rb_server.UseVisualStyleBackColor = true;
@@ -451,37 +493,29 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(215, 96);
+        panel1.Location = new Point(369, 192);
+        panel1.Margin = new Padding(5, 6, 5, 6);
         panel1.Name = "panel1";
-        panel1.Size = new Size(94, 113);
+        panel1.Size = new Size(161, 226);
         panel1.TabIndex = 21;
         // 
         // rb_user
         // 
         rb_user.AutoSize = true;
-        rb_user.Location = new Point(3, 76);
+        rb_user.Location = new Point(5, 152);
+        rb_user.Margin = new Padding(5, 6, 5, 6);
         rb_user.Name = "rb_user";
-        rb_user.Size = new Size(48, 19);
+        rb_user.Size = new Size(79, 34);
         rb_user.TabIndex = 21;
         rb_user.Text = "User";
         rb_user.UseVisualStyleBackColor = true;
         // 
-        // bt_add_server
-        // 
-        bt_add_server.Location = new Point(153, 67);
-        bt_add_server.Name = "bt_add_server";
-        bt_add_server.Size = new Size(75, 23);
-        bt_add_server.TabIndex = 22;
-        bt_add_server.Text = "Add";
-        bt_add_server.UseVisualStyleBackColor = true;
-        bt_add_server.Click += bt_add_server_Click;
-        // 
         // Bt_gen_priv
         // 
-        Bt_gen_priv.Location = new Point(24, 344);
-        Bt_gen_priv.Margin = new Padding(2);
+        Bt_gen_priv.Location = new Point(41, 688);
+        Bt_gen_priv.Margin = new Padding(3, 4, 3, 4);
         Bt_gen_priv.Name = "Bt_gen_priv";
-        Bt_gen_priv.Size = new Size(76, 47);
+        Bt_gen_priv.Size = new Size(130, 94);
         Bt_gen_priv.TabIndex = 23;
         Bt_gen_priv.Text = "Generate Private Key";
         Bt_gen_priv.UseVisualStyleBackColor = true;
@@ -489,9 +523,9 @@ partial class Server
         // 
         // Server
         // 
-        AutoScaleDimensions = new SizeF(7F, 15F);
+        AutoScaleDimensions = new SizeF(12F, 30F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(796, 428);
+        ClientSize = new Size(1365, 856);
         Controls.Add(Bt_gen_priv);
         Controls.Add(bt_add_server);
         Controls.Add(panel1);
@@ -506,7 +540,7 @@ partial class Server
         Controls.Add(bt_ca_cnf_search);
         Controls.Add(lbl_loc_cnf_ca);
         Controls.Add(tb_ca_cnf_path);
-        Margin = new Padding(2);
+        Margin = new Padding(3, 4, 3, 4);
         Name = "Server";
         Text = "server";
         Load += server_onLoad;
