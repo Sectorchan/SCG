@@ -97,7 +97,7 @@ public class Utils
             else
             {
                 MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
-                return 0;
+                return null;
             }
         }
 
