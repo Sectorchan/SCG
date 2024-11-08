@@ -12,18 +12,18 @@ using System.Xml.Linq;
 using FluentResults;
 using Microsoft.Data.Sqlite;
 using PL;
-using FluentResults;
 using WinFormsApp1;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static SCG.Ssql;
 using RadioButton = System.Windows.Forms.RadioButton;
 using System.Threading.Tasks.Dataflow;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace SCG.Forms;
 public partial class Server : Form
 {
-     public Server()
+    public Server()
     {
         InitializeComponent();
     }
@@ -32,7 +32,7 @@ public partial class Server : Form
     {
         Bt_gen_priv.Enabled = false;
         Result<List<string>> result = Utils.Sql.SqlSelect(Global.database, "name", Ssql.SQLTable.ca);
-       
+
         // get all reasons why result object indicates success or failure. 
         // contains Error and Success messages
         //IEnumerable<IReason> reasons = result.Reasons;
@@ -40,7 +40,11 @@ public partial class Server : Form
         //IEnumerable<IError> errors = result.Errors;
         // get all Success messages
         //IEnumerable<ISuccess> successes = result.Successes;
-
+        if (result.Value == null)
+        {
+            result = Result.Fail("Empty List");
+            return;
+        }
         if (result.IsSuccess)
         {
             foreach (var item in result.Value)
@@ -60,26 +64,26 @@ public partial class Server : Form
     /// Query the selection of the RadioButton
     /// </summary>
     /// <returns>Returns the visible text of the selected RadioButton</returns>
-    private Ssql.SQLTable CertType()
+    private Result<SQLTable> CertType()
     {
         string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
-        Ssql.SQLTable Table = Ssql.SQLTable.undefined;
+        SQLTable Table = SQLTable.undefined;
         switch (serverType)
         {
             case "CA":
-                Table = Ssql.SQLTable.ca;
+                Table = SQLTable.ca;
                 break;
             case "Intermediate":
-                Table = Ssql.SQLTable.intermediate;
+                Table = SQLTable.intermediate;
                 break;
             case "Server":
-                Table = Ssql.SQLTable.server;
+                Table = SQLTable.server;
                 break;
             case "User":
-                Table = Ssql.SQLTable.user;     
+                Table = SQLTable.user;
                 break;
         }
-        return Table;
+        return Result.Ok(Table);
     }
 
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
@@ -87,9 +91,27 @@ public partial class Server : Form
         try
         {
             int PrivateBits = int.Parse(cb_priv_bits.Text);
-            var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-            Ssql.SQLTable Certtype = CertType();
-            Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+            string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
+            Result<SQLTable> result = CertType();
+            if (result.IsSuccess)
+            {
+                Result<int> result1 = Utils.Sql.InsertInto("sds", result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+                IEnumerable<ISuccess> successes = result1.Successes;
+                IEnumerable<IError> errors = result1.Errors;
+                if (result1.IsSuccess)
+                {
+                    MessageBox.Show($"Added {result1.Value} entries to the database", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+
+                    FluentResults.Error myError = new FluentResults.Error("error msg");
+                    Result result3 = myError;
+                    MessageBox.Show($"{myError.Message.ToString()}");
+
+                    
+                }
+            }
         }
         catch (Exception ex)
         {

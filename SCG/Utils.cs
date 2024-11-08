@@ -6,6 +6,7 @@ using System.Text;
 using FluentResults;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+
 using SCG;
 using WinFormsApp1;
 using FluentResults;
@@ -28,11 +29,12 @@ public class Utils
         /// <param name="Privkey">The private key, as a PEM format string</param>
         /// <param name="Privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter </param>
         /// <returns></returns>
-        public static int InsertInto(string database, SQLTable table, string CaName, string Privpass, string Privkey, int Privbits = 4096)
+        public static Result<int> InsertInto(string database, SQLTable table, string CaName, string Privpass, string Privkey, int Privbits = 4096)
         {
             try
             {
                 string _table = "";
+
                 using var connection = new SqliteConnection(database);
                 connection.Open();
 
@@ -51,7 +53,8 @@ public class Utils
                         _table = "user";
                         break;
                 }
-                var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+                //var sql
+                string sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@Ca_Name", CaName);
@@ -61,12 +64,12 @@ public class Utils
                 command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
                 int rowInserted = command.ExecuteNonQuery();
 
-                return rowInserted;
+                return Result.Ok(rowInserted);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message.ToString(), "EXCEPTION", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 666;
+                //MessageBox.Show(ex.Message.ToString(), "EXCEPTION", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return Result.Fail("MÖÖÖÖP");
             }
         }
 
