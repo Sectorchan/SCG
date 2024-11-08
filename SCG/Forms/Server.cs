@@ -17,6 +17,7 @@ using WinFormsApp1;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static SCG.Ssql;
 using RadioButton = System.Windows.Forms.RadioButton;
+using System.Threading.Tasks.Dataflow;
 
 
 namespace SCG.Forms;
@@ -34,11 +35,11 @@ public partial class Server : Form
        
         // get all reasons why result object indicates success or failure. 
         // contains Error and Success messages
-        IEnumerable<IReason> reasons = result.Reasons;
+        //IEnumerable<IReason> reasons = result.Reasons;
         // get all Error messages
-        IEnumerable<IError> errors = result.Errors;
+        //IEnumerable<IError> errors = result.Errors;
         // get all Success messages
-        IEnumerable<ISuccess> successes = result.Successes;
+        //IEnumerable<ISuccess> successes = result.Successes;
 
         if (result.IsSuccess)
         {
@@ -50,10 +51,15 @@ public partial class Server : Form
         }
         else
         {
+            MessageBox.Show(result.Value.ToString(), "Error on Query SQL database", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
     }
 
+    /// <summary>
+    /// Query the selection of the RadioButton
+    /// </summary>
+    /// <returns>Returns the visible text of the selected RadioButton</returns>
     private Ssql.SQLTable CertType()
     {
         string serverType = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
@@ -78,10 +84,17 @@ public partial class Server : Form
 
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
     {
-        int PrivateBits = int.Parse(cb_priv_bits.Text);
-        var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-        Ssql.SQLTable Certtype = CertType();
-        Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+        try
+        {
+            int PrivateBits = int.Parse(cb_priv_bits.Text);
+            var PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
+            Ssql.SQLTable Certtype = CertType();
+            Utils.Sql.InsertInto(Global.database, Certtype, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.ToString(), sender.ToString());
+        }
     }
 
     private void cb_new_server_CheckedChanged(object sender, EventArgs e)

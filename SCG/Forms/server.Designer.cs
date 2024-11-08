@@ -70,7 +70,6 @@ partial class Server
         rb_server = new RadioButton();
         panel1 = new Panel();
         rb_user = new RadioButton();
-        bt_add_server = new Button();
         Bt_gen_priv = new Button();
         gb_default_disti_names.SuspendLayout();
         gb_private.SuspendLayout();
@@ -527,7 +526,6 @@ partial class Server
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1365, 856);
         Controls.Add(Bt_gen_priv);
-        Controls.Add(bt_add_server);
         Controls.Add(panel1);
         Controls.Add(cb_new_server);
         Controls.Add(gb_public);
@@ -598,7 +596,6 @@ partial class Server
     private RadioButton rb_intermediate;
     private RadioButton rb_server;
     private Panel panel1;
-    private Button bt_add_server;
     private Button Bt_gen_priv;
     private ComboBox cb_priv_bits;
     private RadioButton rb_user;
