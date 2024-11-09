@@ -503,24 +503,24 @@ namespace WinFormsApp1
         }
         private void Main_onLoad(object sender, EventArgs e)
         {
-            RefreshCaPrivLb(xml);
-            using var connection = new SqliteConnection(Global.database);
-            connection.Open();
-            var sql = "SELECT name FROM ca";
-            using var command = new SqliteCommand(sql, connection);
-            using var reader = command.ExecuteReader();
-            if (reader.HasRows)
-            {
-                while (reader.Read())
-                {
-                    var name = reader.GetString(0);
-                    lb_ca_priv.Items.Add(name);
-                }
-            }
-            else
-            {
-                MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
-            }
+            //RefreshCaPrivLb(xml);
+            //using var connection = new SqliteConnection(Global.database);
+            //connection.Open();
+            //var sql = "SELECT name FROM ca";
+            //using var command = new SqliteCommand(sql, connection);
+            //using var reader = command.ExecuteReader();
+            //if (reader.HasRows)
+            //{
+            //    while (reader.Read())
+            //    {
+            //        var name = reader.GetString(0);
+            //        lb_ca_priv.Items.Add(name);
+            //    }
+            //}
+            //else
+            //{
+            //    MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+            //}
 
         }
         
@@ -529,7 +529,8 @@ namespace WinFormsApp1
 
     public static class Global
     {
-        public static string database = @"Data Source=database.db";
+        public static string database = @"database.db";
+        //public static string database = @"Data Source=database.db";
         public static string ca_cnf = "openssl-ca.cnf";
         public static bool WriteToFile = true;
         public static bool UseOpenSSL = false;

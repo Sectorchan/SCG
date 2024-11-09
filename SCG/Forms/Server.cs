@@ -94,22 +94,15 @@ public partial class Server : Form
             string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
             Result<SQLTable> result = CertType();
             if (result.IsSuccess)
-            {
-                Result<int> result1 = Utils.Sql.InsertInto("sds", result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
-                IEnumerable<ISuccess> successes = result1.Successes;
-                IEnumerable<IError> errors = result1.Errors;
+            { 
+                Result<int> result1 = Utils.Sql.InsertInto(Global.database, result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
                 if (result1.IsSuccess)
                 {
                     MessageBox.Show($"Added {result1.Value} entries to the database", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-
-                    FluentResults.Error myError = new FluentResults.Error("error msg");
-                    Result result3 = myError;
-                    MessageBox.Show($"{myError.Message.ToString()}");
-
-                    
+                    MessageBox.Show(result1.Reasons[0].Message.ToString());
                 }
             }
         }

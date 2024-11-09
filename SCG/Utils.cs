@@ -35,7 +35,12 @@ public class Utils
             {
                 string _table = "";
 
-                using var connection = new SqliteConnection(database);
+                var _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = "database.db";
+                _connectionString.Password = null;
+                var connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
                 switch (table)
@@ -53,8 +58,8 @@ public class Utils
                         _table = "user";
                         break;
                 }
-                //var sql
-                string sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+                
+                var sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@Ca_Name", CaName);
@@ -68,8 +73,14 @@ public class Utils
             }
             catch (Exception ex)
             {
-                //MessageBox.Show(ex.Message.ToString(), "EXCEPTION", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return Result.Fail("MÖÖÖÖP");
+                if (ex == null)
+                {
+                    return Result.Fail("Possible wrong SQL credentials");
+                }
+                else
+                {
+                    return Result.Fail(ex.Message);
+                }
             }
         }
 
