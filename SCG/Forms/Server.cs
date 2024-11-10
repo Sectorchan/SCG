@@ -82,6 +82,11 @@ public partial class Server : Form
         return Result.Ok(Table);
     }
 
+    /// <summary>
+    /// Button click "Generate Private Key" > generates a private key and store it on the SQLite database.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Bt_gen_priv_onClick(object sender, EventArgs e)
     {
         try
@@ -127,9 +132,14 @@ public partial class Server : Form
         }
     }
 
+    /// <summary>
+    /// Enables the Generate Private Key button
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void cb_new_server_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_server.Checked && (lb_priv_bits.Text != ""))
+        if (cb_new_server.Checked && (lb_priv_bits.Text != "") && tb_ca_name.Text != "")
         {
             Bt_gen_priv.Enabled = true;
         }
@@ -137,6 +147,16 @@ public partial class Server : Form
         {
             Bt_gen_priv.Enabled = false;
         }
+    }
+
+    /// <summary>
+    /// Generates the public key, corresponding to the matching name of the private key
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void bt_gen_pub_key_Click(object sender, EventArgs e)
+    {
+
     }
 }
 
