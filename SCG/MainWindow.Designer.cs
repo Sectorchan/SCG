@@ -1,6 +1,6 @@
 ﻿namespace WinFormsApp1
 {
-    partial class Form1
+    partial class MainWindow
     {
         /// <summary>
         ///  Required designer variable.
@@ -53,8 +53,11 @@
             toolStripMenuItem2 = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem4 = new ToolStripMenuItem();
-            toolStripMenuItem6 = new ToolStripMenuItem();
+            opensslCnfCa = new ToolStripMenuItem();
+            opensslCnfInt = new ToolStripMenuItem();
+            serversToolStripMenuItem = new ToolStripMenuItem();
+            serverToolStripMenuItem = new ToolStripMenuItem();
+            usersToolStripMenuItem = new ToolStripMenuItem();
             copyToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem5 = new ToolStripMenuItem();
             toolStripMenuItem7 = new ToolStripMenuItem();
@@ -72,6 +75,7 @@
             label7 = new Label();
             gB_Ca = new GroupBox();
             Concantinate = new GroupBox();
+            button1 = new Button();
             bt_cat_gen = new Button();
             tb_cat_res_name = new TextBox();
             lbl_cat_out_name = new Label();
@@ -95,6 +99,11 @@
             tb_appl_key_pw1 = new TextBox();
             label10 = new Label();
             label6 = new Label();
+            pageSetupDialog1 = new PageSetupDialog();
+            lb_ca_priv = new ListBox();
+            lb_ca_pub = new ListBox();
+            folderBrowserDialog1 = new FolderBrowserDialog();
+            button2 = new Button();
             gB_intermediate = new GroupBox();
             gB_intermediate.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -120,7 +129,7 @@
             gB_intermediate.Controls.Add(tb_inter_cert_name);
             gB_intermediate.Controls.Add(label8);
             gB_intermediate.Controls.Add(label9);
-            gB_intermediate.Location = new Point(12, 158);
+            gB_intermediate.Location = new Point(201, 158);
             gB_intermediate.Name = "gB_intermediate";
             gB_intermediate.Size = new Size(705, 118);
             gB_intermediate.TabIndex = 19;
@@ -285,7 +294,7 @@
             tb_ca_priv_name.Name = "tb_ca_priv_name";
             tb_ca_priv_name.Size = new Size(100, 23);
             tb_ca_priv_name.TabIndex = 1;
-            tb_ca_priv_name.Text = "ca";
+            tb_ca_priv_name.Text = "Sample-ca2";
             // 
             // label1
             // 
@@ -298,10 +307,11 @@
             // 
             // menuStrip1
             // 
+            menuStrip1.ImageScalingSize = new Size(28, 28);
             menuStrip1.Items.AddRange(new ToolStripItem[] { mainToolStripMenuItem, editToolStripMenuItem, copyToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(800, 24);
+            menuStrip1.Size = new Size(938, 24);
             menuStrip1.TabIndex = 5;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -326,22 +336,44 @@
             // 
             // editToolStripMenuItem
             // 
-            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem4, toolStripMenuItem6 });
+            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { opensslCnfCa, opensslCnfInt, serversToolStripMenuItem });
             editToolStripMenuItem.Name = "editToolStripMenuItem";
             editToolStripMenuItem.Size = new Size(86, 20);
             editToolStripMenuItem.Text = "configssl.cnf";
             // 
-            // toolStripMenuItem4
+            // opensslCnfCa
             // 
-            toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(141, 22);
-            toolStripMenuItem4.Text = "CA";
+            opensslCnfCa.Name = "opensslCnfCa";
+            opensslCnfCa.Size = new Size(141, 22);
+            opensslCnfCa.Text = "CA";
+            opensslCnfCa.Click += opensslCnfCa_click;
             // 
-            // toolStripMenuItem6
+            // opensslCnfInt
             // 
-            toolStripMenuItem6.Name = "toolStripMenuItem6";
-            toolStripMenuItem6.Size = new Size(141, 22);
-            toolStripMenuItem6.Text = "Intermediate";
+            opensslCnfInt.Name = "opensslCnfInt";
+            opensslCnfInt.Size = new Size(141, 22);
+            opensslCnfInt.Text = "Intermediate";
+            opensslCnfInt.Click += opensslCnfInt_click;
+            // 
+            // serversToolStripMenuItem
+            // 
+            serversToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { serverToolStripMenuItem, usersToolStripMenuItem });
+            serversToolStripMenuItem.Name = "serversToolStripMenuItem";
+            serversToolStripMenuItem.Size = new Size(141, 22);
+            serversToolStripMenuItem.Text = "Server / User";
+            // 
+            // serverToolStripMenuItem
+            // 
+            serverToolStripMenuItem.Name = "serverToolStripMenuItem";
+            serverToolStripMenuItem.Size = new Size(106, 22);
+            serverToolStripMenuItem.Text = "Server";
+            serverToolStripMenuItem.Click += serverConfigList_click;
+            // 
+            // usersToolStripMenuItem
+            // 
+            usersToolStripMenuItem.Name = "usersToolStripMenuItem";
+            usersToolStripMenuItem.Size = new Size(106, 22);
+            usersToolStripMenuItem.Text = "Users";
             // 
             // copyToolStripMenuItem
             // 
@@ -393,7 +425,7 @@
             tb_ca_cert_name.Name = "tb_ca_cert_name";
             tb_ca_cert_name.Size = new Size(100, 23);
             tb_ca_cert_name.TabIndex = 9;
-            tb_ca_cert_name.Text = "ca";
+            tb_ca_cert_name.Text = "Sample-ca";
             // 
             // tb_ca_cert_days
             // 
@@ -406,7 +438,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(78, 34);
+            label3.Location = new Point(255, 21);
             label3.Name = "label3";
             label3.Size = new Size(39, 15);
             label3.TabIndex = 11;
@@ -415,7 +447,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(182, 28);
+            label4.Location = new Point(373, 34);
             label4.Name = "label4";
             label4.Size = new Size(54, 15);
             label4.TabIndex = 12;
@@ -424,7 +456,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(404, 27);
+            label5.Location = new Point(593, 34);
             label5.Name = "label5";
             label5.Size = new Size(112, 15);
             label5.TabIndex = 13;
@@ -480,7 +512,7 @@
             gB_Ca.Controls.Add(tb_ca_cert_days);
             gB_Ca.Controls.Add(tb_ca_key_pw1);
             gB_Ca.Controls.Add(tb_ca_key_pw2);
-            gB_Ca.Location = new Point(12, 52);
+            gB_Ca.Location = new Point(201, 52);
             gB_Ca.Name = "gB_Ca";
             gB_Ca.Size = new Size(711, 100);
             gB_Ca.TabIndex = 18;
@@ -489,6 +521,7 @@
             // 
             // Concantinate
             // 
+            Concantinate.Controls.Add(button1);
             Concantinate.Controls.Add(bt_cat_gen);
             Concantinate.Controls.Add(tb_cat_res_name);
             Concantinate.Controls.Add(lbl_cat_out_name);
@@ -496,12 +529,22 @@
             Concantinate.Controls.Add(lbl_cat_ca_name);
             Concantinate.Controls.Add(tb_cat_inter_name);
             Concantinate.Controls.Add(tb_cat_ca_name);
-            Concantinate.Location = new Point(12, 282);
+            Concantinate.Location = new Point(201, 282);
             Concantinate.Name = "Concantinate";
             Concantinate.Size = new Size(705, 104);
             Concantinate.TabIndex = 20;
             Concantinate.TabStop = false;
             Concantinate.Text = "Concat CA with Intemediate";
+            // 
+            // button1
+            // 
+            button1.Location = new Point(167, 68);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 7;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // bt_cat_gen
             // 
@@ -565,7 +608,7 @@
             // tb_debugoutput
             // 
             tb_debugoutput.ImeMode = ImeMode.NoControl;
-            tb_debugoutput.Location = new Point(75, 536);
+            tb_debugoutput.Location = new Point(266, 558);
             tb_debugoutput.MaxLength = 2000000000;
             tb_debugoutput.Multiline = true;
             tb_debugoutput.Name = "tb_debugoutput";
@@ -590,7 +633,7 @@
             gb_application.Controls.Add(tb_appl_csr_name);
             gb_application.Controls.Add(label10);
             gb_application.Controls.Add(label6);
-            gb_application.Location = new Point(11, 393);
+            gb_application.Location = new Point(201, 392);
             gb_application.Name = "gb_application";
             gb_application.Size = new Size(711, 138);
             gb_application.TabIndex = 22;
@@ -720,11 +763,45 @@
             label6.TabIndex = 19;
             label6.Text = "Key:";
             // 
-            // Form1
+            // lb_ca_priv
+            // 
+            lb_ca_priv.FormattingEnabled = true;
+            lb_ca_priv.ItemHeight = 15;
+            lb_ca_priv.Location = new Point(8, 52);
+            lb_ca_priv.Margin = new Padding(2);
+            lb_ca_priv.Name = "lb_ca_priv";
+            lb_ca_priv.Size = new Size(124, 79);
+            lb_ca_priv.TabIndex = 23;
+            // 
+            // lb_ca_pub
+            // 
+            lb_ca_pub.FormattingEnabled = true;
+            lb_ca_pub.ItemHeight = 15;
+            lb_ca_pub.Location = new Point(8, 134);
+            lb_ca_pub.Margin = new Padding(2);
+            lb_ca_pub.Name = "lb_ca_pub";
+            lb_ca_pub.Size = new Size(124, 79);
+            lb_ca_pub.TabIndex = 24;
+            // 
+            // button2
+            // 
+            button2.Location = new Point(44, 246);
+            button2.Margin = new Padding(2);
+            button2.Name = "button2";
+            button2.Size = new Size(76, 20);
+            button2.TabIndex = 25;
+            button2.Text = "button2";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
+            // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 658);
+            ClientSize = new Size(938, 658);
+            Controls.Add(button2);
+            Controls.Add(lb_ca_pub);
+            Controls.Add(lb_ca_priv);
             Controls.Add(gb_application);
             Controls.Add(tb_debugoutput);
             Controls.Add(Concantinate);
@@ -735,8 +812,9 @@
             Controls.Add(label4);
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
-            Name = "Form1";
+            Name = "MainWindow";
             Text = "Form1";
+            Load += Main_onLoad;
             gB_intermediate.ResumeLayout(false);
             gB_intermediate.PerformLayout();
             menuStrip1.ResumeLayout(false);
@@ -762,8 +840,8 @@
         private ToolStripMenuItem copyToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem2;
         private ToolStripMenuItem toolStripMenuItem3;
-        private ToolStripMenuItem toolStripMenuItem4;
-        private ToolStripMenuItem toolStripMenuItem6;
+        private ToolStripMenuItem opensslCnfCa;
+        private ToolStripMenuItem opensslCnfInt;
         private ToolStripMenuItem toolStripMenuItem5;
         private ToolStripMenuItem toolStripMenuItem7;
         private TextBox tb_ca_key_pw1;
@@ -819,5 +897,14 @@
         private Label label11;
         private TextBox tb_appl_sign_inter_name;
         private TextBox tb_inter_cert_name;
+        private PageSetupDialog pageSetupDialog1;
+        private Button button1;
+        private ToolStripMenuItem serversToolStripMenuItem;
+        private ToolStripMenuItem serverToolStripMenuItem;
+        private ToolStripMenuItem usersToolStripMenuItem;
+        private ListBox lb_ca_priv;
+        private ListBox lb_ca_pub;
+        private FolderBrowserDialog folderBrowserDialog1;
+        private Button button2;
     }
 }
