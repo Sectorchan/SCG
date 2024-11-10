@@ -31,27 +31,23 @@ public partial class Server : Form
     private void server_onLoad(object sender, EventArgs e)
     {
         Bt_gen_priv.Enabled = false;
-        Result<List<string>> result = Utils.Sql.SqlSelect(Global.database, "name", Ssql.SQLTable.ca);
+        Result<List<string>> result = Utils.Sql.SqlSelect(Global.database, "name", SQLTable.ca);
 
-        // get all reasons why result object indicates success or failure. 
-        // contains Error and Success messages
-        //IEnumerable<IReason> reasons = result.Reasons;
-        // get all Error messages
-        //IEnumerable<IError> errors = result.Errors;
-        // get all Success messages
-        //IEnumerable<ISuccess> successes = result.Successes;
-        if (result.Value == null)
-        {
-            result = Result.Fail("Empty List");
-            return;
-        }
         if (result.IsSuccess)
         {
-            foreach (var item in result.Value)
+            if (result.Value == null)
             {
-                lb_server_certs.Items.Add(item);
+                result = Result.Fail("Empty List");
+                return;
             }
-            lb_server_certs.Sorted = true;
+            else
+            {
+                foreach (var item in result.Value)
+                {
+                    lb_server_certs.Items.Add(item);
+                }
+                lb_server_certs.Sorted = true;
+            }
         }
         else
         {
@@ -94,7 +90,7 @@ public partial class Server : Form
             string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
             Result<SQLTable> result = CertType();
             if (result.IsSuccess)
-            { 
+            {
                 Result<int> result1 = Utils.Sql.InsertInto(Global.database, result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
                 if (result1.IsSuccess)
                 {
@@ -103,6 +99,25 @@ public partial class Server : Form
                 else
                 {
                     MessageBox.Show(result1.Reasons[0].Message.ToString());
+                }
+            }
+            Result<List<string>> result2 = Utils.Sql.SqlSelect(Global.database, "name", SQLTable.ca);
+
+            if (result2.IsSuccess)
+            {
+                if (result2.Value == null)
+                {
+                    result2 = Result.Fail("Empty List");
+                    return;
+                }
+                else
+                {
+                    lb_server_certs.Items.Clear();
+                    foreach (var item in result2.Value)
+                    {
+                        lb_server_certs.Items.Add(item);
+                    }
+                    lb_server_certs.Sorted = true;
                 }
             }
         }

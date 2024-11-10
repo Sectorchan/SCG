@@ -93,7 +93,14 @@ public class Utils
         /// <returns>Result<List<string>></returns>
         public static List<string> SqlSelect(string database, string column, SQLTable table)
         {
-            using var connection = new SqliteConnection(database);
+
+            var _connectionString = new SqliteConnectionStringBuilder();
+            _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+            _connectionString.DataSource = "database.db";
+            _connectionString.Password = null;
+            var connectionString = _connectionString.ToString();
+            using var connection = new SqliteConnection(connectionString);
+            //using var connection = new SqliteConnection(database);
             string _table = "ca";
             connection.Open();
             var sql = $"SELECT {column} FROM {_table}";
@@ -119,7 +126,7 @@ public class Utils
         {
             MessageBox.Show(sender.ToString());
         }
-
+       
 
     }
     public class Certs
