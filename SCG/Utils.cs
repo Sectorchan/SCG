@@ -6,10 +6,8 @@ using System.Text;
 using FluentResults;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
-
 using SCG;
 using WinFormsApp1;
-using FluentResults;
 using static SCG.Ssql;
 using System.Diagnostics.Contracts;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -182,20 +180,22 @@ public class Utils
         /// Generate the public key
         /// </summary>
         /// <returns></returns>
-        public static string CreatePubKey()
+        public static string CreatePubKey(int duration, string privatePassword, string configFile, string privateKey)
         {
-            string Pubkey = "";
-            string Privkey = "";
+            //string Privkey = "";
 
             RSA PubKey = RSA.Create();
-            string importPemKey = File.ReadAllText(@"pl.key1.pem"); // file containing RSA PKCS1 private key
-            PubKey.ImportFromPem(importPemKey.ToCharArray());
-            Console.WriteLine(PubKey.ExportRSAPublicKeyPem());
-            using (StreamWriter outputFile = new StreamWriter("pl.key56.pem"))
-            { outputFile.WriteLine(PubKey.ExportRSAPublicKeyPem()); }
+            //string importPemKey = File.ReadAllText(@"pl.key1.pem"); // file containing RSA PKCS1 private key
+            //PubKey.ImportFromPem(importPemKey.ToCharArray());
 
+            PubKey.ImportFromPem(privateKey.ToCharArray());
+            string pubKeyPem = PubKey.ExportRSAPublicKeyPem();
 
-            return Pubkey;
+            //using (StreamWriter outputFile = new StreamWriter("pl.key56.pem"))
+            //{
+            //    outputFile.WriteLine(PubKey.ExportRSAPublicKeyPem());
+            //}
+            return pubKeyPem;
         }
     }
 }

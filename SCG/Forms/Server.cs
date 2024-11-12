@@ -56,6 +56,27 @@ public partial class Server : Form
         }
     }
 
+    private Result<SQLTable> SqlTable()
+    {
+        string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
+        SQLTable Table = SQLTable.undefined;
+        switch (SqlTable)
+        {
+            case "CA":
+                Table = SQLTable.ca;
+                break;
+            case "Intermediate":
+                Table = SQLTable.intermediate;
+                break;
+            case "Server":
+                Table = SQLTable.server;
+                break;
+            case "User":
+                Table = SQLTable.user;
+                break;
+        }
+        return Result.Ok(Table);
+    }
     /// <summary>
     /// Query the selection of the RadioButton
     /// </summary>
@@ -156,7 +177,21 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void bt_gen_pub_key_Click(object sender, EventArgs e)
     {
+        int pubDura = Convert.ToInt16(tb_pub_dura.Text);
+        string pubPasswd = tb_pub_passwd.Text;
+        string pubConfig = tb_pub_cnf.Text;
+        string serverSelect = lb_server_certs.SelectedItem.ToString();
 
+        Result<string> privateKey = Utils.Sql.SqlSelectWhere(Global.database, "private_content", SqlTable().Value, "name", serverSelect);
+        if (privateKey.IsSuccess)
+        {
+            Utils.Certs.CreatePubKey(pubDura, pubPasswd, pubConfig, privateKey.Value);
+        }
+
+        
+
+        string result = lb_server_certs.SelectedItem.ToString();
+        MessageBox.Show(privateKey);
     }
 }
 
