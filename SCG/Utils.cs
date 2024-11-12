@@ -147,8 +147,11 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
+                //string sql = "SELECT private_content FROM ca WHERE name=111"; //geht
+                //var sql = $"SELECT private_content FROM ca WHERE name = @_searchValue"; //geht
+                //var sql = $"SELECT {column} FROM ca WHERE name = @_searchValue"; // geht
+                var sql = $"SELECT {column} FROM {table} WHERE name = @_searchValue";
                 
-                string sql = $"SELECT @_column FROM @_table WHERE @_searchColumn = @_searchValue'";
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_column", column);
@@ -164,11 +167,11 @@ public class Utils
                         string privKey = reader.GetString(0);
                         return Result.Ok(privKey);
                     }
-                    return Result.Fail("No SQL entries found");
+                    return Result.Fail(sql);
                 }
                 else
                 {
-                    return Result.Fail("No SQL entries found");
+                    return Result.Fail(sql);
                 }
               
 
