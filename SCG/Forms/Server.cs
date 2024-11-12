@@ -114,7 +114,7 @@ public partial class Server : Form
         {
             int PrivateBits = int.Parse(cb_priv_bits.Text);
             string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-            Result<SQLTable> result = CertType();
+            Result<SQLTable> result = SqlTable();
             if (result.IsSuccess)
             {
                 Result<int> result1 = Utils.Sql.InsertInto(Global.database, result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
@@ -181,17 +181,27 @@ public partial class Server : Form
         string pubPasswd = tb_pub_passwd.Text;
         string pubConfig = tb_pub_cnf.Text;
         string serverSelect = lb_server_certs.SelectedItem.ToString();
+        Result<SQLTable> table = SqlTable();
 
-        Result<string> privateKey = Utils.Sql.SqlSelectWhere(Global.database, "private_content", SqlTable().Value, "name", serverSelect);
+        Result<string> privateKey = Utils.Sql.SelectWhere(Global.database, "private_content", table.Value, "name", serverSelect);
         if (privateKey.IsSuccess)
         {
-            Utils.Certs.CreatePubKey(pubDura, pubPasswd, pubConfig, privateKey.Value);
+
+            string publicKey = Utils.Certs.CreatePubKey(pubDura, pubConfig, privateKey.Value);
+            Result<int> result = Utils.Sql.Update(Global.database, SQLTable.ca, pubDura, publicKey, serverSelect, pubPasswd, DateTime.Now.ToString());
+
+            if (result.IsSuccess)
+            {
+                MessageBox.Show($"Updated {result.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(result.Reasons[0].Message.ToString());
+            }
         }
 
-        
-
-        string result = lb_server_certs.SelectedItem.ToString();
-        MessageBox.Show(privateKey);
+        //string result = lb_server_certs.SelectedItem.ToString();
+        //MessageBox.Show(privateKey);
     }
 }
 

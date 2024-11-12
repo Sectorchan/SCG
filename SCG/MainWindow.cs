@@ -255,8 +255,6 @@ namespace WinFormsApp1
                 {
                     if (tb_ca_key_pw1.Text.Equals(tb_ca_key_pw2.Text))
                     {
-
-
                         RSA rsa = RSA.Create();
                         rsa.KeySize = 4096;
 
@@ -523,7 +521,7 @@ namespace WinFormsApp1
             //}
 
         }
-        
+
 
     }
 

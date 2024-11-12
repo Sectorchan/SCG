@@ -12,6 +12,9 @@ using static SCG.Ssql;
 using System.Diagnostics.Contracts;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
+using Microsoft.VisualBasic;
+using static PL.Utils;
+using System.Xml.Linq;
 
 namespace PL;
 public class Utils
@@ -38,7 +41,7 @@ public class Utils
 
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = "database.db";
+                _connectionString.DataSource = database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -101,10 +104,10 @@ public class Utils
             _connectionString.Password = null;
             string connectionString = _connectionString.ToString();
             using var connection = new SqliteConnection(connectionString);
-            //using var connection = new SqliteConnection(database);
-            //string _table = "ca";
             connection.Open();
+
             var sql = $"SELECT {column} FROM {table}";
+
             using var command = new SqliteCommand(sql, connection);
             using SqliteDataReader reader = command.ExecuteReader();
             if (reader.HasRows)
@@ -132,7 +135,7 @@ public class Utils
         /// <param name="searchColumn">In which column should be searched</param>
         /// <param name="searchValue">The Value that should be searched for in the searchColumn</param>
         /// <returns>Returns the string if found</returns>
-        public static Result<string> SqlSelectWhere(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        public static Result<string> SelectWhere(string database, string column, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
@@ -144,15 +147,74 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string whereResult = $"SELECT {column} FROM {table} WHERE {searchColumn}='{searchValue}'";
-                return Result.Ok(whereResult);
+                
+                string sql = $"SELECT @_column FROM @_table WHERE @_searchColumn = @_searchValue'";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_column", column);
+                command.Parameters.AddWithValue("@_table", table);
+                command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+
+                using var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        string privKey = reader.GetString(0);
+                        return Result.Ok(privKey);
+                    }
+                    return Result.Fail("No SQL entries found");
+                }
+                else
+                {
+                    return Result.Fail("No SQL entries found");
+                }
+              
+
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(),"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return Result.Fail(ex.Message);
             }
 
+        }
+
+        /// <summary>
+        /// Performs a SQL Update statement
+        /// </summary>
+        /// <returns></returns>
+        public static Result<int> Update(string database, SQLTable table, int publicDuration, string publicKey, string searchTerm, string publicPasswd,string addTime = null)
+        { 
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string sql = $"UPDATE {table} SET public_duration = @_publicDuration, public_pass = @_publicPasswd, public_content = @_publicKey, public_createDT = @_addTime WHERE name = @_searchTerm";
+
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_publicDuration", publicDuration);
+                command.Parameters.AddWithValue("@_publicPasswd", publicPasswd);
+                command.Parameters.AddWithValue("@_publicKey", publicKey);
+                command.Parameters.AddWithValue("@_addTime", addTime);
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+                
+                int rowInserted = command.ExecuteNonQuery();
+
+                return Result.Ok(rowInserted);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.Message);
+            }
         }
 
         public void ReadCaList(object sender)
@@ -176,25 +238,17 @@ public class Utils
             var Privkey = rsa.ExportRSAPrivateKeyPem();
             return Privkey;
         }
+
         /// <summary>
         /// Generate the public key
         /// </summary>
         /// <returns></returns>
-        public static string CreatePubKey(int duration, string privatePassword, string configFile, string privateKey)
+        public static string CreatePubKey(int duration, string configFile, string privateKey, string privatePassword = null)
         {
-            //string Privkey = "";
-
             RSA PubKey = RSA.Create();
-            //string importPemKey = File.ReadAllText(@"pl.key1.pem"); // file containing RSA PKCS1 private key
-            //PubKey.ImportFromPem(importPemKey.ToCharArray());
-
             PubKey.ImportFromPem(privateKey.ToCharArray());
             string pubKeyPem = PubKey.ExportRSAPublicKeyPem();
 
-            //using (StreamWriter outputFile = new StreamWriter("pl.key56.pem"))
-            //{
-            //    outputFile.WriteLine(PubKey.ExportRSAPublicKeyPem());
-            //}
             return pubKeyPem;
         }
     }
