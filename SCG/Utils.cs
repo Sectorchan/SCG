@@ -150,14 +150,16 @@ public class Utils
                 //string sql = "SELECT private_content FROM ca WHERE name=111"; //geht
                 //var sql = $"SELECT private_content FROM ca WHERE name = @_searchValue"; //geht
                 //var sql = $"SELECT {column} FROM ca WHERE name = @_searchValue"; // geht
-                var sql = $"SELECT {column} FROM {table} WHERE name = @_searchValue";
-                
+                //var sql = $"SELECT {column} FROM {table} WHERE name = @_searchValue"; // geht
+                //var sql = $"SELECT {column} FROM {table} WHERE name = {searchValue}"; // geht
+                string sql = $"SELECT {column} FROM {table} WHERE name = {searchValue}";  // geht
+
 
                 using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_column", column);
-                command.Parameters.AddWithValue("@_table", table);
-                command.Parameters.AddWithValue("@_searchColumn", searchColumn);
-                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                //command.Parameters.AddWithValue("@_column", column);
+                //command.Parameters.AddWithValue("@_table", table);
+                //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                //command.Parameters.AddWithValue("@_searchValue", searchValue);
 
                 using var reader = command.ExecuteReader();
                 if (reader.HasRows)
