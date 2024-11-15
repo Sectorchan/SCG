@@ -21,8 +21,6 @@ public class Utils
 {
     public class Sql
     {
-
-
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -149,13 +147,37 @@ public class Utils
 
                 //string sql = "SELECT private_content FROM ca WHERE name=111"; //geht
                 //var sql = $"SELECT private_content FROM ca WHERE name = @_searchValue"; //geht
+
                 //var sql = $"SELECT {column} FROM ca WHERE name = @_searchValue"; // geht
+                //using var command = new SqliteCommand(sql, connection);
+                //command.Parameters.AddWithValue("@_column", column);
+                //command.Parameters.AddWithValue("@_table", table);
+                //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                //command.Parameters.AddWithValue("@_searchValue", searchValue);
+
                 //var sql = $"SELECT {column} FROM {table} WHERE name = @_searchValue"; // geht
-                //var sql = $"SELECT {column} FROM {table} WHERE name = {searchValue}"; // geht
-                string sql = $"SELECT {column} FROM {table} WHERE name = {searchValue}";  // geht
+                //using var command = new SqliteCommand(sql, connection);
+                //command.Parameters.AddWithValue("@_column", column);
+                //command.Parameters.AddWithValue("@_table", table);
+                //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                //command.Parameters.AddWithValue("@_searchValue", searchValue);
 
-
+                var sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue"; // geht nicht 
                 using var command = new SqliteCommand(sql, connection);
+                //command.Parameters.AddWithValue("@_column", column);
+                //command.Parameters.AddWithValue("@_table", table);
+                //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+
+                //  var sql = $"SELECT _column FROM @_table WHERE name= @_searchValue"; // geht nicht 
+                //using var command = new SqliteCommand(sql, connection);
+                //command.Parameters.AddWithValue("@_column", column);
+                //command.Parameters.AddWithValue("@_table", table);
+                //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
+                //command.Parameters.AddWithValue("@_searchValue", searchValue);
+
+                //var sql = $"SELECT {column} FROM {table} WHERE name={searchValue}"; // geht nicht bei numerisch keinen eintrag bei string exception
+                //using var command = new SqliteCommand(sql, connection);
                 //command.Parameters.AddWithValue("@_column", column);
                 //command.Parameters.AddWithValue("@_table", table);
                 //command.Parameters.AddWithValue("@_searchColumn", searchColumn);
@@ -186,11 +208,19 @@ public class Utils
 
         }
 
+
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
+        /// <param name="database">Defines the target database</param>
+        /// <param name="table">Defines the table inside the database</param>
+        /// <param name="publicDuration">Set the duration of the public certificate</param>
+        /// <param name="publicKey">The publicKey that shall be written into the database</param>
+        /// <param name="searchTerm">Select the server</param>
+        /// <param name="publicPasswd">Set the password for the PRIVATE key</param>
+        /// <param name="addTime">Adds the time for the time column</param>
         /// <returns></returns>
-        public static Result<int> Update(string database, SQLTable table, int publicDuration, string publicKey, string searchTerm, string publicPasswd,string addTime = null)
+        public static Result<int> Update(string database, SQLTable table, int publicDuration, string publicKey, string searchTerm, string publicPasswd, string addTime = null)
         { 
             try
             {
@@ -202,18 +232,31 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string sql = $"UPDATE {table} SET public_duration = @_publicDuration, public_pass = @_publicPasswd, public_content = @_publicKey, public_createDT = @_addTime WHERE name = @_searchTerm";
+                int rowInserted;
 
-                using var command = new SqliteCommand(sql, connection);
+                if (addTime == null)
+                {
+                    string sql = $"UPDATE {table} SET public_duration = @_publicDuration, public_pass = @_publicPasswd, public_content = @_publicKey WHERE name = @_searchTerm";
 
-                command.Parameters.AddWithValue("@_publicDuration", publicDuration);
-                command.Parameters.AddWithValue("@_publicPasswd", publicPasswd);
-                command.Parameters.AddWithValue("@_publicKey", publicKey);
-                command.Parameters.AddWithValue("@_addTime", addTime);
-                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
-                
-                int rowInserted = command.ExecuteNonQuery();
+                    using var command = new SqliteCommand(sql, connection);
+                    command.Parameters.AddWithValue("@_publicDuration", publicDuration);
+                    command.Parameters.AddWithValue("@_publicPasswd", publicPasswd);
+                    command.Parameters.AddWithValue("@_publicKey", publicKey);
+                    command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+                    rowInserted = command.ExecuteNonQuery();
+                }
+                else
+                {
+                    string sql = $"UPDATE {table} SET public_duration = @_publicDuration, public_pass = @_publicPasswd, public_content = @_publicKey, public_createDT = @_addTime WHERE name = @_searchTerm";
 
+                    using var command = new SqliteCommand(sql, connection);
+                    command.Parameters.AddWithValue("@_publicDuration", publicDuration);
+                    command.Parameters.AddWithValue("@_publicPasswd", publicPasswd);
+                    command.Parameters.AddWithValue("@_publicKey", publicKey);
+                    command.Parameters.AddWithValue("@_addTime", addTime);
+                    command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+                    rowInserted = command.ExecuteNonQuery();
+                }
                 return Result.Ok(rowInserted);
             }
             catch (Exception ex)
@@ -247,11 +290,12 @@ public class Utils
         /// <summary>
         /// Generate the public key
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns the public key in PEM format</returns>
         public static string CreatePubKey(int duration, string configFile, string privateKey, string privatePassword = null)
         {
             RSA PubKey = RSA.Create();
             PubKey.ImportFromPem(privateKey.ToCharArray());
+            
             string pubKeyPem = PubKey.ExportRSAPublicKeyPem();
 
             return pubKeyPem;

@@ -34,6 +34,12 @@
     <None Update="ApplicationSettings.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="database.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="database.sqbpro">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="default_files\openssl-ca.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

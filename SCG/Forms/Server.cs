@@ -203,6 +203,11 @@ public partial class Server : Form
         //string result = lb_server_certs.SelectedItem.ToString();
         //MessageBox.Show(privateKey);
     }
+
+    private void bt_upd_dest_names_Click(object sender, EventArgs e)
+    {
+
+    }
 }
 
 
