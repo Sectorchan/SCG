@@ -17,7 +17,10 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static SCG.Ssql;
 using RadioButton = System.Windows.Forms.RadioButton;
 using System.Threading.Tasks.Dataflow;
+using System.Runtime.InteropServices.JavaScript;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 
 namespace SCG.Forms;
@@ -31,32 +34,68 @@ public partial class Server : Form
     private void server_onLoad(object sender, EventArgs e)
     {
         Bt_gen_priv.Enabled = false;
-        Result<List<string>> result = Utils.Sql.SqlSelect(Global.database, "name", SQLTable.ca);
 
-        if (result.IsSuccess)
+        lb_server_certs.Items.Clear();
+        ReadServers(lb_server_certs);
+        lb_server_certs.Sorted = true;
+        string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
+        if (SqlTable == "CA")
         {
-            if (result.Value == null)
+            cb_isCa.Checked = true;
+            cb_issueCert.Checked = true;
+        }
+        //Result<List<string>> result = ReadServers(lb_server_certs);
+        //if (result.IsSuccess)
+        //{
+        //    foreach (var item in result.Value)
+        //    {
+        //        lb_server_certs.Items.Add(item);
+        //    }
+        //    lb_server_certs.Sorted = true;
+        //}
+        //else
+        //{
+        //    MessageBox.Show(result.Reasons[0].Message.ToString());
+        //}
+    }
+
+    public Result<List<string>> ReadServers(dynamic control)
+    {
+        try
+        {
+            Result<SQLTable> result = SqlTable();
+            List<string> serverList = new List<string>();
+            Result<List<string>> result2 = Utils.Sql.SqlSelect(Global.database, "name", result.Value);
+
+            if (result2.IsSuccess)
             {
-                result = Result.Fail("Empty List");
-                return;
+                if (result2.Value == null)
+                {
+                    return Result.Fail("Empty List");
+                }
+                else
+                {
+                    foreach (var item in result2.Value)
+                    {
+                        control.Items.Add(item);
+                    }
+                    return Result.Ok(serverList);
+                }
             }
             else
             {
-                foreach (var item in result.Value)
-                {
-                    lb_server_certs.Items.Add(item);
-                }
-                lb_server_certs.Sorted = true;
+                return Result.Fail("Fehler");
             }
         }
-        else
+        catch (Exception ex)
         {
-            MessageBox.Show(result.Value.ToString(), "Error on Query SQL database", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
+            return Result.Fail(ex.Message);
+
         }
+
     }
 
-    private Result<SQLTable> SqlTable()
+    public Result<SQLTable> SqlTable()
     {
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         SQLTable Table = SQLTable.undefined;
@@ -113,46 +152,35 @@ public partial class Server : Form
         try
         {
             int PrivateBits = int.Parse(cb_priv_bits.Text);
-            string PrivKey = Utils.Certs.CreatePrivKey(PrivateBits);
-            Result<SQLTable> result = SqlTable();
-            if (result.IsSuccess)
-            {
-                Result<int> result1 = Utils.Sql.InsertInto(Global.database, result.Value, tb_ca_name.Text, tb_priv_passwd.Text, PrivKey, PrivateBits);
-                if (result1.IsSuccess)
-                {
-                    MessageBox.Show($"Added {result1.Value} entries to the database", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show(result1.Reasons[0].Message.ToString());
-                }
-            }
-            Result<List<string>> result2 = Utils.Sql.SqlSelect(Global.database, "name", SQLTable.ca);
+            int pubDuration = int.Parse(tb_pub_dura.Text);
+
+            Result<RSA> cert = Utils.Certs.GenCertPair(PrivateBits);
+            Result<SQLTable> table = SqlTable();
+
+            byte[] RSAPrivate = cert.Value.ExportRSAPrivateKey();
+            byte[] RSAPublic = cert.Value.ExportRSAPublicKey();
+
+            Result<int> result2 = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, RSAPrivate, RSAPublic, PrivateBits, pubDuration);
 
             if (result2.IsSuccess)
             {
-                if (result2.Value == null)
-                {
-                    result2 = Result.Fail("Empty List");
-                    return;
-                }
-                else
-                {
-                    lb_server_certs.Items.Clear();
-                    foreach (var item in result2.Value)
-                    {
-                        lb_server_certs.Items.Add(item);
-                    }
-                    lb_server_certs.Sorted = true;
-                }
+                MessageBox.Show($"Added {result2.Value} entries to the database", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lb_server_certs.Items.Clear();
+                ReadServers(lb_server_certs);
+                lb_server_certs.Sorted = true;
+            }
+            else
+            {
+
+                MessageBox.Show(result2.Reasons[0].Message.ToString());
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.ToString(), sender.ToString());
         }
-    }
 
+    }
     /// <summary>
     /// Enables the Generate Private Key button
     /// </summary>
@@ -175,38 +203,146 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void bt_gen_pub_key_Click(object sender, EventArgs e)
-    {
-        int pubDura = Convert.ToInt16(tb_pub_dura.Text);
-        string pubPasswd = tb_pub_passwd.Text;
-        string pubConfig = tb_pub_cnf.Text;
-        string serverSelect = lb_server_certs.SelectedItem.ToString();
-        Result<SQLTable> table = SqlTable();
+    //private void bt_gen_pub_key_Click(object sender, EventArgs e)
+    //{
+    //    int pubDura = Convert.ToInt16(tb_pub_dura.Text);
+    //    //string pubPasswd = tb_pub_passwd.Text;
+    //    //string pubConfig = tb_pub_cnf.Text;
+    //    string serverSelect = lb_server_certs.SelectedItem.ToString();
+    //    Result<SQLTable> table = SqlTable();
 
-        Result<string> privateKey = Utils.Sql.SelectWhere(Global.database, "private_content", table.Value, "name", serverSelect);
-        if (privateKey.IsSuccess)
-        {
+    //    Result<byte[]> privateKey = Utils.Sql.SelectWhere(Global.database, "private_content", table.Value, "name", serverSelect);
+    //    if (privateKey.IsSuccess)
+    //    {
 
-            string publicKey = Utils.Certs.CreatePubKey(pubDura, pubConfig, privateKey.Value);
-            Result<int> result = Utils.Sql.Update(Global.database, SQLTable.ca, pubDura, publicKey, serverSelect, pubPasswd, DateTime.Now.ToString());
+    //        byte[] publicKey = Utils.Certs.CreatePubKey(pubDura, privateKey.Value);
+    //        Result<int> result = Utils.Sql.Update(Global.database, SQLTable.ca, publicKey, serverSelect);
 
-            if (result.IsSuccess)
-            {
-                MessageBox.Show($"Updated {result.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show(result.Reasons[0].Message.ToString());
-            }
-        }
+    //        //if (result.IsSuccess)
+    //        //{
+    //        //    MessageBox.Show($"Updated {result.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    //        //}
+    //        //else
+    //        //{
+    //        //    MessageBox.Show(result.Reasons[0].Message.ToString());
+    //        //}
+    //    }
 
-        //string result = lb_server_certs.SelectedItem.ToString();
-        //MessageBox.Show(privateKey);
-    }
+    //    //string result = lb_server_certs.SelectedItem.ToString();
+    //    //MessageBox.Show(privateKey);
+    //}
 
     private void bt_upd_dest_names_Click(object sender, EventArgs e)
     {
+        string sub_c = tb_sub_c.Text;
+        string sub_s = tb_sub_st.Text;
+        string sub_l = tb_sub_loc.Text;
+        string sub_o = tb_sub_orga.Text;
+        string sub_ou = tb_sub_ou.Text;
+        string sub_n = tb_sub_cn.Text;
+        string sub_e = tb_sub_email.Text;
+        string serverSelect = lb_server_certs.SelectedItem.ToString();
 
+        Result<SQLTable> result = SqlTable();
+        if (result.IsSuccess)
+        {
+            Result<int> result2 = Utils.Sql.Update(Global.database, result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
+            if (result2.IsSuccess)
+            {
+                MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(result2.Reasons[0].Message.ToString());
+            }
+        }
+    }
+
+    private void bt_gen_csr_Click(object sender, EventArgs e)
+    {
+        int keySize = int.Parse(cb_priv_bits.Text);
+        string sub_c = tb_sub_c.Text;
+        string sub_s = tb_sub_st.Text;
+        string sub_l = tb_sub_loc.Text;
+        string sub_o = tb_sub_orga.Text;
+        string sub_ou = tb_sub_ou.Text;
+        string sub_n = tb_sub_cn.Text;
+        string sub_e = tb_sub_email.Text;
+        bool isCa;
+        bool pathLen;
+
+        //string serverSelect = lb_server_certs.SelectedItem.ToString();
+        string searchTerm = lb_server_certs.SelectedItem.ToString();
+
+        //Result<SQLTable> result = SqlTable();
+        //if (result.IsSuccess)
+        //{
+        //    Result<int> result2 = Utils.Sql.Update(Global.database, result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
+        //    if (result2.IsSuccess)
+        //    {
+        //        MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show(result2.Reasons[0].Message.ToString());
+        //    }
+        //}
+        using (RSA rsa = RSA.Create(keySize))  // Using a larger key size for a CA (e.g., 4096 bits)
+        {
+            string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_c}";
+            //string subject1 = "CN=My Certificate Authority, O=My Org, C=US";
+
+            // Step 2: Define the subject for the CA certificate (this is the subject name)
+            //string subject = "CN=My Certificate Authority, O=My Org, C=US";
+            //string rs = rsa3.ExportPkcs8PrivateKeyPem();
+            //byte[] r1 = rsa3.ExportRSAPrivateKey();
+            //string rs2 = rsa3.ExportRSAPublicKeyPem();
+            //byte[] r11 = rsa3.ExportRSAPublicKey();
+
+            // Step 3: Create the CertificateRequest with the RSA key pair and subject
+            var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+            // Step 4: Set CA-specific properties like Basic Constraints (must be a CA)
+            // The CA certificate must have the Basic Constraints extension set to "CA: true".
+            Result<SQLTable> table = SqlTable();
+            if (table.Value == SQLTable.ca)
+            {
+                cb_isCa.Checked = true;
+            }
+            req.CertificateExtensions.Add(
+                              new X509BasicConstraintsExtension(cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked));
+            // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
+            DateTimeOffset notBefore = DateTimeOffset.Now;
+            int duration = Convert.ToInt16(tb_pub_dura.Text);
+            DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+            // Step 6: Create the self-signed CA certificate
+            X509Certificate2 caCertificate = req.CreateSelfSigned(notBefore, notAfter);
+
+            // Step 7: Export the certificate (optional: save to file, or use as needed)
+            byte[] caCertBytes = caCertificate.Export(X509ContentType.Cert);
+            byte[] privateKey = rsa.ExportRSAPrivateKey();
+            byte[] publicKey = rsa.ExportRSAPublicKey();
+
+            Result<int> Update = Utils.Sql.Update(Global.database, table.Value, privateKey, publicKey, searchTerm, sub_c, sub_s, sub_l,
+                sub_o, sub_ou, sub_c, sub_e, cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked);
+
+
+            if (Update.IsSuccess)
+            {
+                MessageBox.Show($"Updated {Update.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else if (Update.IsFailed)
+            {
+                MessageBox.Show(Update.Reasons[0].Message.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+        }
+    }
+
+    private void panel1_EnabledChanged(object sender, EventArgs e)
+    {
+        MessageBox.Show(sender.ToString());
     }
 }
 

@@ -33,7 +33,7 @@ partial class Server
         gb_default_disti_names = new GroupBox();
         tb_sub_email = new TextBox();
         tb_sub_cn = new TextBox();
-        textBox6 = new TextBox();
+        tb_sub_orga = new TextBox();
         tb_sub_ou = new TextBox();
         tb_sub_loc = new TextBox();
         tb_sub_st = new TextBox();
@@ -74,6 +74,11 @@ partial class Server
         saveFileDialog1 = new SaveFileDialog();
         bt_gen_pub_key = new Button();
         bt_upd_dest_names = new Button();
+        cb_isCa = new CheckBox();
+        cb_notPathlen = new CheckBox();
+        cb_issueCert = new CheckBox();
+        cb_depth = new ComboBox();
+        lbl_unlimDepth = new Label();
         gb_default_disti_names.SuspendLayout();
         gb_private.SuspendLayout();
         gb_public.SuspendLayout();
@@ -102,7 +107,7 @@ partial class Server
         // 
         gb_default_disti_names.Controls.Add(tb_sub_email);
         gb_default_disti_names.Controls.Add(tb_sub_cn);
-        gb_default_disti_names.Controls.Add(textBox6);
+        gb_default_disti_names.Controls.Add(tb_sub_orga);
         gb_default_disti_names.Controls.Add(tb_sub_ou);
         gb_default_disti_names.Controls.Add(tb_sub_loc);
         gb_default_disti_names.Controls.Add(tb_sub_st);
@@ -114,7 +119,7 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(768, 278);
+        gb_default_disti_names.Location = new Point(730, 111);
         gb_default_disti_names.Margin = new Padding(5, 6, 5, 6);
         gb_default_disti_names.Name = "gb_default_disti_names";
         gb_default_disti_names.Padding = new Padding(5, 6, 5, 6);
@@ -130,6 +135,7 @@ partial class Server
         tb_sub_email.Name = "tb_sub_email";
         tb_sub_email.Size = new Size(169, 35);
         tb_sub_email.TabIndex = 13;
+        tb_sub_email.Text = "CA@diefamilielang.de";
         // 
         // tb_sub_cn
         // 
@@ -138,14 +144,16 @@ partial class Server
         tb_sub_cn.Name = "tb_sub_cn";
         tb_sub_cn.Size = new Size(169, 35);
         tb_sub_cn.TabIndex = 12;
+        tb_sub_cn.Text = "Lang-CA";
         // 
-        // textBox6
+        // tb_sub_orga
         // 
-        textBox6.Location = new Point(194, 260);
-        textBox6.Margin = new Padding(5, 6, 5, 6);
-        textBox6.Name = "textBox6";
-        textBox6.Size = new Size(169, 35);
-        textBox6.TabIndex = 11;
+        tb_sub_orga.Location = new Point(194, 260);
+        tb_sub_orga.Margin = new Padding(5, 6, 5, 6);
+        tb_sub_orga.Name = "tb_sub_orga";
+        tb_sub_orga.Size = new Size(169, 35);
+        tb_sub_orga.TabIndex = 11;
+        tb_sub_orga.Text = "Lang-LAN";
         // 
         // tb_sub_ou
         // 
@@ -154,6 +162,7 @@ partial class Server
         tb_sub_ou.Name = "tb_sub_ou";
         tb_sub_ou.Size = new Size(169, 35);
         tb_sub_ou.TabIndex = 10;
+        tb_sub_ou.Text = "Lang-IT";
         // 
         // tb_sub_loc
         // 
@@ -162,6 +171,7 @@ partial class Server
         tb_sub_loc.Name = "tb_sub_loc";
         tb_sub_loc.Size = new Size(169, 35);
         tb_sub_loc.TabIndex = 9;
+        tb_sub_loc.Text = "Rumeltshausen";
         // 
         // tb_sub_st
         // 
@@ -170,6 +180,7 @@ partial class Server
         tb_sub_st.Name = "tb_sub_st";
         tb_sub_st.Size = new Size(169, 35);
         tb_sub_st.TabIndex = 8;
+        tb_sub_st.Text = "Bavaria";
         // 
         // tb_sub_c
         // 
@@ -178,6 +189,7 @@ partial class Server
         tb_sub_c.Name = "tb_sub_c";
         tb_sub_c.Size = new Size(169, 35);
         tb_sub_c.TabIndex = 7;
+        tb_sub_c.Text = "DE";
         // 
         // lbl_def_email
         // 
@@ -202,12 +214,12 @@ partial class Server
         // lbl_def_organisationUnit
         // 
         lbl_def_organisationUnit.AutoSize = true;
-        lbl_def_organisationUnit.Location = new Point(118, 276);
+        lbl_def_organisationUnit.Location = new Point(52, 260);
         lbl_def_organisationUnit.Margin = new Padding(5, 0, 5, 0);
         lbl_def_organisationUnit.Name = "lbl_def_organisationUnit";
-        lbl_def_organisationUnit.Size = new Size(68, 30);
+        lbl_def_organisationUnit.Size = new Size(132, 30);
         lbl_def_organisationUnit.TabIndex = 4;
-        lbl_def_organisationUnit.Text = "label5";
+        lbl_def_organisationUnit.Text = "Organisation";
         // 
         // lbl_def_organisation
         // 
@@ -261,7 +273,7 @@ partial class Server
         // 
         // bt_ca_cnf_search
         // 
-        bt_ca_cnf_search.Location = new Point(694, 24);
+        bt_ca_cnf_search.Location = new Point(691, 28);
         bt_ca_cnf_search.Margin = new Padding(5, 6, 5, 6);
         bt_ca_cnf_search.Name = "bt_ca_cnf_search";
         bt_ca_cnf_search.Size = new Size(129, 46);
@@ -411,6 +423,7 @@ partial class Server
         tb_pub_dura.Name = "tb_pub_dura";
         tb_pub_dura.Size = new Size(169, 35);
         tb_pub_dura.TabIndex = 4;
+        tb_pub_dura.Text = "12";
         // 
         // lb_pub_conffile
         // 
@@ -500,6 +513,7 @@ partial class Server
         panel1.Name = "panel1";
         panel1.Size = new Size(161, 226);
         panel1.TabIndex = 21;
+        panel1.EnabledChanged += panel1_EnabledChanged;
         // 
         // rb_user
         // 
@@ -530,25 +544,82 @@ partial class Server
         bt_gen_pub_key.Name = "bt_gen_pub_key";
         bt_gen_pub_key.Size = new Size(129, 94);
         bt_gen_pub_key.TabIndex = 24;
-        bt_gen_pub_key.Text = "Generate Public Key";
+        bt_gen_pub_key.Text = "Generate CSR";
         bt_gen_pub_key.UseVisualStyleBackColor = true;
-        bt_gen_pub_key.Click += bt_gen_pub_key_Click;
+        bt_gen_pub_key.Click += bt_gen_csr_Click;
         // 
         // bt_upd_dest_names
         // 
         bt_upd_dest_names.Location = new Point(854, 776);
+        bt_upd_dest_names.Margin = new Padding(3, 4, 3, 4);
         bt_upd_dest_names.Name = "bt_upd_dest_names";
-        bt_upd_dest_names.Size = new Size(131, 40);
+        bt_upd_dest_names.Size = new Size(130, 40);
         bt_upd_dest_names.TabIndex = 25;
         bt_upd_dest_names.Text = "Update Dest. names";
         bt_upd_dest_names.UseVisualStyleBackColor = true;
         bt_upd_dest_names.Click += bt_upd_dest_names_Click;
+        // 
+        // cb_isCa
+        // 
+        cb_isCa.AutoSize = true;
+        cb_isCa.Enabled = false;
+        cb_isCa.Location = new Point(762, 616);
+        cb_isCa.Name = "cb_isCa";
+        cb_isCa.Size = new Size(95, 34);
+        cb_isCa.TabIndex = 26;
+        cb_isCa.Text = "is CA?";
+        cb_isCa.UseVisualStyleBackColor = true;
+        // 
+        // cb_notPathlen
+        // 
+        cb_notPathlen.AutoSize = true;
+        cb_notPathlen.Location = new Point(762, 656);
+        cb_notPathlen.Name = "cb_notPathlen";
+        cb_notPathlen.Size = new Size(146, 34);
+        cb_notPathlen.TabIndex = 27;
+        cb_notPathlen.Text = "not pathlen";
+        cb_notPathlen.UseVisualStyleBackColor = true;
+        // 
+        // cb_issueCert
+        // 
+        cb_issueCert.AutoSize = true;
+        cb_issueCert.Location = new Point(762, 735);
+        cb_issueCert.Name = "cb_issueCert";
+        cb_issueCert.Size = new Size(138, 34);
+        cb_issueCert.TabIndex = 28;
+        cb_issueCert.Text = "issue Cert?";
+        cb_issueCert.UseVisualStyleBackColor = true;
+        // 
+        // cb_depth
+        // 
+        cb_depth.FormattingEnabled = true;
+        cb_depth.Items.AddRange(new object[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" });
+        cb_depth.Location = new Point(763, 696);
+        cb_depth.Name = "cb_depth";
+        cb_depth.RightToLeft = RightToLeft.No;
+        cb_depth.Size = new Size(57, 38);
+        cb_depth.TabIndex = 29;
+        cb_depth.Text = "0";
+        // 
+        // lbl_unlimDepth
+        // 
+        lbl_unlimDepth.AutoSize = true;
+        lbl_unlimDepth.Location = new Point(841, 697);
+        lbl_unlimDepth.Name = "lbl_unlimDepth";
+        lbl_unlimDepth.Size = new Size(67, 30);
+        lbl_unlimDepth.TabIndex = 30;
+        lbl_unlimDepth.Text = "depth";
         // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(12F, 30F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1365, 856);
+        Controls.Add(lbl_unlimDepth);
+        Controls.Add(cb_depth);
+        Controls.Add(cb_issueCert);
+        Controls.Add(cb_notPathlen);
+        Controls.Add(cb_isCa);
         Controls.Add(bt_upd_dest_names);
         Controls.Add(bt_gen_pub_key);
         Controls.Add(Bt_gen_priv);
@@ -587,7 +658,7 @@ partial class Server
     private GroupBox gb_default_disti_names;
     private TextBox tb_sub_email;
     private TextBox tb_sub_cn;
-    private TextBox textBox6;
+    private TextBox tb_sub_orga;
     private TextBox tb_sub_ou;
     private TextBox tb_sub_loc;
     private TextBox tb_sub_st;
@@ -628,4 +699,9 @@ partial class Server
     private SaveFileDialog saveFileDialog1;
     private Button bt_gen_pub_key;
     private Button bt_upd_dest_names;
+    private CheckBox cb_isCa;
+    private CheckBox cb_notPathlen;
+    private CheckBox cb_issueCert;
+    private ComboBox cb_depth;
+    private Label lbl_unlimDepth;
 }

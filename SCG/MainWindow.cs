@@ -527,7 +527,7 @@ namespace WinFormsApp1
 
     public static class Global
     {
-        public static string database = @"database.db";
+        public static string database = @"..\..\..\databasev2.db";
         //public static string database = @"Data Source=database.db";
         public static string ca_cnf = "openssl-ca.cnf";
         public static bool WriteToFile = true;
