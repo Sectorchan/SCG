@@ -283,14 +283,14 @@ public class Utils
         //    }
         //}
         public static Result<int> Update(string database, SQLTable table, byte[] privateKey, byte[] publicKey, string searchTerm, string subj_country, string subj_state, string subj_location,
-                string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email, bool isCa, bool pathLen, int depth, bool canIssue)
+                string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email, bool isCa, bool pathLen, int depth, bool canIssue, bool updateTimePub)
         {
             try
             {
                 int iIsCa = Convert.ToInt16(isCa);
                 int ipathLen = Convert.ToInt16(pathLen);
                 int iCanIssue = Convert.ToInt16(canIssue);
-                
+                string sql;
 
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
@@ -299,9 +299,16 @@ public class Utils
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
-
-                string sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email, isCa = @_isCa" +
+                if (!updateTimePub)
+                {
+                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email, isCa = @_isCa" +
                     $", not_pathlen = @_pathLen, depth = @_depth, canIssue = @_ICanIssue WHERE name = @_searchTerm";
+                }
+                else
+                {
+                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email, isCa = @_isCa" +
+                    $", not_pathlen = @_pathLen, depth = @_depth, canIssue = @_ICanIssue, public_createDT = @_public_createDT WHERE name = @_searchTerm";
+                }
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_subj_country", subj_country);
                 command.Parameters.AddWithValue("@_subj_state", subj_state);
@@ -314,6 +321,10 @@ public class Utils
                 command.Parameters.AddWithValue("@_pathLen", ipathLen);
                 command.Parameters.AddWithValue("@_depth", depth);
                 command.Parameters.AddWithValue("@_ICanIssue", iCanIssue);
+                if (updateTimePub)
+                {
+                    command.Parameters.AddWithValue("@_public_createDT", DateTime.Now.ToString());
+                }
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
                 int rowInserted = command.ExecuteNonQuery();
 

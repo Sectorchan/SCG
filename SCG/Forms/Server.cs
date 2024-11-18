@@ -268,36 +268,14 @@ public partial class Server : Form
         string sub_ou = tb_sub_ou.Text;
         string sub_n = tb_sub_cn.Text;
         string sub_e = tb_sub_email.Text;
-        bool isCa;
-        bool pathLen;
 
         //string serverSelect = lb_server_certs.SelectedItem.ToString();
         string searchTerm = lb_server_certs.SelectedItem.ToString();
 
-        //Result<SQLTable> result = SqlTable();
-        //if (result.IsSuccess)
-        //{
-        //    Result<int> result2 = Utils.Sql.Update(Global.database, result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
-        //    if (result2.IsSuccess)
-        //    {
-        //        MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show(result2.Reasons[0].Message.ToString());
-        //    }
-        //}
         using (RSA rsa = RSA.Create(keySize))  // Using a larger key size for a CA (e.g., 4096 bits)
         {
-            string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_c}";
-            //string subject1 = "CN=My Certificate Authority, O=My Org, C=US";
-
             // Step 2: Define the subject for the CA certificate (this is the subject name)
-            //string subject = "CN=My Certificate Authority, O=My Org, C=US";
-            //string rs = rsa3.ExportPkcs8PrivateKeyPem();
-            //byte[] r1 = rsa3.ExportRSAPrivateKey();
-            //string rs2 = rsa3.ExportRSAPublicKeyPem();
-            //byte[] r11 = rsa3.ExportRSAPublicKey();
+            string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_c}";
 
             // Step 3: Create the CertificateRequest with the RSA key pair and subject
             var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -305,10 +283,7 @@ public partial class Server : Form
             // Step 4: Set CA-specific properties like Basic Constraints (must be a CA)
             // The CA certificate must have the Basic Constraints extension set to "CA: true".
             Result<SQLTable> table = SqlTable();
-            if (table.Value == SQLTable.ca)
-            {
-                cb_isCa.Checked = true;
-            }
+
             req.CertificateExtensions.Add(
                               new X509BasicConstraintsExtension(cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked));
             // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
@@ -325,8 +300,7 @@ public partial class Server : Form
             byte[] publicKey = rsa.ExportRSAPublicKey();
 
             Result<int> Update = Utils.Sql.Update(Global.database, table.Value, privateKey, publicKey, searchTerm, sub_c, sub_s, sub_l,
-                sub_o, sub_ou, sub_c, sub_e, cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked);
-
+                sub_o, sub_ou, sub_c, sub_e, cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked, true);
 
             if (Update.IsSuccess)
             {
@@ -336,7 +310,6 @@ public partial class Server : Form
             {
                 MessageBox.Show(Update.Reasons[0].Message.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
         }
     }
 
