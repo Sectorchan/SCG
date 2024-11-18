@@ -479,6 +479,7 @@ partial class Server
         rb_ca.TabStop = true;
         rb_ca.Text = "CA";
         rb_ca.UseVisualStyleBackColor = true;
+        rb_ca.CheckedChanged += radioButtons_CheckedChanged;
         // 
         // rb_intermediate
         // 
@@ -490,6 +491,7 @@ partial class Server
         rb_intermediate.TabIndex = 19;
         rb_intermediate.Text = "Intermediate";
         rb_intermediate.UseVisualStyleBackColor = true;
+        rb_intermediate.CheckedChanged += radioButtons_CheckedChanged;
         // 
         // rb_server
         // 
@@ -501,6 +503,7 @@ partial class Server
         rb_server.TabIndex = 20;
         rb_server.Text = "Server";
         rb_server.UseVisualStyleBackColor = true;
+        rb_server.CheckedChanged += radioButtons_CheckedChanged;
         // 
         // panel1
         // 
@@ -525,6 +528,7 @@ partial class Server
         rb_user.TabIndex = 21;
         rb_user.Text = "User";
         rb_user.UseVisualStyleBackColor = true;
+        rb_user.CheckedChanged += radioButtons_CheckedChanged;
         // 
         // Bt_gen_priv
         // 

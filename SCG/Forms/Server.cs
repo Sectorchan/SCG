@@ -317,6 +317,28 @@ public partial class Server : Form
     {
         MessageBox.Show(sender.ToString());
     }
+
+    private void radioButtons_CheckedChanged(object sender, EventArgs e)
+    {
+        string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
+        if (SqlTable == "CA")
+        {
+            cb_isCa.Checked = true;
+            cb_issueCert.Checked = true;
+        }
+        else if (SqlTable == "Intermediate")
+        {
+
+        }
+        else if (SqlTable == "Server")
+        {
+
+        }
+        else if (SqlTable == "User")
+        {
+
+        }
+    }
 }
 
 
