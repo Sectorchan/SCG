@@ -33,30 +33,20 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
-        Bt_gen_priv.Enabled = false;
+        Bt_gen_ca_priv.Enabled = false;
 
         lb_server_certs.Items.Clear();
         ReadServers(lb_server_certs);
         lb_server_certs.Sorted = true;
+
+
+
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         if (SqlTable == "CA")
         {
             cb_isCa.Checked = true;
             cb_issueCert.Checked = true;
         }
-        //Result<List<string>> result = ReadServers(lb_server_certs);
-        //if (result.IsSuccess)
-        //{
-        //    foreach (var item in result.Value)
-        //    {
-        //        lb_server_certs.Items.Add(item);
-        //    }
-        //    lb_server_certs.Sorted = true;
-        //}
-        //else
-        //{
-        //    MessageBox.Show(result.Reasons[0].Message.ToString());
-        //}
     }
 
     public Result<List<string>> ReadServers(dynamic control)
@@ -147,7 +137,7 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Bt_gen_priv_onClick(object sender, EventArgs e)
+    private void Bt_gen_ca_priv_onClick(object sender, EventArgs e)
     {
         try
         {
@@ -171,7 +161,6 @@ public partial class Server : Form
             }
             else
             {
-
                 MessageBox.Show(result2.Reasons[0].Message.ToString());
             }
         }
@@ -188,13 +177,13 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void cb_new_server_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_server.Checked && (lb_priv_bits.Text != "") && tb_ca_name.Text != "")
+        if (cb_new_server.Checked && (lbl_priv_bits.Text != "") && tb_ca_name.Text != "")
         {
-            Bt_gen_priv.Enabled = true;
+            Bt_gen_ca_priv.Enabled = true;
         }
         else
         {
-            Bt_gen_priv.Enabled = false;
+            Bt_gen_ca_priv.Enabled = false;
         }
     }
 
@@ -313,10 +302,7 @@ public partial class Server : Form
         }
     }
 
-    private void panel1_EnabledChanged(object sender, EventArgs e)
-    {
-        MessageBox.Show(sender.ToString());
-    }
+
 
     private void radioButtons_CheckedChanged(object sender, EventArgs e)
     {
@@ -328,13 +314,25 @@ public partial class Server : Form
         }
         else if (SqlTable == "Intermediate")
         {
-
+            cb_isCa.Checked = false;
+            cb_issueCert.Checked = false;
         }
         else if (SqlTable == "Server")
         {
-
+            cb_isCa.Checked = false;
+            cb_issueCert.Checked = false;
         }
         else if (SqlTable == "User")
+        {
+            cb_isCa.Checked = false;
+            cb_issueCert.Checked = false;
+        }
+    }
+
+    private void Bt_gen_inter_Click(object sender, EventArgs e)
+    {
+      Result<RSA> rsa = Utils.Certs.GenCertPair(4096);
+        if (rsa.IsSuccess)
         {
 
         }

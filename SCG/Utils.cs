@@ -396,7 +396,11 @@ public class Utils
     }
     public class Certs
     {
-
+        /// <summary>
+        /// Generates the Public- and Privatekey
+        /// </summary>
+        /// <param name="keyPair">Keysize in bits</param>
+        /// <returns>The Public and Privatekey</returns>
         public static Result<RSA> GenCertPair(int keyPair)
         {
            
@@ -409,7 +413,7 @@ public class Utils
                 return Result.Ok(rsa);
         }
         /// <summary>
-        /// Generating the private key
+        /// Generating the private key (obsolete?)
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
@@ -421,7 +425,7 @@ public class Utils
         }
 
         /// <summary>
-        /// Generate the public key
+        /// Generate the public key (obsolete?)
         /// </summary>
         /// <returns>Returns the public key in PEM format</returns>
         public static byte[] CreatePubKey(int duration, byte[] privateKey)
@@ -444,7 +448,5 @@ public class Utils
         }
     }
 
-    public void SelfSigned()
-    {
-    }
+    
 }
