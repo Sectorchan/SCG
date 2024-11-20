@@ -30,13 +30,14 @@ partial class Server
     {
         tb_ca_name = new TextBox();
         gb_default_disti_names = new GroupBox();
+        Bt_read_Dest_names = new Button();
         tb_sub_email = new TextBox();
         tb_sub_cn = new TextBox();
         tb_sub_orga = new TextBox();
         tb_sub_ou = new TextBox();
         tb_sub_loc = new TextBox();
         tb_sub_st = new TextBox();
-        bt_upd_dest_names = new Button();
+        bt_wrt_dest_names = new Button();
         tb_sub_c = new TextBox();
         lbl_def_email = new Label();
         lbl_def_commonName = new Label();
@@ -75,6 +76,7 @@ partial class Server
         tb_int_name = new TextBox();
         lbl_int_name = new Label();
         checkBox1 = new CheckBox();
+        Bt_int_gen_csr = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -89,13 +91,14 @@ partial class Server
         // 
         // gb_default_disti_names
         // 
+        gb_default_disti_names.Controls.Add(Bt_read_Dest_names);
         gb_default_disti_names.Controls.Add(tb_sub_email);
         gb_default_disti_names.Controls.Add(tb_sub_cn);
         gb_default_disti_names.Controls.Add(tb_sub_orga);
         gb_default_disti_names.Controls.Add(tb_sub_ou);
         gb_default_disti_names.Controls.Add(tb_sub_loc);
         gb_default_disti_names.Controls.Add(tb_sub_st);
-        gb_default_disti_names.Controls.Add(bt_upd_dest_names);
+        gb_default_disti_names.Controls.Add(bt_wrt_dest_names);
         gb_default_disti_names.Controls.Add(tb_sub_c);
         gb_default_disti_names.Controls.Add(lbl_def_email);
         gb_default_disti_names.Controls.Add(lbl_def_commonName);
@@ -110,6 +113,16 @@ partial class Server
         gb_default_disti_names.TabIndex = 11;
         gb_default_disti_names.TabStop = false;
         gb_default_disti_names.Text = "Default Distinguished Names";
+        // 
+        // Bt_read_Dest_names
+        // 
+        Bt_read_Dest_names.Location = new Point(137, 208);
+        Bt_read_Dest_names.Name = "Bt_read_Dest_names";
+        Bt_read_Dest_names.Size = new Size(76, 26);
+        Bt_read_Dest_names.TabIndex = 26;
+        Bt_read_Dest_names.Text = "Read";
+        Bt_read_Dest_names.UseVisualStyleBackColor = true;
+        Bt_read_Dest_names.Click += Bt_read_Dest_names_Click;
         // 
         // tb_sub_email
         // 
@@ -159,16 +172,16 @@ partial class Server
         tb_sub_st.TabIndex = 8;
         tb_sub_st.Text = "Bavaria";
         // 
-        // bt_upd_dest_names
+        // bt_wrt_dest_names
         // 
-        bt_upd_dest_names.Location = new Point(74, 208);
-        bt_upd_dest_names.Margin = new Padding(2);
-        bt_upd_dest_names.Name = "bt_upd_dest_names";
-        bt_upd_dest_names.Size = new Size(76, 26);
-        bt_upd_dest_names.TabIndex = 25;
-        bt_upd_dest_names.Text = "Update Dest. names";
-        bt_upd_dest_names.UseVisualStyleBackColor = true;
-        bt_upd_dest_names.Click += bt_upd_dest_names_Click;
+        bt_wrt_dest_names.Location = new Point(14, 208);
+        bt_wrt_dest_names.Margin = new Padding(2);
+        bt_wrt_dest_names.Name = "bt_wrt_dest_names";
+        bt_wrt_dest_names.Size = new Size(76, 26);
+        bt_wrt_dest_names.TabIndex = 25;
+        bt_wrt_dest_names.Text = "Write Dest. names";
+        bt_wrt_dest_names.UseVisualStyleBackColor = true;
+        bt_wrt_dest_names.Click += bt_wrt_dest_names_Click;
         // 
         // tb_sub_c
         // 
@@ -534,11 +547,22 @@ partial class Server
         checkBox1.Text = "New Intermediate";
         checkBox1.UseVisualStyleBackColor = true;
         // 
+        // Bt_int_gen_csr
+        // 
+        Bt_int_gen_csr.Location = new Point(271, 538);
+        Bt_int_gen_csr.Name = "Bt_int_gen_csr";
+        Bt_int_gen_csr.Size = new Size(75, 47);
+        Bt_int_gen_csr.TabIndex = 41;
+        Bt_int_gen_csr.Text = "Generate Inter CSR";
+        Bt_int_gen_csr.UseVisualStyleBackColor = true;
+        Bt_int_gen_csr.Click += Bt_int_gen_csr_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(796, 746);
+        Controls.Add(Bt_int_gen_csr);
         Controls.Add(checkBox1);
         Controls.Add(tb_int_name);
         Controls.Add(lbl_int_name);
@@ -607,7 +631,7 @@ partial class Server
     private RadioButton rb_user;
     private SaveFileDialog saveFileDialog1;
     private Button bt_gen_pub_key;
-    private Button bt_upd_dest_names;
+    private Button bt_wrt_dest_names;
     private CheckBox cb_isCa;
     private CheckBox cb_notPathlen;
     private CheckBox cb_issueCert;
@@ -623,4 +647,6 @@ partial class Server
     private TextBox tb_int_name;
     private Label lbl_int_name;
     private CheckBox checkBox1;
+    private Button Bt_int_gen_csr;
+    private Button Bt_read_Dest_names;
 }
