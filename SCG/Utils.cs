@@ -19,6 +19,7 @@ using System.Xml.Linq;
 using System.Collections;
 using System.Runtime.InteropServices.JavaScript;
 using SCG.Forms;
+using System.Data;
 
 namespace PL;
 public class Utils
@@ -164,13 +165,39 @@ public class Utils
             var sql = $"SELECT {column} FROM {table}";
 
             using var command = new SqliteCommand(sql, connection);
-            using SqliteDataReader reader = command.ExecuteReader();
+            using var reader = command.ExecuteReader();
+            
             if (reader.HasRows)
             {
                 List<string> columns = new List<string>();
-                while (reader.Read())
+                if (column != "*")
                 {
-                    columns.Add(reader.GetString(0));
+                    while (reader.Read())
+                    {
+                        columns.Add(reader.GetString(0));
+                    }
+                }
+                else if (column == "*")
+                {
+                    while (reader.Read())
+                    {
+                        columns.Add(reader.GetString(0));
+                        columns.Add(reader.GetString(1));
+                        columns.Add(reader.GetString(2));
+                        columns.Add(reader.GetString(3));
+                        columns.Add(reader.GetString(4));
+                        columns.Add(reader.GetString(5));
+                        if (reader.IsDBNull(6))
+                        {
+                            continue;
+                        }
+
+                            var v = reader.IsDBNull(6);
+                        columns.Add(reader.GetString(6));
+                        columns.Add(reader.GetString(7));
+                        columns.Add(reader.GetString(8));
+                        columns.Add(reader.GetString(9));
+                    }
                 }
                 return columns;
             }

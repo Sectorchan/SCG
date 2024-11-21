@@ -59,17 +59,18 @@ public partial class Server : Form
 
             if (result2.IsSuccess)
             {
-                if (result2.Value == null)
-                {
-                    return Result.Fail("Empty List");
-                }
-                else
+                if (result2.Value != null)
                 {
                     foreach (var item in result2.Value)
                     {
-                        control.Items.Ad6d(item);
+                        control.Items.Add(item);
                     }
                     return Result.Ok(serverList);
+                }
+                else
+                {
+
+                    return Result.Fail("Empty List");
                 }
             }
             else
@@ -395,7 +396,7 @@ public partial class Server : Form
             Result<SQLTable> resTable = SqlTable();
             if (resTable.IsSuccess)
             {
-                Result<List<string>> resWhere = Utils.Sql.SqlSelect(Global.database, "name", resTable.Value);
+                Result<List<string>> resWhere = Utils.Sql.SqlSelect(Global.database, "*", resTable.Value);
             }
         }
         catch (Exception ex)
@@ -405,7 +406,7 @@ public partial class Server : Form
     }
     #endregion
 
-   
+
 }
 
 
