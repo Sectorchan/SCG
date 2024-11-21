@@ -33,6 +33,8 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
+        //Result<byte[]> v = Utils.Sql.SelectWhere(Global.database, "private_content", SQLTable.ca, "name", "11");
+
         Bt_gen_ca_priv.Enabled = false;
 
         lb_server_certs.Items.Clear();
@@ -250,6 +252,7 @@ public partial class Server : Form
         }
 
     }
+
     /// <summary>
     /// Button click "Generate CSR" > generates a Certificate sign request file incl Self signed for CA
     /// </summary>
@@ -257,6 +260,8 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void bt_gen_csr_Click(object sender, EventArgs e)
     {
+
+
         int keySize = int.Parse(cb_priv_bits.Text);
         string sub_c = tb_sub_c.Text;
         string sub_s = tb_sub_st.Text;
@@ -269,49 +274,50 @@ public partial class Server : Form
         //string serverSelect = lb_server_certs.SelectedItem.ToString();
         string searchTerm = lb_server_certs.SelectedItem.ToString();
 
-        using (RSA rsa = RSA.Create(keySize))  // Using a larger key size for a CA (e.g., 4096 bits)
+        RSA rsa = RSA.Create(keySize); // Using a larger key size for a CA (e.g., 4096 bits)
+
+
+        // Step 2: Define the subject for the CA certificate (this is the subject name)
+        string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_n}";
+
+        // Step 3: Create the CertificateRequest with the RSA key pair and subject
+        var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+        // Step 4: Set CA-specific properties like Basic Constraints (must be a CA)
+        // The CA certificate must have the Basic Constraints extension set to "CA: true".
+        Result<SQLTable> table = SqlTable();
+
+        req.CertificateExtensions.Add(
+                          new X509BasicConstraintsExtension(cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked));
+        // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
+        DateTimeOffset notBefore = DateTimeOffset.Now;
+        int duration = Convert.ToInt16(tb_pub_dura.Text);
+        DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+        // Step 6: Create the self-signed CA certificate
+        X509Certificate2 caCertificate = req.CreateSelfSigned(notBefore, notAfter);
+
+        // Step 7: Export the certificate (optional: save to file, or use as needed)
+        byte[] caCertBytes = caCertificate.Export(X509ContentType.Cert);
+        byte[] privateKey = rsa.ExportRSAPrivateKey();
+        StreamWriter streamWriter = new StreamWriter($"privatekey_csr.txt");
+        streamWriter.Write(privateKey.ToString());
+        streamWriter.Close();
+
+        byte[] publicKey = rsa.ExportRSAPublicKey();
+
+        Result<int> Update = Utils.Sql.Update(Global.database, table.Value, privateKey, publicKey, searchTerm, sub_c, sub_s, sub_l,
+            sub_o, sub_ou, sub_c, sub_e, cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked, true);
+
+        if (Update.IsSuccess)
         {
-            // Step 2: Define the subject for the CA certificate (this is the subject name)
-            string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_n}";
-
-            // Step 3: Create the CertificateRequest with the RSA key pair and subject
-            var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-            // Step 4: Set CA-specific properties like Basic Constraints (must be a CA)
-            // The CA certificate must have the Basic Constraints extension set to "CA: true".
-            Result<SQLTable> table = SqlTable();
-
-            req.CertificateExtensions.Add(
-                              new X509BasicConstraintsExtension(cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked));
-            // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
-            DateTimeOffset notBefore = DateTimeOffset.Now;
-            int duration = Convert.ToInt16(tb_pub_dura.Text);
-            DateTimeOffset notAfter = notBefore.AddMonths(duration);
-
-            // Step 6: Create the self-signed CA certificate
-            X509Certificate2 caCertificate = req.CreateSelfSigned(notBefore, notAfter);
-
-            // Step 7: Export the certificate (optional: save to file, or use as needed)
-            byte[] caCertBytes = caCertificate.Export(X509ContentType.Cert);
-            byte[] privateKey = rsa.ExportRSAPrivateKey();
-            StreamWriter streamWriter = new StreamWriter($"privatekey_csr.txt");
-            streamWriter.Write(privateKey.ToString());
-            streamWriter.Close();
-
-            byte[] publicKey = rsa.ExportRSAPublicKey();
-
-            Result<int> Update = Utils.Sql.Update(Global.database, table.Value, privateKey, publicKey, searchTerm, sub_c, sub_s, sub_l,
-                sub_o, sub_ou, sub_c, sub_e, cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked, true);
-
-            if (Update.IsSuccess)
-            {
-                MessageBox.Show($"Updated {Update.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else if (Update.IsFailed)
-            {
-                MessageBox.Show(Update.Reasons[0].Message.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            MessageBox.Show($"Updated {Update.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+        else if (Update.IsFailed)
+        {
+            MessageBox.Show(Update.Reasons[0].Message.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
     }
     #endregion
 
@@ -365,27 +371,34 @@ public partial class Server : Form
     #region Destingusted Names
     private void bt_wrt_dest_names_Click(object sender, EventArgs e)
     {
-        string sub_c = tb_sub_c.Text;
-        string sub_s = tb_sub_st.Text;
-        string sub_l = tb_sub_loc.Text;
-        string sub_o = tb_sub_orga.Text;
-        string sub_ou = tb_sub_ou.Text;
-        string sub_n = tb_sub_cn.Text;
-        string sub_e = tb_sub_email.Text;
-        string serverSelect = lb_server_certs.SelectedItem.ToString();
-
-        Result<SQLTable> result = SqlTable();
-        if (result.IsSuccess)
+        try
         {
-            Result<int> result2 = Utils.Sql.Update(Global.database, result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
-            if (result2.IsSuccess)
+            string sub_c = tb_sub_c.Text;
+            string sub_s = tb_sub_st.Text;
+            string sub_l = tb_sub_loc.Text;
+            string sub_o = tb_sub_orga.Text;
+            string sub_ou = tb_sub_ou.Text;
+            string sub_n = tb_sub_cn.Text;
+            string sub_e = tb_sub_email.Text;
+            string serverSelect = lb_server_certs.SelectedItem.ToString();
+
+            Result<SQLTable> result = SqlTable();
+            if (result.IsSuccess)
             {
-                MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Result<int> result2 = Utils.Sql.Update(Global.database, result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
+                if (result2.IsSuccess)
+                {
+                    MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show(result2.Reasons[0].Message.ToString());
+                }
             }
-            else
-            {
-                MessageBox.Show(result2.Reasons[0].Message.ToString());
-            }
+        }
+        catch (Exception ex)
+        {
+
         }
     }
 
@@ -407,6 +420,10 @@ public partial class Server : Form
     #endregion
 
 
+    private void gb_default_disti_names_Enter(object sender, EventArgs e)
+    {
+
+    }
 }
 
 

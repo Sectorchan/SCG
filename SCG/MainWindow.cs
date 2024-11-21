@@ -532,6 +532,12 @@ namespace WinFormsApp1
         public static string ca_cnf = "openssl-ca.cnf";
         public static bool WriteToFile = true;
         public static bool UseOpenSSL = false;
+        public enum Form
+        {
+            Id = 0,
+            Name = 1,
+            Bit = 2
+        }
     }
 
 }

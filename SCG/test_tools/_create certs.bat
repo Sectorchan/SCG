@@ -1,15 +1,19 @@
 REM CA Private Key
 openssl2.exe genrsa -aes256 -passout pass:test -out ../certificates/ca/private/qw.key.pem 4096
+openssl2.exe genrsa -out qw.key.pem 4096
+
 REM CA Private Key WSL
 openssl genrsa -aes256 -passout pass:test -out certificates/ca/private/qw.key.pem 4096
 
 REM CA Public Cert
 openssl2.exe req -config openssl_ca.cnf -key certificates/ca/private/qw.key.pem -passin pass:test -new -x509 -days 7300 -sha256 -extensions v3_ca -out certificates/ca/certs/qw.cert.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admin3@diefamilielang.de"
+openssl2.exe req -config openssl-ca.cnf -key qw.key.pem -new -x509 -days 7300 -sha256 -extensions v3_ca -out qw.cert.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admin3@diefamilielang.de"
 REM CA Public Cert WSL
 openssl req -config openssl-ca.cnf -key certificates/ca/private/qw.key.pem -passin pass:test -new -x509 -days 7300 -sha256 -extensions v3_ca -out certificates/ca/certs/qw.cert.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admin3@diefamilielang.de"
 
 REM CA verification
 openssl x509 -noout -text -in certificates/ca/certs/qw.cert.pem
+openssl x509 -noout -text -in qw.cert.pem
 
 
 REM Intermediate Private Key

@@ -20,6 +20,7 @@ using System.Collections;
 using System.Runtime.InteropServices.JavaScript;
 using SCG.Forms;
 using System.Data;
+using System.Xml;
 
 namespace PL;
 public class Utils
@@ -78,7 +79,7 @@ public class Utils
                 command.Parameters.AddWithValue("@_public_duration", duration);
                 command.Parameters.AddWithValue("@_public_csr", RSAPublic);
                 command.Parameters.AddWithValue("@_public_createDT", DateTime.Now.ToString());
-                
+
                 int rowInserted = command.ExecuteNonQuery();
 
                 return Result.Ok(rowInserted);
@@ -166,7 +167,7 @@ public class Utils
 
             using var command = new SqliteCommand(sql, connection);
             using var reader = command.ExecuteReader();
-            
+
             if (reader.HasRows)
             {
                 List<string> columns = new List<string>();
@@ -181,24 +182,118 @@ public class Utils
                 {
                     while (reader.Read())
                     {
-                        columns.Add(reader.GetString(0));
-                        columns.Add(reader.GetString(1));
-                        columns.Add(reader.GetString(2));
-                        columns.Add(reader.GetString(3));
-                        columns.Add(reader.GetString(4));
-                        columns.Add(reader.GetString(5));
-                        if (reader.IsDBNull(6))
+                        //columns.Add(reader.GetString("id"));
+                        //columns.Add(reader.GetString("name"));
+                        //columns.Add(reader.GetString("private_bits"));
+                        //columns.Add(reader.GetString("private_pass"));
+                        //columns.Add(reader.GetString("private_content"));
+                        //columns.Add(reader.GetString("private_createDT"));
+
+                        if (!reader.IsDBNull("id"))
                         {
-                            continue;
+                            columns.Add(reader.GetString("id"));
+                        }
+                        if (!reader.IsDBNull("name"))
+                        {
+                            columns.Add(reader.GetString("name"));
+                        }
+                        if (!reader.IsDBNull("private_bits"))
+                        {
+                            columns.Add(reader.GetString("private_bits"));
+                        }
+                       
+                        if (!reader.IsDBNull("private_content"))
+                        {
+                            columns.Add(reader.GetString("private_content"));
+                        }
+                        if (!reader.IsDBNull("private_createDT"))
+                        {
+                            columns.Add(reader.GetString("private_createDT"));
                         }
 
-                            var v = reader.IsDBNull(6);
-                        columns.Add(reader.GetString(6));
-                        columns.Add(reader.GetString(7));
-                        columns.Add(reader.GetString(8));
-                        columns.Add(reader.GetString(9));
+                        //var v = reader.IsDBNull(6);
+                        //columns.Add(reader.GetString(6));
+                        //columns.Add(reader.GetString(7));
+                        //columns.Add(reader.GetString(8));
+                        //columns.Add(reader.GetString(9));
+                        if (reader.IsDBNull("public_duration"))
+                        {
+                            //columns.Add(reader.GetString("public_duration"));
+                            columns.Add("Public_Duration_empty");
+                        }
+                        else
+                        {
+                            columns.Add("Public_Duration_empty");
+                        }
+
+
+
+                        columns.Add(reader.GetString("public_duration"));
+                        
+                        if (!reader.IsDBNull("public_csr"))
+                        {
+                            columns.Add(reader.GetString("public_csr"));
+                        }
+                        if (!reader.IsDBNull("public_cert"))
+                        {
+                            columns.Add(reader.GetString("public_cert"));
+                        }
+                        if (!reader.IsDBNull("public_createDT"))
+                        {
+                            columns.Add(reader.GetString("public_createDT"));
+                        }
+                        
+                        if (!reader.IsDBNull("subj_country"))
+                        {
+                            columns.Add(reader.GetString("subj_country"));
+                        }
+                        if (!reader.IsDBNull("subj_state"))
+                        {
+                            columns.Add(reader.GetString("subj_state"));
+                        }
+                        if (!reader.IsDBNull("subj_location"))
+                        {
+                            columns.Add(reader.GetString("subj_location"));
+                        }
+                        if (!reader.IsDBNull("subj_organisation"))
+                        {
+                            columns.Add(reader.GetString("subj_organisation"));
+                        }
+                        if (!reader.IsDBNull("subj_orgaunit"))
+                        {
+                            columns.Add(reader.GetString("subj_orgaunit"));
+                        }
+                        if (!reader.IsDBNull("subj_commonname"))
+                        {
+                            columns.Add(reader.GetString("subj_commonname"));
+                        }
+                        if (!reader.IsDBNull("subj_email"))
+                        {
+                            columns.Add(reader.GetString("subj_email"));
+                        }
+                        if (!reader.IsDBNull("subj_email"))
+                        {
+                            columns.Add(reader.GetString("subj_email"));
+                        }
+                        if (!reader.IsDBNull("isCa"))
+                        {
+                            columns.Add(reader.GetString("isCa"));
+                        }
+                        if (!reader.IsDBNull("not_pathlen"))
+                        {
+                            columns.Add(reader.GetString("not_pathlen"));
+                        }
+                        if (!reader.IsDBNull("depth"))
+                        {
+                            columns.Add(reader.GetString("depth"));
+                        }
+                        if (!reader.IsDBNull("canIssue"))
+                        {
+                            columns.Add(reader.GetString("canIssue"));
+                        }
                     }
                 }
+
                 return columns;
             }
             else
@@ -237,6 +332,7 @@ public class Utils
                 {
                     while (reader.Read())
                     {
+                        //byte[] privKey = reader.GetByte(0);
                         byte[] privKey = Convert.FromBase64String(reader.GetString(0));
                         return Result.Ok(privKey);
                     }
@@ -406,7 +502,7 @@ public class Utils
                 command.Parameters.AddWithValue("@_subj_country", subj_country);
                 command.Parameters.AddWithValue("@_subj_state", subj_state);
                 command.Parameters.AddWithValue("@_subj_location", subj_location);
-                command.Parameters.AddWithValue("@_sub_organisation", subj_organisation);
+                command.Parameters.AddWithValue("@_subj_organisation", subj_organisation);
                 command.Parameters.AddWithValue("@_subj_orgaunit", subj_orgaunit);
                 command.Parameters.AddWithValue("@_subj_commonname", subj_commonname);
                 command.Parameters.AddWithValue("@_subj_email", subj_email);
@@ -430,15 +526,12 @@ public class Utils
         /// <returns>The Public and Privatekey</returns>
         public static Result<RSA> GenCertPair(int keyPair)
         {
-           
-            RSA rsa = RSA.Create(keyPair); // Using a larger key size for a CA (e.g., 4096 bits)
-           
-                rsa.ExportRSAPrivateKey();
-                rsa.ExportRSAPublicKey();
-            
-
-                return Result.Ok(rsa);
+            RSA rsa = RSA.Create(keyPair); // Using a larger key size for a CA (e.g., 4096 bits)           
+            rsa.ExportRSAPrivateKey();
+            rsa.ExportRSAPublicKey();
+            return Result.Ok(rsa);
         }
+
         /// <summary>
         /// Generating the private key (obsolete?)
         /// </summary>
@@ -450,7 +543,22 @@ public class Utils
             var Privkey = rsa.ExportRSAPrivateKey();
             return Privkey;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keySize"></param>
+        /// <param name="privKey"></param>
+        /// <param name="subjects"></param>
+        /// <param name="pubKey"></param>
+        /// <param name="hash"></param>
+        /// <param name="RSASigPad"></param>
+        public void CertificateRequest(int keySize, string privKey, string[] subjects, string pubKey, HashAlgorithmName hash, RSASignaturePadding RSASigPad)
+        {
+            RSA rsa = RSA.Create(keySize);
+            rsa.ImportFromPem(privKey.ToCharArray());
+            string subject = "CN=My Certificate Authority, O=My Org, C=US";
+            var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        }
         /// <summary>
         /// Generate the public key (obsolete?)
         /// </summary>
@@ -464,16 +572,8 @@ public class Utils
 
             return pubKey;
         }
-        public void CertificateRequest(int keySize, string privKey, string[] subjects, string pubKey, HashAlgorithmName hash, RSASignaturePadding RSASigPad)
-        {
-            
-            RSA rsa = RSA.Create(keySize);
-            rsa.ImportFromPem(privKey.ToCharArray());
-            
-            string subject = "CN=My Certificate Authority, O=My Org, C=US";
-            var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        }
+        
     }
 
-    
+
 }
