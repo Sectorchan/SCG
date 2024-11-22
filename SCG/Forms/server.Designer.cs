@@ -67,6 +67,7 @@ partial class Server
         cb_depth = new ComboBox();
         lbl_unlimDepth = new Label();
         panel2 = new Panel();
+        Bt_wrt_param = new Button();
         lb_inter_certs = new ListBox();
         Bt_gen_inter = new Button();
         lbl_int_bit = new Label();
@@ -78,6 +79,7 @@ partial class Server
         checkBox1 = new CheckBox();
         Bt_int_gen_csr = new Button();
         Bt_gen_ca_pub = new Button();
+        Bt_ca_selfSigned = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -85,7 +87,7 @@ partial class Server
         // 
         // tb_ca_name
         // 
-        tb_ca_name.Location = new Point(86, 369);
+        tb_ca_name.Location = new Point(86, 120);
         tb_ca_name.Name = "tb_ca_name";
         tb_ca_name.Size = new Size(100, 23);
         tb_ca_name.TabIndex = 12;
@@ -114,7 +116,6 @@ partial class Server
         gb_default_disti_names.TabIndex = 11;
         gb_default_disti_names.TabStop = false;
         gb_default_disti_names.Text = "Default Distinguished Names";
-        gb_default_disti_names.Enter += gb_default_disti_names_Enter;
         // 
         // Bt_read_Dest_names
         // 
@@ -171,11 +172,11 @@ partial class Server
         // bt_wrt_dest_names
         // 
         bt_wrt_dest_names.Location = new Point(14, 208);
-        bt_wrt_dest_names.Margin = new Padding(2);
+        bt_wrt_dest_names.Margin = new Padding(2, 2, 2, 2);
         bt_wrt_dest_names.Name = "bt_wrt_dest_names";
         bt_wrt_dest_names.Size = new Size(76, 26);
         bt_wrt_dest_names.TabIndex = 25;
-        bt_wrt_dest_names.Text = "Write Dest. names";
+        bt_wrt_dest_names.Text = "3. Write Dest";
         bt_wrt_dest_names.UseVisualStyleBackColor = true;
         bt_wrt_dest_names.Click += bt_wrt_dest_names_Click;
         // 
@@ -252,7 +253,7 @@ partial class Server
         // lbl_ca_name
         // 
         lbl_ca_name.AutoSize = true;
-        lbl_ca_name.Location = new Point(3, 372);
+        lbl_ca_name.Location = new Point(3, 122);
         lbl_ca_name.Name = "lbl_ca_name";
         lbl_ca_name.Size = new Size(77, 15);
         lbl_ca_name.TabIndex = 10;
@@ -262,8 +263,8 @@ partial class Server
         // 
         lb_server_certs.FormattingEnabled = true;
         lb_server_certs.ItemHeight = 15;
-        lb_server_certs.Location = new Point(62, 244);
-        lb_server_certs.Margin = new Padding(2);
+        lb_server_certs.Location = new Point(62, 5);
+        lb_server_certs.Margin = new Padding(2, 2, 2, 2);
         lb_server_certs.Name = "lb_server_certs";
         lb_server_certs.Size = new Size(124, 79);
         lb_server_certs.TabIndex = 14;
@@ -272,7 +273,7 @@ partial class Server
         // 
         cb_priv_bits.FormattingEnabled = true;
         cb_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_priv_bits.Location = new Point(86, 398);
+        cb_priv_bits.Location = new Point(86, 148);
         cb_priv_bits.Name = "cb_priv_bits";
         cb_priv_bits.Size = new Size(100, 23);
         cb_priv_bits.TabIndex = 24;
@@ -281,7 +282,7 @@ partial class Server
         // lbl_priv_bits
         // 
         lbl_priv_bits.AutoSize = true;
-        lbl_priv_bits.Location = new Point(54, 401);
+        lbl_priv_bits.Location = new Point(54, 152);
         lbl_priv_bits.Name = "lbl_priv_bits";
         lbl_priv_bits.Size = new Size(26, 15);
         lbl_priv_bits.TabIndex = 0;
@@ -289,7 +290,7 @@ partial class Server
         // 
         // tb_pub_dura
         // 
-        tb_pub_dura.Location = new Point(86, 428);
+        tb_pub_dura.Location = new Point(86, 178);
         tb_pub_dura.Name = "tb_pub_dura";
         tb_pub_dura.Size = new Size(100, 23);
         tb_pub_dura.TabIndex = 4;
@@ -298,7 +299,7 @@ partial class Server
         // lbl_pub_duration
         // 
         lbl_pub_duration.AutoSize = true;
-        lbl_pub_duration.Location = new Point(27, 431);
+        lbl_pub_duration.Location = new Point(27, 182);
         lbl_pub_duration.Name = "lbl_pub_duration";
         lbl_pub_duration.Size = new Size(53, 15);
         lbl_pub_duration.TabIndex = 0;
@@ -307,7 +308,7 @@ partial class Server
         // cb_new_server
         // 
         cb_new_server.AutoSize = true;
-        cb_new_server.Location = new Point(101, 344);
+        cb_new_server.Location = new Point(101, 94);
         cb_new_server.Name = "cb_new_server";
         cb_new_server.Size = new Size(85, 19);
         cb_new_server.TabIndex = 17;
@@ -356,7 +357,7 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(54, 22);
+        panel1.Location = new Point(203, 12);
         panel1.Name = "panel1";
         panel1.Size = new Size(94, 113);
         panel1.TabIndex = 21;
@@ -374,22 +375,22 @@ partial class Server
         // 
         // Bt_gen_ca_priv
         // 
-        Bt_gen_ca_priv.Location = new Point(86, 470);
-        Bt_gen_ca_priv.Margin = new Padding(2);
+        Bt_gen_ca_priv.Location = new Point(3, 210);
+        Bt_gen_ca_priv.Margin = new Padding(2, 2, 2, 2);
         Bt_gen_ca_priv.Name = "Bt_gen_ca_priv";
         Bt_gen_ca_priv.Size = new Size(76, 47);
         Bt_gen_ca_priv.TabIndex = 23;
-        Bt_gen_ca_priv.Text = "Generate Private Key";
+        Bt_gen_ca_priv.Text = "1. Generate Private Key";
         Bt_gen_ca_priv.UseVisualStyleBackColor = true;
         Bt_gen_ca_priv.Click += Bt_gen_ca_priv_onClick;
         // 
         // bt_gen_pub_key
         // 
-        bt_gen_pub_key.Location = new Point(86, 599);
+        bt_gen_pub_key.Location = new Point(3, 262);
         bt_gen_pub_key.Name = "bt_gen_pub_key";
         bt_gen_pub_key.Size = new Size(76, 47);
         bt_gen_pub_key.TabIndex = 24;
-        bt_gen_pub_key.Text = "Generate CSR";
+        bt_gen_pub_key.Text = "4. Generate CSR";
         bt_gen_pub_key.UseVisualStyleBackColor = true;
         bt_gen_pub_key.Click += bt_gen_csr_Click;
         // 
@@ -398,7 +399,7 @@ partial class Server
         cb_isCa.AutoSize = true;
         cb_isCa.Enabled = false;
         cb_isCa.Location = new Point(6, 9);
-        cb_isCa.Margin = new Padding(2);
+        cb_isCa.Margin = new Padding(2, 2, 2, 2);
         cb_isCa.Name = "cb_isCa";
         cb_isCa.Size = new Size(58, 19);
         cb_isCa.TabIndex = 26;
@@ -408,8 +409,8 @@ partial class Server
         // cb_notPathlen
         // 
         cb_notPathlen.AutoSize = true;
-        cb_notPathlen.Location = new Point(6, 32);
-        cb_notPathlen.Margin = new Padding(2);
+        cb_notPathlen.Location = new Point(6, 30);
+        cb_notPathlen.Margin = new Padding(2, 2, 2, 2);
         cb_notPathlen.Name = "cb_notPathlen";
         cb_notPathlen.Size = new Size(87, 19);
         cb_notPathlen.TabIndex = 27;
@@ -420,7 +421,7 @@ partial class Server
         // 
         cb_issueCert.AutoSize = true;
         cb_issueCert.Location = new Point(6, 82);
-        cb_issueCert.Margin = new Padding(2);
+        cb_issueCert.Margin = new Padding(2, 2, 2, 2);
         cb_issueCert.Name = "cb_issueCert";
         cb_issueCert.Size = new Size(82, 19);
         cb_issueCert.TabIndex = 28;
@@ -432,7 +433,7 @@ partial class Server
         cb_depth.FormattingEnabled = true;
         cb_depth.Items.AddRange(new object[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" });
         cb_depth.Location = new Point(6, 55);
-        cb_depth.Margin = new Padding(2);
+        cb_depth.Margin = new Padding(2, 2, 2, 2);
         cb_depth.Name = "cb_depth";
         cb_depth.RightToLeft = RightToLeft.No;
         cb_depth.Size = new Size(32, 23);
@@ -451,15 +452,26 @@ partial class Server
         // 
         // panel2
         // 
+        panel2.Controls.Add(Bt_wrt_param);
         panel2.Controls.Add(cb_notPathlen);
         panel2.Controls.Add(cb_isCa);
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(176, 26);
+        panel2.Location = new Point(303, 40);
         panel2.Name = "panel2";
-        panel2.Size = new Size(102, 109);
+        panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
+        // 
+        // Bt_wrt_param
+        // 
+        Bt_wrt_param.Location = new Point(8, 110);
+        Bt_wrt_param.Name = "Bt_wrt_param";
+        Bt_wrt_param.Size = new Size(75, 23);
+        Bt_wrt_param.TabIndex = 31;
+        Bt_wrt_param.Text = "5. Write Param";
+        Bt_wrt_param.UseVisualStyleBackColor = true;
+        Bt_wrt_param.Click += Bt_wrt_param_Click;
         // 
         // lb_inter_certs
         // 
@@ -526,7 +538,7 @@ partial class Server
         // lbl_int_name
         // 
         lbl_int_name.AutoSize = true;
-        lbl_int_name.Location = new Point(188, 372);
+        lbl_int_name.Location = new Point(150, 364);
         lbl_int_name.Name = "lbl_int_name";
         lbl_int_name.Size = new Size(112, 15);
         lbl_int_name.TabIndex = 38;
@@ -554,20 +566,31 @@ partial class Server
         // 
         // Bt_gen_ca_pub
         // 
-        Bt_gen_ca_pub.Location = new Point(86, 521);
-        Bt_gen_ca_pub.Margin = new Padding(2);
+        Bt_gen_ca_pub.Location = new Point(86, 210);
+        Bt_gen_ca_pub.Margin = new Padding(2, 2, 2, 2);
         Bt_gen_ca_pub.Name = "Bt_gen_ca_pub";
         Bt_gen_ca_pub.Size = new Size(76, 47);
         Bt_gen_ca_pub.TabIndex = 42;
-        Bt_gen_ca_pub.Text = "Generate Public Key";
+        Bt_gen_ca_pub.Text = "2. Generate Public Key";
         Bt_gen_ca_pub.UseVisualStyleBackColor = true;
-        Bt_gen_ca_pub.Click += Bt_gen_ca_pub_Click;
+        Bt_gen_ca_pub.Click += Bt_gen_ca_pub_onClick;
+        // 
+        // Bt_ca_selfSigned
+        // 
+        Bt_ca_selfSigned.Location = new Point(85, 262);
+        Bt_ca_selfSigned.Name = "Bt_ca_selfSigned";
+        Bt_ca_selfSigned.Size = new Size(76, 47);
+        Bt_ca_selfSigned.TabIndex = 43;
+        Bt_ca_selfSigned.Text = "6. Generate Selfsigned";
+        Bt_ca_selfSigned.UseVisualStyleBackColor = true;
+        Bt_ca_selfSigned.Click += Bt_ca_selfSigned_Click;
         // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(796, 746);
+        ClientSize = new Size(796, 710);
+        Controls.Add(Bt_ca_selfSigned);
         Controls.Add(Bt_gen_ca_pub);
         Controls.Add(Bt_int_gen_csr);
         Controls.Add(checkBox1);
@@ -592,7 +615,7 @@ partial class Server
         Controls.Add(tb_ca_name);
         Controls.Add(gb_default_disti_names);
         Controls.Add(lbl_ca_name);
-        Margin = new Padding(2);
+        Margin = new Padding(2, 2, 2, 2);
         Name = "Server";
         Text = "server";
         Load += server_onLoad;
@@ -657,4 +680,6 @@ partial class Server
     private Button Bt_int_gen_csr;
     private Button Bt_read_Dest_names;
     private Button Bt_gen_ca_pub;
+    private Button Bt_wrt_param;
+    private Button Bt_ca_selfSigned;
 }

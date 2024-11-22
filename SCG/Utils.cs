@@ -21,32 +21,15 @@ using System.Runtime.InteropServices.JavaScript;
 using SCG.Forms;
 using System.Data;
 using System.Xml;
+using System.Data.Common;
 
 namespace PL;
 public class Utils
 {
 
-
     public class Sql
     {
-        public static void SqlConnect(string database, SqliteOpenMode sqliteOpenMode, string sqlPasswd)
-        {
-            try
-            {
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = sqliteOpenMode;
-                _connectionString.DataSource = database;
-                _connectionString.Password = sqlPasswd;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-               
-            }
-            catch (Exception ex)
-            {
-                
-            }
-        }
+
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -106,7 +89,7 @@ public class Utils
             }
 
         }
-        public static Result<int> InsertInto(string database, SQLTable table, string Name, string Privpass, byte[] Privkey, int Privbits = 4096)
+        public static Result<int> InsertInto(string database, SQLTable table, string Name, byte[] Privkey, int Privbits)
         {
             try
             {
@@ -196,116 +179,172 @@ public class Utils
                 {
                     while (reader.Read())
                     {
-                        //columns.Add(reader.GetString("id"));
-                        //columns.Add(reader.GetString("name"));
-                        //columns.Add(reader.GetString("private_bits"));
-                        //columns.Add(reader.GetString("private_pass"));
-                        //columns.Add(reader.GetString("private_content"));
-                        //columns.Add(reader.GetString("private_createDT"));
+                        columns.Add(reader.GetString("id"));
+                        columns.Add(reader.GetString("name"));
+                        columns.Add(reader.GetString("private_bits"));
+                        columns.Add(reader.GetString("private_content"));
+                        columns.Add(reader.GetString("private_createDT"));
 
-                        if (!reader.IsDBNull("id"))
-                        {
-                            columns.Add(reader.GetString("id"));
-                        }
-                        if (!reader.IsDBNull("name"))
-                        {
-                            columns.Add(reader.GetString("name"));
-                        }
-                        if (!reader.IsDBNull("private_bits"))
-                        {
-                            columns.Add(reader.GetString("private_bits"));
-                        }
+                        //if (!reader.IsDBNull("id"))
+                        //{
+                        //    columns.Add(reader.GetString("id"));
+                        //}
+                        //if (!reader.IsDBNull("name"))
+                        //{
+                        //    columns.Add(reader.GetString("name"));
+                        //}
+                        //if (!reader.IsDBNull("private_bits"))
+                        //{
+                        //    columns.Add(reader.GetString("private_bits"));
+                        //}
 
-                        if (!reader.IsDBNull("private_content"))
-                        {
-                            columns.Add(reader.GetString("private_content"));
-                        }
-                        if (!reader.IsDBNull("private_createDT"))
-                        {
-                            columns.Add(reader.GetString("private_createDT"));
-                        }
+                        //if (!reader.IsDBNull("private_content"))
+                        //{
+                        //    columns.Add(reader.GetString("private_content"));
+                        //}
+                        //if (!reader.IsDBNull("private_createDT"))
+                        //{
+                        //    columns.Add(reader.GetString("private_createDT"));
+                        //}
 
                         //var v = reader.IsDBNull(6);
                         //columns.Add(reader.GetString(6));
                         //columns.Add(reader.GetString(7));
                         //columns.Add(reader.GetString(8));
                         //columns.Add(reader.GetString(9));
-                        if (reader.IsDBNull("public_duration"))
-                        {
-                            //columns.Add(reader.GetString("public_duration"));
-                            columns.Add("Public_Duration_empty");
-                        }
-                        else
-                        {
-                            columns.Add("Public_Duration_empty");
-                        }
-
-
-
+                        //if (reader.IsDBNull("public_duration"))
+                        //{
                         columns.Add(reader.GetString("public_duration"));
+                        //    columns.Add("Public_Duration_empty");
+                        //}
+                        //else
+                        //{
+                        //    columns.Add("Public_Duration_empty");
+                        //}
 
-                        if (!reader.IsDBNull("public_csr"))
-                        {
-                            columns.Add(reader.GetString("public_csr"));
-                        }
-                        if (!reader.IsDBNull("public_cert"))
-                        {
-                            columns.Add(reader.GetString("public_cert"));
-                        }
-                        if (!reader.IsDBNull("public_createDT"))
-                        {
-                            columns.Add(reader.GetString("public_createDT"));
-                        }
 
-                        if (!reader.IsDBNull("subj_country"))
-                        {
-                            columns.Add(reader.GetString("subj_country"));
-                        }
-                        if (!reader.IsDBNull("subj_state"))
-                        {
-                            columns.Add(reader.GetString("subj_state"));
-                        }
-                        if (!reader.IsDBNull("subj_location"))
-                        {
-                            columns.Add(reader.GetString("subj_location"));
-                        }
-                        if (!reader.IsDBNull("subj_organisation"))
-                        {
-                            columns.Add(reader.GetString("subj_organisation"));
-                        }
-                        if (!reader.IsDBNull("subj_orgaunit"))
-                        {
-                            columns.Add(reader.GetString("subj_orgaunit"));
-                        }
-                        if (!reader.IsDBNull("subj_commonname"))
-                        {
-                            columns.Add(reader.GetString("subj_commonname"));
-                        }
-                        if (!reader.IsDBNull("subj_email"))
-                        {
-                            columns.Add(reader.GetString("subj_email"));
-                        }
-                        if (!reader.IsDBNull("subj_email"))
-                        {
-                            columns.Add(reader.GetString("subj_email"));
-                        }
-                        if (!reader.IsDBNull("isCa"))
-                        {
-                            columns.Add(reader.GetString("isCa"));
-                        }
-                        if (!reader.IsDBNull("not_pathlen"))
-                        {
-                            columns.Add(reader.GetString("not_pathlen"));
-                        }
-                        if (!reader.IsDBNull("depth"))
-                        {
-                            columns.Add(reader.GetString("depth"));
-                        }
-                        if (!reader.IsDBNull("canIssue"))
+
+                        //columns.Add(reader.GetString("public_duration"));
+
+                        //if (!reader.IsDBNull("public_csr"))
+                        //{
+                        columns.Add(reader.GetString("public_csr"));
+                        //}
+                        //if (!reader.IsDBNull("public_cert"))
+                        //{
+                        columns.Add(reader.GetString("public_cert"));
+                        //}
+                        //if (!reader.IsDBNull("public_createDT"))
+                        //{
+                        columns.Add(reader.GetString("public_createDT"));
+                        //}
+
+                        //if (!reader.IsDBNull("subj_country"))
+                        //{
+                        columns.Add(reader.GetString("subj_country"));
+                        //}
+                        //if (!reader.IsDBNull("subj_state"))
+                        //{
+                        columns.Add(reader.GetString("subj_state"));
+                        //}
+                        //if (!reader.IsDBNull("subj_location"))
+                        //{
+                        columns.Add(reader.GetString("subj_location"));
+                        //}
+                        //if (!reader.IsDBNull("subj_organisation"))
+                        //{
+                        columns.Add(reader.GetString("subj_organisation"));
+                        //}
+                        //if (!reader.IsDBNull("subj_orgaunit"))
+                        //{
+                        columns.Add(reader.GetString("subj_orgaunit"));
+                        //}
+                        //if (!reader.IsDBNull("subj_commonname"))
+                        //{
+                        columns.Add(reader.GetString("subj_commonname"));
+                        //}
+                        //if (!reader.IsDBNull("subj_email"))
+                        //{
+                        columns.Add(reader.GetString("subj_email"));
+                        //}
+                        //if (!reader.IsDBNull("subj_email"))
+                        //{
+                        //    columns.Add(reader.GetString("subj_email"));
+                        //}
+                        //if (!reader.IsDBNull("isCa"))
+                        //{
+                        columns.Add(reader.GetString("isCa"));
+                        //}
+                        //if (!reader.IsDBNull("not_pathlen"))
+                        //{
+                        columns.Add(reader.GetString("not_pathlen"));
+                        //}
+                        //if (!reader.IsDBNull("depth"))
+                        //{
+                        columns.Add(reader.GetString("depth"));
+                        //}
+                        //if (!reader.IsDBNull("canIssue"))
                         {
                             columns.Add(reader.GetString("canIssue"));
                         }
                     }
+                }
+
+                return columns;
+            }
+            else
+            {
+                MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+                return null;
+            }
+        }
+        /// <summary>
+        /// Performs a SQL Select statement with objects as List type
+        /// </summary>
+        /// <param name="database">The SQLite database which shall be used</param>
+        /// <param name="column">The selection what it should be queried.</param>
+        /// <param name="table">The corresponding table, depending on the type</param>
+        /// <returns>Returns the statement elements as a List with objects</returns>
+        public static List<object> SqlSelectObject(string database, string column, SQLTable table)
+        {
+            SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+            _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+            _connectionString.DataSource = database;
+            _connectionString.Password = null;
+            string connectionString = _connectionString.ToString();
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            var sql = $"SELECT {column} FROM {table}";
+
+            using var command = new SqliteCommand(sql, connection);
+            using var reader = command.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                List<object> columns = new List<object>();
+                while (reader.Read())
+                {
+                    columns.Add(reader["id"]);
+                    columns.Add(reader["name"]);
+                    columns.Add(reader["private_bits"]);
+                    columns.Add(reader["private_content"]);
+                    columns.Add(reader["private_createDT"]);
+                    columns.Add(reader["public_duration"]);
+                    columns.Add(reader["public_csr"]);
+                    columns.Add(reader["public_cert"]);
+                    columns.Add(reader["public_createDT"]);
+                    columns.Add(reader["subj_country"]);
+                    columns.Add(reader["subj_state"]);
+                    columns.Add(reader["subj_location"]);
+                    columns.Add(reader["subj_organisation"]);
+                    columns.Add(reader["subj_orgaunit"]);
+                    columns.Add(reader["subj_commonname"]);
+                    columns.Add(reader["subj_email"]);
+                    columns.Add(reader["isCa"]);
+                    columns.Add(reader["not_pathlen"]);
+                    columns.Add(reader["depth"]);
+                    columns.Add(reader["canIssue"]);
                 }
 
                 return columns;
@@ -393,7 +432,6 @@ public class Utils
 
                     }
                     return Result.Ok(readString);
-
                 }
                 else
                 {
@@ -404,6 +442,50 @@ public class Utils
             {
                 MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return Result.Fail(ex.Message);
+            }
+
+        }
+
+        public static Result<List<object>> SelectWhereObject(string database, string[] column1, SQLTable table, string searchColumn, string searchValue)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string column = string.Join(",", column1); // adds a comma after each element, except the last one for the SQL query
+
+                string sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                using var reader = command.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    List<object> columns = new List<object>();
+                    while (reader.Read())
+                    {                        
+                        foreach (string row in column1)
+                        {
+                            columns.Add(reader[row]);
+                        }
+                    }
+                    return Result.Ok(columns);
+                }
+                else
+                {                    
+                    return Result.Fail("No Server found");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.ToString());
             }
 
         }
@@ -543,7 +625,6 @@ public class Utils
 
             }
         }
-
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
@@ -602,6 +683,37 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
+        public static Result<int> Update(string database, SQLTable table, string searchTerm, bool isCa, bool noPaLen, int depth, bool canIssue)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                string sql = $"UPDATE {table} SET isCa = @_isCa, not_pathlen = @_not_pathLen, depth = @_depth, canIssue = @_canIssue WHERE name = @_searchTerm";
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_isCa", isCa);
+                command.Parameters.AddWithValue("@_not_pathLen", noPaLen);
+                command.Parameters.AddWithValue("@_depth", depth);
+                command.Parameters.AddWithValue("@_canIssue", canIssue);
+
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+
+                int rowInserted = command.ExecuteNonQuery();
+                return Result.Ok(rowInserted);
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return Result.Fail(ex.Message);
+            }
+
+        }
     }
     public class Certs
     {
@@ -630,14 +742,14 @@ public class Utils
             return Privkey;
         }
         /// <summary>
-        /// 
+        /// Generates the CSR file
         /// </summary>
-        /// <param name="keySize"></param>
-        /// <param name="privKey"></param>
-        /// <param name="subjects"></param>
-        /// <param name="pubKey"></param>
-        /// <param name="hash"></param>
-        /// <param name="RSASigPad"></param>
+        /// <param name="keySize">Keysize in bits</param>
+        /// <param name="privKey">The privatekey as byte[]</param>
+        /// <param name="subjects">Distingused name as string</param>
+        /// <param name="pubKey">The publickey as byte[]</param>
+        /// <param name="hash">Specifies the name of a cryptographic hash algorithm</param>
+        /// <param name="RSASigPad">Specifies the padding mode  and parameters to use with RSA signature creation or verification operations</param>
         public void CertificateRequest(int keySize, string privKey, string[] subjects, string pubKey, HashAlgorithmName hash, RSASignaturePadding RSASigPad)
         {
             RSA rsa = RSA.Create(keySize);
