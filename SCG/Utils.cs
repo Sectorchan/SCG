@@ -25,26 +25,12 @@ using System.Xml;
 namespace PL;
 public class Utils
 {
+    public class test
+    {
+
+    }
     public class Sql
     {
-        public static Result<bool> SqlConnect(string database, SqliteOpenMode sqliteOpenMode, string sqlPasswd)
-        {
-            try
-            {
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = sqliteOpenMode;
-                _connectionString.DataSource = database;
-                _connectionString.Password = sqlPasswd;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-                return Result.Ok(true);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail(ex.Message.ToString());
-            }
-        }
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -366,6 +352,12 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
 
+        }
+        public static Result<string> SelectWhereString(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        {
+            try
+            {
+                
         }
         public static Result<string> SelectWhereString(string database, string column, SQLTable table, string searchColumn, string searchValue)
         {
