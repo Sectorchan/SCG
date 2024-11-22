@@ -25,12 +25,26 @@ using System.Xml;
 namespace PL;
 public class Utils
 {
-    public class test
-    {
-
-    }
     public class Sql
     {
+        public static Result<bool> SqlConnect(string database, SqliteOpenMode sqliteOpenMode, string sqlPasswd)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = sqliteOpenMode;
+                _connectionString.DataSource = database;
+                _connectionString.Password = sqlPasswd;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                return Result.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.Message.ToString());
+            }
+        }
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -144,7 +158,6 @@ public class Utils
                 }
             }
         }
-
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
@@ -201,7 +214,7 @@ public class Utils
                         {
                             columns.Add(reader.GetString("private_bits"));
                         }
-                       
+
                         if (!reader.IsDBNull("private_content"))
                         {
                             columns.Add(reader.GetString("private_content"));
@@ -229,7 +242,7 @@ public class Utils
 
 
                         columns.Add(reader.GetString("public_duration"));
-                        
+
                         if (!reader.IsDBNull("public_csr"))
                         {
                             columns.Add(reader.GetString("public_csr"));
@@ -242,7 +255,7 @@ public class Utils
                         {
                             columns.Add(reader.GetString("public_createDT"));
                         }
-                        
+
                         if (!reader.IsDBNull("subj_country"))
                         {
                             columns.Add(reader.GetString("subj_country"));
@@ -312,7 +325,7 @@ public class Utils
         /// <param name="searchColumn">In which column should be searched</param>
         /// <param name="searchValue">The Value that should be searched for in the searchColumn</param>
         /// <returns>Returns the string if found</returns>
-        public static Result<byte[]> SelectWhere(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        public static Result<byte[]> SelectWhereByte(string database, string column, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
@@ -330,20 +343,22 @@ public class Utils
                 using var reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {
-                    while (reader.Read())
+                    switch (column)
                     {
-                        //byte[] privKey = reader.GetByte(0);
-                        byte[] privKey = Convert.FromBase64String(reader.GetString(0));
-                        return Result.Ok(privKey);
+                        case "private_content":
+                            while (reader.Read())
+                            {
+                                byte[] privKey = reader[column] as byte[];
+                                return Result.Ok(privKey);
+                            }
+                            break;
                     }
-                    return Result.Fail(sql);
+                    return Result.Fail("No Case selected");
                 }
                 else
                 {
                     return Result.Fail(sql);
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -352,7 +367,49 @@ public class Utils
             }
 
         }
+        public static Result<string> SelectWhereString(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        {
+            try
+            {
+                
 
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                var sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                using var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                   
+                        while (reader.Read())
+                        {
+                           string s =reader.GetString(0);
+                        }
+                    
+
+
+                    return Result.Fail("No Case selected");
+                }
+                else
+                {
+                    return Result.Fail(sql);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return Result.Fail(ex.Message);
+            }
+
+        }
+        
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
@@ -458,6 +515,22 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
+        public static Result<int> Update(string database, SQLTable table, byte[] publicKey, string searchTerm, bool updateTimePub)
+        {
+            try
+            {
+                int rowUpdated = 0;
+                SqlConnect(Global.database, SqliteOpenMode.ReadWriteCreate, null);
+
+                return Result.Ok(rowUpdated);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.ToString());               
+
+            }
+        }
+            
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
@@ -572,7 +645,7 @@ public class Utils
 
             return pubKey;
         }
-        
+
     }
 
 
