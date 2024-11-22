@@ -25,12 +25,28 @@ using System.Xml;
 namespace PL;
 public class Utils
 {
-    public class test
-    {
 
-    }
+
     public class Sql
     {
+        public static void SqlConnect(string database, SqliteOpenMode sqliteOpenMode, string sqlPasswd)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = sqliteOpenMode;
+                _connectionString.DataSource = database;
+                _connectionString.Password = sqlPasswd;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+               
+            }
+            catch (Exception ex)
+            {
+                
+            }
+        }
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -120,12 +136,11 @@ public class Utils
                         break;
                 }
 
-                string sql = $"INSERT INTO {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+                string sql = $"INSERT INTO {_table} (name, private_bits, private_content, private_createDT) VALUES (@_Name, @priv_bits, @priv_content, @priv_createDT)";
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_Name", Name);
                 command.Parameters.AddWithValue("@priv_bits", Privbits);
-                command.Parameters.AddWithValue("@priv_pass", Privpass);
                 command.Parameters.AddWithValue("@priv_content", Privkey);
                 command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
                 int rowInserted = command.ExecuteNonQuery();
@@ -357,14 +372,6 @@ public class Utils
         {
             try
             {
-                
-        }
-        public static Result<string> SelectWhereString(string database, string column, SQLTable table, string searchColumn, string searchValue)
-        {
-            try
-            {
-                
-
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
                 _connectionString.DataSource = database;
@@ -379,15 +386,14 @@ public class Utils
                 using var reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {
-                   
-                        while (reader.Read())
-                        {
-                           string s =reader.GetString(0);
-                        }
-                    
+                    string readString = "";
+                    while (reader.Read())
+                    {
+                        readString = reader.GetString(0);
 
+                    }
+                    return Result.Ok(readString);
 
-                    return Result.Fail("No Case selected");
                 }
                 else
                 {
@@ -401,7 +407,7 @@ public class Utils
             }
 
         }
-        
+
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
@@ -507,22 +513,37 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(string database, SQLTable table, byte[] publicKey, string searchTerm, bool updateTimePub)
+        public static Result<int> Update(string database, SQLTable table, byte[] publicKey, string searchTerm, string searchColumn)
         {
             try
             {
-                int rowUpdated = 0;
-                SqlConnect(Global.database, SqliteOpenMode.ReadWriteCreate, null);
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWrite;
+                _connectionString.DataSource = database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string sql = $"UPDATE {table} SET public_cert = @_publicKey, public_createDT = @_public_createDT WHERE {searchColumn} = @_searchTerm";
+
+                string public_createDT = DateTime.Now.ToString();
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_publicKey", publicKey);
+                command.Parameters.AddWithValue("@_public_createDT", public_createDT);
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+
+                int rowUpdated = command.ExecuteNonQuery();
 
                 return Result.Ok(rowUpdated);
             }
             catch (Exception ex)
             {
-                return Result.Fail(ex.ToString());               
+                return Result.Fail(ex.ToString());
 
             }
         }
-            
+
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>

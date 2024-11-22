@@ -440,7 +440,7 @@ public partial class Server : Form
 
             Result<byte[]> pKey  = Utils.Sql.SelectWhereByte(Global.database, "private_content", SQLTable.ca, "name", serverSelect);
             Result<string> pBits  = Utils.Sql.SelectWhereString(Global.database, "private_bits", SQLTable.ca, "name", serverSelect);
-            
+            Result<SQLTable> table = SqlTable();
 
             using (RSA rsa = RSA.Create(Convert.ToInt32(pBits.Value)))
             {
@@ -450,12 +450,17 @@ public partial class Server : Form
                 //RSAParameters publicKey = rsa.ExportParameters(false);
                 byPKey = rsa.ExportRSAPublicKey();
                 // do something else with it
-                Utils.Sql.Update()
+                Result<int> resUpdate = Utils.Sql.Update(Global.database, table.Value, byPKey, serverSelect, "name");
+
+                if (resUpdate.IsSuccess)
+                {
+                    MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
         catch (Exception ex)
         {
-
+            MessageBox.Show(ex.Message.ToString());
         }
 
     }
