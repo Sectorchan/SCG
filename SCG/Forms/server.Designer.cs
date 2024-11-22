@@ -78,6 +78,7 @@ partial class Server
         checkBox1 = new CheckBox();
         Bt_int_gen_csr = new Button();
         Bt_gen_ca_pub = new Button();
+        Bt_wrt_param = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -451,14 +452,15 @@ partial class Server
         // 
         // panel2
         // 
+        panel2.Controls.Add(Bt_wrt_param);
         panel2.Controls.Add(cb_notPathlen);
         panel2.Controls.Add(cb_isCa);
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(176, 26);
+        panel2.Location = new Point(229, 32);
         panel2.Name = "panel2";
-        panel2.Size = new Size(102, 109);
+        panel2.Size = new Size(102, 157);
         panel2.TabIndex = 31;
         // 
         // lb_inter_certs
@@ -563,6 +565,16 @@ partial class Server
         Bt_gen_ca_pub.UseVisualStyleBackColor = true;
         Bt_gen_ca_pub.Click += Bt_gen_ca_pub_Click;
         // 
+        // Bt_wrt_param
+        // 
+        Bt_wrt_param.Location = new Point(8, 110);
+        Bt_wrt_param.Name = "Bt_wrt_param";
+        Bt_wrt_param.Size = new Size(75, 23);
+        Bt_wrt_param.TabIndex = 31;
+        Bt_wrt_param.Text = "Write Param";
+        Bt_wrt_param.UseVisualStyleBackColor = true;
+        Bt_wrt_param.Click += Bt_wrt_param_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
@@ -657,4 +669,5 @@ partial class Server
     private Button Bt_int_gen_csr;
     private Button Bt_read_Dest_names;
     private Button Bt_gen_ca_pub;
+    private Button Bt_wrt_param;
 }

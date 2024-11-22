@@ -543,7 +543,6 @@ public class Utils
 
             }
         }
-
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
@@ -601,6 +600,10 @@ public class Utils
             {
                 return Result.Fail(ex.Message);
             }
+        }
+        public static Result<int> Update(string database, SQLTable table, string searchTerm, bool isCa, bool noPaLen, int depth, bool canIssue)
+        {
+            return Result.Ok(1);
         }
     }
     public class Certs

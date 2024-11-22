@@ -33,7 +33,7 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
-        
+
 
         Bt_gen_ca_priv.Enabled = false;
 
@@ -438,8 +438,8 @@ public partial class Server : Form
             string serverSelect = lb_server_certs.SelectedItem.ToString();
             byte[] byPKey;
 
-            Result<byte[]> pKey  = Utils.Sql.SelectWhereByte(Global.database, "private_content", SQLTable.ca, "name", serverSelect);
-            Result<string> pBits  = Utils.Sql.SelectWhereString(Global.database, "private_bits", SQLTable.ca, "name", serverSelect);
+            Result<byte[]> pKey = Utils.Sql.SelectWhereByte(Global.database, "private_content", SQLTable.ca, "name", serverSelect);
+            Result<string> pBits = Utils.Sql.SelectWhereString(Global.database, "private_bits", SQLTable.ca, "name", serverSelect);
             Result<SQLTable> table = SqlTable();
 
             using (RSA rsa = RSA.Create(Convert.ToInt32(pBits.Value)))
@@ -462,6 +462,19 @@ public partial class Server : Form
         {
             MessageBox.Show(ex.Message.ToString());
         }
+
+    }
+
+    private void Bt_wrt_param_Click(object sender, EventArgs e)
+    {
+        bool isCa = cb_isCa.Checked;
+        bool noPaLen = cb_notPathlen.Checked;   
+        int depth = Convert.ToInt16(cb_depth.Text);
+        bool isCert = cb_issueCert.Checked;
+        Result<SQLTable> table = SqlTable();
+        string serverSelect = lb_server_certs.SelectedItem.ToString();
+
+        Result<int> resUpdateParam = Utils.Sql.Update(Global.database, table.Value, serverSelect, );
 
     }
 }
