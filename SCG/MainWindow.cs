@@ -157,75 +157,7 @@ namespace WinFormsApp1
             InitializeComponent();
 
         }
-        /// <summary>
-        /// Adds a CA Server entry
-        /// </summary>
-        /// <param name="file">pass the XML file as relative path</param>
-        public void AddCaServer(string file)
-        {
-            XDocument doc = XDocument.Load(file);
-            doc.Root.Element("CA").Add(
-               new XElement("name", "Sample-CA"),
-                    new XElement("type", "CA"),
-                    new XElement("id", "0"),
-                    new XElement("Private",
-                        new XElement("Bits", "4096"),
-                        new XElement("Pass", "passwortca"),
-                        new XElement("file", "Sample-CA.key.pem")
-                    ),
-                    new XElement("Public",
-                        new XElement("duration", "7300"),
-                        new XElement("pass", "passwortca"),
-                        new XElement("cnf", "openssl-ca.cnf"),
-                        new XElement("subj",
-                          new XElement("C", "DE"),
-                          new XElement("ST", "Bavaria"),
-                          new XElement("L", "Hausen"),
-                          new XElement("OU", "IT"),
-                          new XElement("CN", "Lang-CA"),
-                          new XElement("email", "admin@admin.de")
-                          )
-                    )
-                );
-            doc.Save(file);
-
-            ChangeDateModifiedXml(file);
-        }
-
-        /// <summary>
-        /// Changes the XML attribute of date modified to now
-        /// </summary>
-        /// <param name="file">pass the XML file as relative path</param>
-        public void ChangeDateModifiedXml(string file)
-        {
-            XDocument doc = XDocument.Load(file);
-            XElement element = doc.Descendants("date").First();
-            XAttribute attribute = element.Attribute("modified");
-            attribute.Value = DateTime.Now.ToString();
-            doc.Save(file);
-        }
-        public void AddCaPrivKey(string xmlfile)
-        {
-
-            XDocument doc = XDocument.Load(xmlfile);
-            doc.Root.Element("CA").Add(
-               new XElement(tb_ca_priv_name.Text,
-                    new XElement("type", "CA"),
-                    new XElement("id", _caIndex),
-                    new XElement("Private",
-                        new XElement("Bits", "4096"),
-                        new XElement("Pass", tb_ca_key_pw1.Text),
-                        new XElement("file", tb_ca_priv_name.Text + ".key.pem")
-                    )
-                )
-            );
-            doc.Save(xmlfile);
-            _caIndex++;
-            Settings.Default.CaIndex = _caIndex;
-            Settings.Default.Save();
-            ChangeDateModifiedXml(xmlfile);
-            RefreshCaPrivLb(xmlfile);
-        }
+       
         private void button2_Click(object sender, EventArgs e)
         {
             RefreshCaPrivLb(xml);
