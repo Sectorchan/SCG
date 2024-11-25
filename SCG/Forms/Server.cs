@@ -199,8 +199,10 @@ public partial class Server : Form
             Result<SQLTable> table = SqlTable();
 
             byte[] RSAPrivate = cert.Value.ExportRSAPrivateKey();
+            //Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, RSAPrivate, PrivateBits);
 
-            Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, RSAPrivate, PrivateBits);
+            string privateKeyBase64 = Convert.ToBase64String(RSAPrivate);           
+            Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, privateKeyBase64, PrivateBits);
 
             if (sqlInsert.IsSuccess)
             {
@@ -260,9 +262,18 @@ public partial class Server : Form
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
             string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, O={resWhere.Value[6]}, OU={resWhere.Value[7]}, CN={resWhere.Value[8]}, Email={resWhere.Value[9]}";
-            Result<CertificateRequest> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, resWhere.Value[1] as byte[], resWhere.Value[2] as byte[], Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]);
-
-
+            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, resWhere.Value[1] as byte[], resWhere.Value[2] as byte[], Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
+            if (resCreateCSR.IsSuccess)
+            {
+                Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, "name", resCreateCSR.Value);
+                if (resUpdate.IsSuccess)
+                { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", sender.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Information); }
+            }
+            else {
+                MessageBox.Show(resCreateCSR.Errors[0].ToString());
+            }
+           
+            
             //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
             //{
             // RSA rsa = RSA.Create(keySize); // Using a larger key size for a CA (e.g., 4096 bits)
@@ -279,8 +290,8 @@ public partial class Server : Form
             // The CA certificate must have the Basic Constraints extension set to "CA: true".
             //Result<SQLTable> table = SqlTable();
 
-            resCreateCSR.Value.CertificateExtensions.Add(
-                              new X509BasicConstraintsExtension(Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13])));
+            //resCreateCSR.Value.CertificateExtensions.Add(
+            //                  new X509BasicConstraintsExtension(Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13])));
 
 
             //    // Step 5: Set the certificate validity period (e.g., 10 years for a CA)

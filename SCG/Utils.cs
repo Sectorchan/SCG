@@ -714,7 +714,7 @@ public class Utils
             }
 
         }
-        public static Result<int> Update(string database, SQLTable table, string searchTerm, CertificateRequest csr_cert)
+        public static Result<int> Update(string database, SQLTable table, string searchTerm, byte[] selfSignedCert)
         {
             try
             {
@@ -726,9 +726,9 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string sql = $"UPDATE {table} SET csr_cert = @_csr_cert WHERE name = @_searchTerm";
+                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert WHERE name = @_searchTerm";
                 using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_csr_cert", csr_cert);
+                command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
 
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
 
@@ -749,12 +749,15 @@ public class Utils
         /// </summary>
         /// <param name="keyPair">Keysize in bits</param>
         /// <returns>The Public and Privatekey</returns>
-        public static Result<RSA> GenCertPair(int keyPair)
+        public static Result<RSA> GenCertPair(int keySize)
         {
-            RSA rsa = RSA.Create(keyPair); // Using a larger key size for a CA (e.g., 4096 bits)           
-            rsa.ExportRSAPrivateKey();
-            rsa.ExportRSAPublicKey();
-            return Result.Ok(rsa);
+            using (RSA rsa = RSA.Create(keySize))
+            {
+                rsa.KeySize = keySize;     
+                rsa.ExportRSAPrivateKey();
+                rsa.ExportRSAPublicKey();
+                return Result.Ok(rsa);
+            }
         }
 
         /// <summary>
@@ -762,11 +765,26 @@ public class Utils
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
-        public static Result<RSA> CreatePrivKey(int KeySize)
+        public static Result<RSA> CreatePrivKey(int keySize)
         {
-            RSA rsa = RSA.Create(KeySize);
-            //var Privkey = rsa.ExportRSAPrivateKey();
+                RSA rsa = RSA.Create();
+            
+                rsa.KeySize = keySize;
+                rsa.ExportRSAPrivateKey();
+
+            System.IO.File.WriteAllBytes("inside_createPrivateKey.txt", rsa.ExportRSAPrivateKey());
+
+                //using (RSA rsa2 = RSA.Create(keySize))
+                //{
+                //    rsa2.KeySize = keySize;
+                //    rsa2.ExportRSAPrivateKey();
+                
+                //return Result.Ok(rsa);
+                //}
+
             return Result.Ok(rsa);
+            
+
         }
         /// <summary>
         /// Generates the CSR file
@@ -781,8 +799,12 @@ public class Utils
             {
                 using (RSA rsa = RSA.Create(Convert.ToInt16(keySize)))
                 {
-                    rsa.ImportRSAPrivateKey(privKey, out _);
-                    rsa.ImportRSAPublicKey(pubKey, out _);
+                    //rsa.ImportRSAPrivateKey(privKey, out _);
+                    //rsa.ImportRSAPublicKey(pubKey, out _);
+
+                    
+
+
                     CertificateRequest csr = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
                     csr.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, canIssue));
@@ -799,9 +821,7 @@ public class Utils
             catch (Exception ex)
             {
                 return Result.Fail(ex.Message);
-            }
-            
-
+            }       
         }
         /// <summary>
         /// Generate the public key (obsolete?)
