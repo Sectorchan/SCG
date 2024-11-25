@@ -89,7 +89,7 @@ public class Utils
             }
 
         }
-        public static Result<int> InsertInto(string database, SQLTable table, string Name, byte[] Privkey, int Privbits)
+        public static Result<int> InsertInto(string database, SQLTable table, string Name, string Privkey, int Privbits)
         {
             try
             {
@@ -595,7 +595,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(string database, SQLTable table, byte[] publicKey, string searchTerm, string searchColumn)
+        public static Result<int> Update(string database, SQLTable table, string publicKey, string searchTerm, string searchColumn)
         {
             try
             {
@@ -625,21 +625,6 @@ public class Utils
 
             }
         }
-        /// <summary>
-        /// Performs a SQL Update statement
-        /// </summary>
-        /// <param name="database">Defines the target database</param>
-        /// <param name="table">Defines the table inside the database</param>
-        /// <param name="publicDuration">Set the duration of the public certificate in month</param>
-        /// <param name="publicKey">The publicKey that shall be written into the database</param>
-        /// <param name="searchTerm">Select the server</param>
-        /// <param name="subj_country"></param>
-        /// <param name="subj_state"></param>
-        /// <param name="subj_location"></param>
-        /// <param name="subj_orgaunit"></param>
-        /// <param name="subj_commonname"></param>
-        /// <param name="subj_email"></param>
-        /// <returns>The number if updated rows</returns>
         public static Result<int> Update(string database, SQLTable table, string searchTerm, string subj_country, string subj_state, string subj_location,
                                          string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email)
         {
@@ -772,19 +757,19 @@ public class Utils
                 rsa.KeySize = keySize;
                 rsa.ExportRSAPrivateKey();
 
-            System.IO.File.WriteAllBytes("inside_createPrivateKey.txt", rsa.ExportRSAPrivateKey());
-
-                //using (RSA rsa2 = RSA.Create(keySize))
-                //{
-                //    rsa2.KeySize = keySize;
-                //    rsa2.ExportRSAPrivateKey();
-                
-                //return Result.Ok(rsa);
-                //}
-
             return Result.Ok(rsa);
-            
+        }
+        /// <summary>
+        /// Generate the public key (obsolete?)
+        /// </summary>
+        /// <returns>Returns the public key in PEM format</returns>
+        public static Result<byte[]> CreatePubKey(int KeySize, byte[] privateKey)
+        {
+            RSA rsa = RSA.Create(KeySize);
+            rsa.ImportRSAPrivateKey(privateKey, out int _);
+            byte[] pubKey = rsa.ExportRSAPublicKey();
 
+            return Result.Ok(pubKey);
         }
         /// <summary>
         /// Generates the CSR file
@@ -793,7 +778,7 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<byte[]> CreateSSCert(int keySize, string subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
+        public static Result<byte[]> CreateSSCert(int keySize, string subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
         {
             try
             {
@@ -823,19 +808,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }       
         }
-        /// <summary>
-        /// Generate the public key (obsolete?)
-        /// </summary>
-        /// <returns>Returns the public key in PEM format</returns>
-        public static byte[] CreatePubKey(int duration, byte[] privateKey)
-        {
-            RSA PubKey = RSA.Create();
-            PubKey.ImportRSAPrivateKey(privateKey, out int _);
-
-            byte[] pubKey = PubKey.ExportRSAPublicKey();
-
-            return pubKey;
-        }
+    
 
     }
 

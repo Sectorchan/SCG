@@ -235,14 +235,25 @@ public partial class Server : Form
             Result<SQLTable> resTable = SqlTable();
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content"], resTable.Value, "name", serverSelect);
 
-            using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
-            {
-                rsa.ImportRSAPrivateKey(resWhere.Value[1] as byte[], out _);
-                byte[] byPKey = rsa.ExportRSAPublicKey();
-                Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, byPKey, serverSelect, "name");
-                if (resUpdate.IsSuccess)
-                { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information); }
-            }
+            int keySize = Convert.ToInt16(resWhere.Value[0]);
+            string privateKeyBase64 = resWhere.Value[1].ToString();
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+
+            Result<byte[]> resPubKey = Utils.Certs.CreatePubKey(keySize, privateKeyBytes);
+            string publicKeyBase64 = Convert.ToBase64String(resPubKey.Value);
+            Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKeyBase64, serverSelect, "name");
+
+            //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
+            //{
+            //    rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+
+            //    string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
+
+
+            //    Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKey, serverSelect, "name");
+            if (resUpdate.IsSuccess)
+            { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information); }
+            //}
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
@@ -262,16 +273,8 @@ public partial class Server : Form
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
             string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, O={resWhere.Value[6]}, OU={resWhere.Value[7]}, CN={resWhere.Value[8]}, Email={resWhere.Value[9]}";
-            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, resWhere.Value[1] as byte[], resWhere.Value[2] as byte[], Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
-            if (resCreateCSR.IsSuccess)
-            {
-                Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, "name", resCreateCSR.Value);
-                if (resUpdate.IsSuccess)
-                { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", sender.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Information); }
-            }
-            else {
-                MessageBox.Show(resCreateCSR.Errors[0].ToString());
-            }
+            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, "dd" ,"dsds" , Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
+            
            
             
             //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
