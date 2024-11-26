@@ -26,10 +26,8 @@ using System.Data.Common;
 namespace PL;
 public class Utils
 {
-
     public class Sql
     {
-
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>
@@ -738,7 +736,7 @@ public class Utils
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                rsa.KeySize = keySize;     
+                rsa.KeySize = keySize;
                 rsa.ExportRSAPrivateKey();
                 rsa.ExportRSAPublicKey();
                 return Result.Ok(rsa);
@@ -752,10 +750,10 @@ public class Utils
         /// <returns>The privatekey in PEM format as String</returns>
         public static Result<RSA> CreatePrivKey(int keySize)
         {
-                RSA rsa = RSA.Create();
-            
-                rsa.KeySize = keySize;
-                rsa.ExportRSAPrivateKey();
+            RSA rsa = RSA.Create();
+
+            rsa.KeySize = keySize;
+            rsa.ExportRSAPrivateKey();
 
             return Result.Ok(rsa);
         }
@@ -778,16 +776,16 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<byte[]> CreateSSCert(int keySize, string subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
+        public static Result<byte[]> CreateSSCert(int keySize, string subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
         {
             try
             {
                 using (RSA rsa = RSA.Create(Convert.ToInt16(keySize)))
                 {
-                    //rsa.ImportRSAPrivateKey(privKey, out _);
-                    //rsa.ImportRSAPublicKey(pubKey, out _);
+                    rsa.ImportRSAPrivateKey(privKey, out _);
+                    rsa.ImportRSAPublicKey(pubKey, out _);
 
-                    
+
 
 
                     CertificateRequest csr = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -800,15 +798,17 @@ public class Utils
                     X509Certificate2 caCertificate = csr.CreateSelfSigned(notBefore, notAfter);
                     // Step 7: Export the certificate (optional: save to file, or use as needed)
                     byte[] bySSCert = caCertificate.Export(X509ContentType.Cert);
+
+
                     return Result.Ok(bySSCert);
                 }
             }
             catch (Exception ex)
             {
                 return Result.Fail(ex.Message);
-            }       
+            }
         }
-    
+
 
     }
 

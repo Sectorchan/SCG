@@ -273,10 +273,30 @@ public partial class Server : Form
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue", "public_duration"], resTable.Value, "name", serverSelect);
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
+            string privateKeyBase64 = resWhere.Value[2].ToString();
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+
+            string publicKeyBase64 = resWhere.Value[2].ToString();
+            byte[] publicKeyBytes = Convert.FromBase64String(publicKeyBase64);
+
+
             string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, O={resWhere.Value[6]}, OU={resWhere.Value[7]}, CN={resWhere.Value[8]}, Email={resWhere.Value[9]}";
-            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, "dd" ,"dsds" , Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
-            
-           
+
+
+            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, privateKeyBytes, publicKeyBytes, Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
+
+            if (resCreateCSR.IsSuccess)
+            {
+                Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, serverSelect, resCreateCSR.Value);
+                if (resUpdate.IsSuccess)
+                {
+                    MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+           else
+            {
+                MessageBox.Show(resCreateCSR.Errors[0].ToString());
+            }
             
             //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
             //{
