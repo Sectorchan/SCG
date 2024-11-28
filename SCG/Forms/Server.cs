@@ -200,9 +200,9 @@ public partial class Server : Form
             Result<SQLTable> table = SqlTable();
 
             byte[] RSAPrivate = cert.Value.ExportRSAPrivateKey();
-            byte[] RSAPublic = cert.Value.ExportRSAPublicKey();
+            //Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, RSAPrivate, PrivateBits);
 
-            string privateKeyBase64 = Convert.ToBase64String(RSAPrivate);           
+            string privateKeyBase64 = Convert.ToBase64String(RSAPrivate);
             Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, privateKeyBase64, PrivateBits);
 
             if (sqlInsert.IsSuccess)
@@ -236,6 +236,29 @@ public partial class Server : Form
             Result<SQLTable> resTable = SqlTable();
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content"], resTable.Value, "name", serverSelect);
 
+            int keySize = Convert.ToInt16(resWhere.Value[0]);
+            string privateKeyBase64 = resWhere.Value[1].ToString();
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+
+            Result<byte[]> resPubKey = Utils.Certs.CreatePubKey(keySize, privateKeyBytes);
+            string publicKeyBase64 = Convert.ToBase64String(resPubKey.Value);
+            Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKeyBase64, serverSelect, "name");
+
+            //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
+            //{
+            //    rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+
+            //    string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
+
+
+            //    Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKey, serverSelect, "name");
+            if (resUpdate.IsSuccess)
+            { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information); }
+            //}
+        }
+        catch (Exception ex)
+        { MessageBox.Show(ex.Message.ToString()); }
+    }
     /// <summary>
     /// Button click "Generate CSR" > generates a Certificate sign request file incl Self signed for CA
     /// </summary>
@@ -245,37 +268,60 @@ public partial class Server : Form
     {
         try
         {
-            int keySize = int.Parse(cb_priv_bits.Text);
-            string sub_c = tb_sub_c.Text;
-            string sub_s = tb_sub_st.Text;
-            string sub_l = tb_sub_loc.Text;
-            string sub_o = tb_sub_orga.Text;
-            string sub_ou = tb_sub_ou.Text;
-            string sub_n = tb_sub_cn.Text;
-            string sub_e = tb_sub_email.Text;
+            string serverSelect = lb_server_certs.SelectedItem.ToString();
+            Result<SQLTable> resTable = SqlTable();                                         //0             1                   2               3               4               5                   6               7                   8               9           10          11          12      13          14  
+            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue", "public_duration"], resTable.Value, "name", serverSelect);
 
-            //string serverSelect = lb_server_certs.SelectedItem.ToString();
-            string searchTerm = lb_server_certs.SelectedItem.ToString();
+            int keySize = Convert.ToInt16(resWhere.Value[0]);
+            string privateKeyBase64 = resWhere.Value[2].ToString();
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
 
-            RSA rsa = RSA.Create(keySize); // Using a larger key size for a CA (e.g., 4096 bits)
+            string publicKeyBase64 = resWhere.Value[2].ToString();
+            byte[] publicKeyBytes = Convert.FromBase64String(publicKeyBase64);
 
 
+            string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, O={resWhere.Value[6]}, OU={resWhere.Value[7]}, CN={resWhere.Value[8]}, Email={resWhere.Value[9]}";
+
+
+            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, privateKeyBytes, publicKeyBytes, Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
+
+            if (resCreateCSR.IsSuccess)
+            {
+                Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, serverSelect, resCreateCSR.Value);
+                if (resUpdate.IsSuccess)
+                {
+                    MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show(resCreateCSR.Errors[0].ToString());
+            }
+
+            //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
+            //{
+            // RSA rsa = RSA.Create(keySize); // Using a larger key size for a CA (e.g., 4096 bits)
             // Step 2: Define the subject for the CA certificate (this is the subject name)
-            string subject = $"C={sub_c}, ST={sub_s}, L={sub_l}, L={sub_l}, O={sub_o}, OU={sub_ou}, CN={sub_n}";
+            //Building Subject
+            //string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, L={resWhere.Value[6]}, O={resWhere.Value[7]}, OU={resWhere.Value[8]}, CN={resWhere.Value[9]}";
 
             // Step 3: Create the CertificateRequest with the RSA key pair and subject
-            var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            //CertificateRequest req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            //var req = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
 
             // Step 4: Set CA-specific properties like Basic Constraints (must be a CA)
             // The CA certificate must have the Basic Constraints extension set to "CA: true".
-            Result<SQLTable> table = SqlTable();
+            //Result<SQLTable> table = SqlTable();
 
-            req.CertificateExtensions.Add(
-                              new X509BasicConstraintsExtension(cb_isCa.Checked, cb_notPathlen.Checked, Convert.ToInt16(cb_depth.Text), cb_issueCert.Checked));
-            // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
-            DateTimeOffset notBefore = DateTimeOffset.Now;
-            int duration = Convert.ToInt16(tb_pub_dura.Text);
-            DateTimeOffset notAfter = notBefore.AddMonths(duration);
+            //resCreateCSR.Value.CertificateExtensions.Add(
+            //                  new X509BasicConstraintsExtension(Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13])));
+
+
+            //    // Step 5: Set the certificate validity period (e.g., 10 years for a CA)
+            //    DateTimeOffset notBefore = DateTimeOffset.Now;
+            //    int duration = Convert.ToInt16(tb_pub_dura.Text);
+            //    DateTimeOffset notAfter = notBefore.AddMonths(duration);
 
             //    // Step 6: Create the self-signed CA certificate
             //    X509Certificate2 caCertificate = req.CreateSelfSigned(notBefore, notAfter);
@@ -318,6 +364,9 @@ public partial class Server : Form
         try
         {
 
+        }
+        catch (Exception ex)
+        { MessageBox.Show(ex.Message.ToString()); }
     }
     #endregion
 
@@ -418,13 +467,8 @@ public partial class Server : Form
     }
     #endregion
 
-
-    private void gb_default_disti_names_Enter(object sender, EventArgs e)
-    {
-
-    }
-
-    private void Bt_gen_ca_pub_Click(object sender, EventArgs e)
+    #region Parameter
+    private void Bt_wrt_param_Click(object sender, EventArgs e)
     {
         try
         {
@@ -449,5 +493,4 @@ public partial class Server : Form
 
 
 }
-
 
