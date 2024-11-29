@@ -748,25 +748,25 @@ public class Utils
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
-        public static Result<byte[]> CreatePrivKey(int keySize)
+        public static byte[] CreatePrivKey(int keySize)
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                return Result.Ok(rsa.ExportRSAPrivateKey());
+                return rsa.ExportRSAPrivateKey();
             }
         }
         /// <summary>
         /// Generate the public key (obsolete?)
         /// </summary>
         /// <returns>Returns the public key in PEM format</returns>
-        public static Result<byte[]> CreatePubKey(int KeySize, byte[] privateKey)
+        public static byte[] CreatePubKey(int KeySize, byte[] privateKey)
         {
-            using (RSA rsa = RSA.Create(KeySize))
+            using (RSA rsa = RSA.Create())
             {
                 rsa.ImportRSAPrivateKey(privateKey, out int _);
                 byte[] pubKey = rsa.ExportRSAPublicKey();
 
-                return Result.Ok(rsa.ExportRSAPublicKey());
+                return pubKey;
             }
         }
         /// <summary>
@@ -776,36 +776,39 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<byte[]> CreateSSCert(int keySize, string subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
+        public static byte[] CreateSSCert(int keySize, string subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
         {
             try
             {
-                using (RSA rsa = RSA.Create(keySize))
-                {
-                    rsa.ImportRSAPrivateKey(privKey, out _);
-                    rsa.ImportRSAPublicKey(pubKey, out _);
+
+                   var distinguishedName = new X500DistinguishedName(subject);
+
+                    using (RSA RSAFromFile = RSA.Create(keySize))
+                    {
+
+                        var request = new CertificateRequest(distinguishedName, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true));
+
+                        // Zertifikat erstellen und signieren
+                        DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                        DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+                        var certificate = request.CreateSelfSigned(notBefore, notAfter);
+                        var export = certificate.Export(X509ContentType.Cert);
+                        File.WriteAllBytes("cert\\certs.der", export);
+
+                        MessageBox.Show("Selbstsigniertes Zertifikat wurde erfolgreich erstellt.");
 
 
+                    return export;
+                    }
 
-
-                    CertificateRequest csr = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                    csr.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, canIssue));
-
-                    DateTimeOffset notBefore = DateTimeOffset.Now;
-                    DateTimeOffset notAfter = notBefore.AddMonths(duration);
-
-                    X509Certificate2 caCertificate = csr.CreateSelfSigned(notBefore, notAfter);
-                    // Step 7: Export the certificate (optional: save to file, or use as needed)
-                    byte[] bySSCert = caCertificate.Export(X509ContentType.Cert);
-
-
-                    return Result.Ok(bySSCert);
-                }
+               
             }
             catch (Exception ex)
             {
-                return Result.Fail(ex.Message);
+                
+                return [2,2];
             }
         }
 
