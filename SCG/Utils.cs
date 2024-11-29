@@ -22,10 +22,13 @@ using SCG.Forms;
 using System.Data;
 using System.Xml;
 using System.Data.Common;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.AccessControl;
 
 namespace PL;
 public class Utils
 {
+
     public class Sql
     {
         /// <summary>
@@ -67,13 +70,13 @@ public class Utils
                         _table = "user";
                         break;
                 }
-                string sql = $"INSERT INTO {_table} (name, private_bits, private_content, private_createDT, public_duration, csr_cert, public_createDT) VALUES (@_Name, @_priv_bits, @_priv_content, @_priv_createDT, @_public_duration, @_csr_cert, @_public_createDT)";
+                string sql = $"INSERT INTO {_table} (name, private_bits, private_content, private_createDT, ss_duration, csr_cert, public_createDT) VALUES (@_Name, @_priv_bits, @_priv_content, @_priv_createDT, @_ss_duration, @_csr_cert, @_public_createDT)";
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_Name", Name);
                 command.Parameters.AddWithValue("@_priv_bits", Privbits);
                 command.Parameters.AddWithValue("@_priv_content", RSAPrivate);
                 command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-                command.Parameters.AddWithValue("@_public_duration", duration);
+                command.Parameters.AddWithValue("@_ss_duration", duration);
                 command.Parameters.AddWithValue("@_csr_cert", RSAPublic);
                 command.Parameters.AddWithValue("@_public_createDT", DateTime.Now.ToString());
 
@@ -126,12 +129,15 @@ public class Utils
                 command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
                 int rowInserted = command.ExecuteNonQuery();
 
+
+
                 return Result.Ok(rowInserted);
             }
             catch (Exception ex)
             {
                 if (ex == null)
                 {
+
                     return Result.Fail("Possible wrong SQL credentials");
                 }
                 else
@@ -212,7 +218,7 @@ public class Utils
                         //columns.Add(reader.GetString(9));
                         //if (reader.IsDBNull("public_duration"))
                         //{
-                        columns.Add(reader.GetString("public_duration"));
+                        columns.Add(reader.GetString("ss_duration"));
                         //    columns.Add("Public_Duration_empty");
                         //}
                         //else
@@ -328,7 +334,7 @@ public class Utils
                     columns.Add(reader["private_bits"]);
                     columns.Add(reader["private_content"]);
                     columns.Add(reader["private_createDT"]);
-                    columns.Add(reader["public_duration"]);
+                    columns.Add(reader["ss_duration"]);
                     columns.Add(reader["csr_cert"]);
                     columns.Add(reader["public_cert"]);
                     columns.Add(reader["public_createDT"]);
@@ -697,7 +703,8 @@ public class Utils
             }
 
         }
-        public static Result<int> Update(string database, SQLTable table, string searchTerm, byte[] selfSignedCert)
+
+        public static Result<int> Update(string database, SQLTable table, string searchTerm, string selfSignedCert, int duration)
         {
             try
             {
@@ -709,14 +716,15 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert WHERE name = @_searchTerm";
+                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert, ss_createDT = @_ss_createDT, ss_duration = @_ss_duration WHERE name = @_searchTerm";
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
-
+                command.Parameters.AddWithValue("@_ss_createDT", Convert.ToString(DateTime.Now));
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+                command.Parameters.AddWithValue("@_ss_duration", duration);
 
                 int rowInserted = command.ExecuteNonQuery();
-                return Result.Ok(rowInserted);
+                return Result.Ok(rowInserted).WithSuccess("Update");
 
             }
             catch (Exception ex)
@@ -725,6 +733,8 @@ public class Utils
             }
         }
     }
+
+
     public class Certs
     {
         /// <summary>
@@ -748,25 +758,28 @@ public class Utils
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
-        public static byte[] CreatePrivKey(int keySize)
+        public static Result<byte[]> CreatePrivKey(int keySize)
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                return rsa.ExportRSAPrivateKey();
+                byte[] privateKey = rsa.ExportRSAPrivateKey();
+                //return Result.Ok(privateKey)
+                return Result.Ok(privateKey).WithSuccess("Create private key");
             }
         }
         /// <summary>
         /// Generate the public key (obsolete?)
         /// </summary>
         /// <returns>Returns the public key in PEM format</returns>
-        public static byte[] CreatePubKey(int KeySize, byte[] privateKey)
+        public static Result<byte[]> CreatePubKey(int keySize, byte[] privateKey)
         {
-            using (RSA rsa = RSA.Create())
+            using (RSA rsa = RSA.Create(keySize))
             {
-                rsa.ImportRSAPrivateKey(privateKey, out int _);
-                byte[] pubKey = rsa.ExportRSAPublicKey();
+                rsa.ImportRSAPrivateKey(privateKey, out _);
+                byte[] publicKey = rsa.ExportRSAPublicKey();
 
-                return pubKey;
+
+                return Result.Ok(publicKey).WithSuccess("Create public key");
             }
         }
         /// <summary>
@@ -776,44 +789,74 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static byte[] CreateSSCert(int keySize, string subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
+        public static Result<byte[]> CreateSSCert(int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
         {
             try
             {
+                //var distinguishedName = new X500DistinguishedName(subject);
 
-                   var distinguishedName = new X500DistinguishedName(subject);
+                using (RSA RSAFromFile = RSA.Create(keySize))
+                {
+                    var request = new CertificateRequest(subject, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, canIssue));
 
-                    using (RSA RSAFromFile = RSA.Create(keySize))
-                    {
+                    // Zertifikat erstellen und signieren
+                    DateTimeOffset notBefore = DateTime.Now;
+                    DateTimeOffset notAfter = notBefore.AddMonths(duration);
 
-                        var request = new CertificateRequest(distinguishedName, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true));
+                    X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
+                    byte[] export = certificate.Export(X509ContentType.Cert);
+                    //File.WriteAllBytes("cert\\certs.der", export);
 
-                        // Zertifikat erstellen und signieren
-                        DateTimeOffset notBefore = DateTimeOffset.UtcNow;
-                        DateTimeOffset notAfter = notBefore.AddMonths(duration);
+                    //MessageBox.Show("Selbstsigniertes Zertifikat wurde erfolgreich erstellt.");
 
-                        var certificate = request.CreateSelfSigned(notBefore, notAfter);
-                        var export = certificate.Export(X509ContentType.Cert);
-                        File.WriteAllBytes("cert\\certs.der", export);
-
-                        MessageBox.Show("Selbstsigniertes Zertifikat wurde erfolgreich erstellt.");
-
-
-                    return export;
-                    }
-
-               
+                    return Result.Ok(export).WithSuccess("TestOK");
+                    //return export;
+                }
             }
             catch (Exception ex)
             {
-                
-                return [2,2];
+                return Result.Fail("Fehler test").WithError("Test");
             }
         }
 
+        public static Result<X500DistinguishedName> DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
+        {
+            try
+            {
+                X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
 
+                DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
+                DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
+                DNs.AddLocalityName(Convert.ToString(localityName));
+                DNs.AddOrganizationName(Convert.ToString(organizationName));
+                DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
+                DNs.AddCommonName(Convert.ToString(commonName));
+                DNs.AddEmailAddress(Convert.ToString(emailAddress));
+
+                return Result.Ok(DNs.Build());
+            }
+            catch (Exception ex)
+            {
+
+                return null;
+            }
+        }
+    }
+    public class Tools
+    {
+        public static List<string> ObjectToString(List<object> obj)
+        {
+            List<string> list = new List<string>();
+
+            foreach (object o in obj)
+            {
+                list.Add(Convert.ToString(o));
+            }
+
+            return list;
+        }
     }
 
-
 }
+

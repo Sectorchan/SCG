@@ -237,7 +237,7 @@ namespace WinFormsApp1
                     {
                         SSLargument = @"req -config " + openSSLcnf_ca + " -key certificates/ca/private/" + tb_ca_priv_name.Text + ".key.pem -passin pass:" + tb_ca_key_pw_in.Text + " -new -x509 -days " + tb_ca_cert_days.Text + " -sha256 -extensions v3_ca -out certificates/ca/certs/" + tb_ca_priv_name.Text + ".cert.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admmin@diefamilielang.de\"";
 
-                        var sql = "UPDATE ca SET public_duration = @Public_Duration, public_pass = @Public_Pass, public_createDT = @Public_CreateDT, cnf = @Ca_Cnf, subj_country = @Subj_Country, subj_state = @Subj_State, subj_location = @Subj_Location, subj_orgaunit = @Subj_OrgaUnit, subj_commonname = @Subj_CommonName, subj_email= @Subj_EMail WHERE name = @Ca_Name";
+                        var sql = "UPDATE ca SET ss_duration = @_ss_Duration, public_pass = @Public_Pass, public_createDT = @Public_CreateDT, cnf = @Ca_Cnf, subj_country = @Subj_Country, subj_state = @Subj_State, subj_location = @Subj_Location, subj_orgaunit = @Subj_OrgaUnit, subj_commonname = @Subj_CommonName, subj_email= @Subj_EMail WHERE name = @Ca_Name";
 
                         var PublicDuration = tb_ca_cert_days.Text;
                         var PublicPass = tb_ca_key_pw_in.Text;
@@ -257,7 +257,7 @@ namespace WinFormsApp1
                         // Bind parameters values
                         using var command = new SqliteCommand(sql, connection);
 
-                        command.Parameters.AddWithValue("@Public_Duration", PublicDuration);
+                        command.Parameters.AddWithValue("@_ss_Duration", PublicDuration);
                         command.Parameters.AddWithValue("@Public_Pass", PublicPass);
                         command.Parameters.AddWithValue("@Public_CreateDT", PublicCreateDT);
                         command.Parameters.AddWithValue("@Ca_Cnf", CaCnf);
