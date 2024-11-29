@@ -32,17 +32,14 @@ public partial class Server : Form
         InitializeComponent();
     }
 
+
     private void server_onLoad(object sender, EventArgs e)
     {
-
-
         Bt_gen_ca_priv.Enabled = false;
 
         lb_server_certs.Items.Clear();
         ReadServers(lb_server_certs);
         lb_server_certs.Sorted = true;
-
-
 
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         if (SqlTable == "CA")
@@ -194,15 +191,10 @@ public partial class Server : Form
         try
         {
             int PrivateBits = int.Parse(cb_priv_bits.Text);
-
-            //Result<RSA> cert = Utils.Certs.GenCertPair(PrivateBits);
-            Result<RSA> cert = Utils.Certs.CreatePrivKey(PrivateBits);
             Result<SQLTable> table = SqlTable();
-
-            byte[] RSAPrivate = cert.Value.ExportRSAPrivateKey();
-            //Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, RSAPrivate, PrivateBits);
-
-            string privateKeyBase64 = Convert.ToBase64String(RSAPrivate);
+           
+            Result<byte[]> RSAPrivate = Utils.Certs.CreatePrivKey(PrivateBits);
+            string privateKeyBase64 = Convert.ToBase64String(RSAPrivate.Value);
             Result<int> sqlInsert = Utils.Sql.InsertInto(Global.database, table.Value, tb_ca_name.Text, privateKeyBase64, PrivateBits);
 
             if (sqlInsert.IsSuccess)
@@ -211,6 +203,7 @@ public partial class Server : Form
                 lb_server_certs.Items.Clear();
                 ReadServers(lb_server_certs);
                 lb_server_certs.Sorted = true;
+                lb_server_certs.SelectedItem = tb_ca_name.Text;
             }
             else
             {
@@ -232,29 +225,21 @@ public partial class Server : Form
     {
         try
         {
-            string serverSelect = lb_server_certs.SelectedItem.ToString();
+            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
             Result<SQLTable> resTable = SqlTable();
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content"], resTable.Value, "name", serverSelect);
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
-            string privateKeyBase64 = resWhere.Value[1].ToString();
+            string privateKeyBase64 = Convert.ToString(resWhere.Value[1]);
             byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
 
             Result<byte[]> resPubKey = Utils.Certs.CreatePubKey(keySize, privateKeyBytes);
             string publicKeyBase64 = Convert.ToBase64String(resPubKey.Value);
             Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKeyBase64, serverSelect, "name");
 
-            //using (RSA rsa = RSA.Create(Convert.ToInt16(resWhere.Value[0])))
-            //{
-            //    rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-
-            //    string publicKey = Convert.ToBase64String(rsa.ExportRSAPublicKey());
-
-
-            //    Result<int> resUpdate = Utils.Sql.Update(Global.database, resTable.Value, publicKey, serverSelect, "name");
             if (resUpdate.IsSuccess)
             { MessageBox.Show($"Updated {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information); }
-            //}
+            lb_server_certs.SelectedItem = serverSelect;
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
@@ -268,22 +253,22 @@ public partial class Server : Form
     {
         try
         {
-            string serverSelect = lb_server_certs.SelectedItem.ToString();
+            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
             Result<SQLTable> resTable = SqlTable();                                         //0             1                   2               3               4               5                   6               7                   8               9           10          11          12      13          14  
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue", "public_duration"], resTable.Value, "name", serverSelect);
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
-            string privateKeyBase64 = resWhere.Value[2].ToString();
+            string privateKeyBase64 = Convert.ToString(resWhere.Value[1]);
             byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
 
-            string publicKeyBase64 = resWhere.Value[2].ToString();
+            string publicKeyBase64 = Convert.ToString(resWhere.Value[2]);
             byte[] publicKeyBytes = Convert.FromBase64String(publicKeyBase64);
 
 
             string subject = $"C={resWhere.Value[3]}, ST={resWhere.Value[4]}, L={resWhere.Value[5]}, O={resWhere.Value[6]}, OU={resWhere.Value[7]}, CN={resWhere.Value[8]}, Email={resWhere.Value[9]}";
 
 
-            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, privateKeyBytes, publicKeyBytes, Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(resWhere.Value[14]));
+            Result<byte[]> resCreateCSR = Utils.Certs.CreateSSCert(keySize, subject, privateKeyBytes, publicKeyBytes, Convert.ToBoolean(resWhere.Value[10]), Convert.ToBoolean(resWhere.Value[11]), Convert.ToInt16(resWhere.Value[12]), Convert.ToBoolean(resWhere.Value[13]), Convert.ToInt16(tb_pub_dura.Text));
 
             if (resCreateCSR.IsSuccess)
             {

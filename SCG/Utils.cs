@@ -748,14 +748,12 @@ public class Utils
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
-        public static Result<RSA> CreatePrivKey(int keySize)
+        public static Result<byte[]> CreatePrivKey(int keySize)
         {
-            RSA rsa = RSA.Create();
-
-            rsa.KeySize = keySize;
-            rsa.ExportRSAPrivateKey();
-
-            return Result.Ok(rsa);
+            using (RSA rsa = RSA.Create(keySize))
+            {
+                return Result.Ok(rsa.ExportRSAPrivateKey());
+            }
         }
         /// <summary>
         /// Generate the public key (obsolete?)
@@ -763,11 +761,13 @@ public class Utils
         /// <returns>Returns the public key in PEM format</returns>
         public static Result<byte[]> CreatePubKey(int KeySize, byte[] privateKey)
         {
-            RSA rsa = RSA.Create(KeySize);
-            rsa.ImportRSAPrivateKey(privateKey, out int _);
-            byte[] pubKey = rsa.ExportRSAPublicKey();
+            using (RSA rsa = RSA.Create(KeySize))
+            {
+                rsa.ImportRSAPrivateKey(privateKey, out int _);
+                byte[] pubKey = rsa.ExportRSAPublicKey();
 
-            return Result.Ok(pubKey);
+                return Result.Ok(rsa.ExportRSAPublicKey());
+            }
         }
         /// <summary>
         /// Generates the CSR file
@@ -780,7 +780,7 @@ public class Utils
         {
             try
             {
-                using (RSA rsa = RSA.Create(Convert.ToInt16(keySize)))
+                using (RSA rsa = RSA.Create(keySize))
                 {
                     rsa.ImportRSAPrivateKey(privKey, out _);
                     rsa.ImportRSAPublicKey(pubKey, out _);
