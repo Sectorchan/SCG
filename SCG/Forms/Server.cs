@@ -41,7 +41,9 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
-        //Bt_gen_ca_priv.Enabled = false;
+        lbl_ca_name.Visible = false;
+        tb_ca_name.Visible = false;
+
 
         lb_server_certs.Items.Clear();
         ReadServers(lb_server_certs);
@@ -143,10 +145,10 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void cb_new_server_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_server.Checked && (lbl_priv_bits.Text != "") && tb_ca_name.Text != "")
-        { Bt_gen_ca_priv.Enabled = true; }
+        if (cb_new_server.Checked)
+        { tb_ca_name.Visible = true; lbl_ca_name.Visible = true; }
         else
-        { Bt_gen_ca_priv.Enabled = false; }
+        { tb_ca_name.Visible = false; lbl_ca_name.Visible = false; }
     }
 
     /// <summary>
@@ -295,7 +297,7 @@ public partial class Server : Form
             Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(Global.database, ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
 
             List<string> list = Utils.Tools.ObjectToString(resWhere2.Value);
-            var destName = DNBuilder(list[0], list[1], list[2], list[3],list[4], list[5], list[6]);
+            Result<X500DistinguishedName> destName = DNBuilder(list[0], list[1], list[2], list[3], list[4], list[5], list[6]);
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
             // Private Key aus Datei lesen
@@ -355,15 +357,7 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Bt_ca_selfSigned_Click(object sender, EventArgs e)
-    {
-        try
-        {
-
-        }
-        catch (Exception ex)
-        { MessageBox.Show(ex.Message.ToString()); }
-    }
+   
     #endregion
 
     #region intermediate   
@@ -414,6 +408,8 @@ public partial class Server : Form
     #endregion
 
     #region Destingusted Names
+
+
     private void bt_wrt_dest_names_Click(object sender, EventArgs e)
     {
         try
@@ -456,6 +452,16 @@ public partial class Server : Form
             {
                 Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(Global.database, ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
                 string subject = $"C={resWhere.Value[0]}, ST={resWhere.Value[1]}, L={resWhere.Value[2]}, O={resWhere.Value[3]}, OU={resWhere.Value[4]}, CN={resWhere.Value[5]}, Email={resWhere.Value[6]}";
+                List<string> list = Utils.Tools.ObjectToString(resWhere.Value);
+
+                tb_sub_c.Text = list[0];
+                tb_sub_st.Text = list[1];
+                tb_sub_loc.Text = list[2];
+                tb_sub_orga.Text = list[3];
+                tb_sub_ou.Text = list[4];
+                tb_sub_cn.Text = list[5];
+                tb_sub_email.Text = list[6];
+
             }
         }
         catch (Exception ex)
@@ -482,13 +488,7 @@ public partial class Server : Form
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
     }
-    #endregion
 
-
-
-
-
-
-
+#endregion
 }
 

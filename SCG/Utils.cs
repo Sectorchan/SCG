@@ -833,8 +833,9 @@ public class Utils
                 DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
                 DNs.AddCommonName(Convert.ToString(commonName));
                 DNs.AddEmailAddress(Convert.ToString(emailAddress));
+                var build = DNs.Build();
 
-                return Result.Ok(DNs.Build());
+                return Result.Ok(build).WithSuccess("DNBuilder");
             }
             catch (Exception ex)
             {
