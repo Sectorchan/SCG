@@ -116,8 +116,8 @@ namespace WinFormsApp1
             #region CheckFolderStructure
             //check the Folderstructure and re-create it if necessary
             StreamReader sr = new StreamReader("FolderStructure.txt");
-            string? folder;
 
+            string folder;
             while ((folder = sr.ReadLine()) != null)
             {
                 folder = folder.Trim();
@@ -195,20 +195,8 @@ namespace WinFormsApp1
                         var Privpass = tb_ca_key_pw1.Text;
                         var Privkey = rsa.ExportRSAPrivateKeyPem();
 
-                        if (Global.UseOpenSSL)
-                        {
-                            SSLargument = @"genrsa -aes256 -passout pass:" + tb_ca_key_pw1.Text + " -out certificates/ca/private/" + tb_ca_priv_name.Text + ".kkey.pem 4096";
-                            UseOpenSSL(SSLargument);
-                        }
-                        else
-                        {
-                            Ssqlc(Global.database, SQLOption.INSERT_INTO, SQLTable.ca, CaName, Privbits, Privpass, Privkey);
-                            if (Global.WriteToFile)
-                            {
-                                using (StreamWriter outputFile = new StreamWriter("certificates/ca/private/" + tb_ca_cert_name.Text + "key.pem"))
-                                { outputFile.WriteLine(rsa.ExportPkcs8PrivateKeyPem()); }
-                            }
-                        }
+                        
+                        
 
                         //tb_debugoutput.Text = debugoutput(SSLargument);
                         return;
@@ -242,7 +230,6 @@ namespace WinFormsApp1
                         var PublicDuration = tb_ca_cert_days.Text;
                         var PublicPass = tb_ca_key_pw_in.Text;
                         var PublicCreateDT = DateTime.Now.ToString();
-                        var CaCnf = Global.ca_cnf;
                         var SubjCountry = "DE";
                         var SubjState = "Bavaria";
                         var SubjLocation = "Schwabhausen";
@@ -260,7 +247,6 @@ namespace WinFormsApp1
                         command.Parameters.AddWithValue("@_ss_Duration", PublicDuration);
                         command.Parameters.AddWithValue("@Public_Pass", PublicPass);
                         command.Parameters.AddWithValue("@Public_CreateDT", PublicCreateDT);
-                        command.Parameters.AddWithValue("@Ca_Cnf", CaCnf);
                         command.Parameters.AddWithValue("@Subj_Country", SubjCountry);
                         command.Parameters.AddWithValue("@Subj_State", SubjState);
                         command.Parameters.AddWithValue("@Subj_Location", SubjLocation);
@@ -459,17 +445,7 @@ namespace WinFormsApp1
 
     public static class Global
     {
-        public static string database = @"..\..\..\databasev2.db";
-        //public static string database = @"Data Source=database.db";
-        public static string ca_cnf = "openssl-ca.cnf";
-        public static bool WriteToFile = true;
-        public static bool UseOpenSSL = false;
-        public enum Form
-        {
-            Id = 0,
-            Name = 1,
-            Bit = 2
-        }
+        public static readonly string database = @"..\..\..\databasev2.db";
     }
 
 }

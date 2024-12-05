@@ -75,8 +75,8 @@ partial class Server
         lbl_int_pub_duration = new Label();
         tb_int_name = new TextBox();
         lbl_int_name = new Label();
-        checkBox1 = new CheckBox();
-        Bt_int_gen_csr = new Button();
+        cb_new_inter = new CheckBox();
+        Bt_gen_int_pub = new Button();
         Bt_gen_ca_pub = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
@@ -108,7 +108,7 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(975, 179);
+        gb_default_disti_names.Location = new Point(620, 367);
         gb_default_disti_names.Name = "gb_default_disti_names";
         gb_default_disti_names.Size = new Size(229, 239);
         gb_default_disti_names.TabIndex = 11;
@@ -360,7 +360,7 @@ partial class Server
         panel1.Controls.Add(rb_intermediate);
         panel1.Location = new Point(203, 12);
         panel1.Name = "panel1";
-        panel1.Size = new Size(94, 113);
+        panel1.Size = new Size(102, 113);
         panel1.TabIndex = 21;
         // 
         // rb_user
@@ -410,7 +410,7 @@ partial class Server
         // cb_notPathlen
         // 
         cb_notPathlen.AutoSize = true;
-        cb_notPathlen.Location = new Point(6, 30);
+        cb_notPathlen.Location = new Point(6, 32);
         cb_notPathlen.Margin = new Padding(2);
         cb_notPathlen.Name = "cb_notPathlen";
         cb_notPathlen.Size = new Size(87, 19);
@@ -459,7 +459,7 @@ partial class Server
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(69, 312);
+        panel2.Location = new Point(206, 306);
         panel2.Name = "panel2";
         panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
@@ -545,25 +545,26 @@ partial class Server
         lbl_int_name.TabIndex = 38;
         lbl_int_name.Text = "Intermediate Name:";
         // 
-        // checkBox1
+        // cb_new_inter
         // 
-        checkBox1.AutoSize = true;
-        checkBox1.Location = new Point(401, 92);
-        checkBox1.Name = "checkBox1";
-        checkBox1.Size = new Size(120, 19);
-        checkBox1.TabIndex = 40;
-        checkBox1.Text = "New Intermediate";
-        checkBox1.UseVisualStyleBackColor = true;
+        cb_new_inter.AutoSize = true;
+        cb_new_inter.Location = new Point(401, 92);
+        cb_new_inter.Name = "cb_new_inter";
+        cb_new_inter.Size = new Size(120, 19);
+        cb_new_inter.TabIndex = 40;
+        cb_new_inter.Text = "New Intermediate";
+        cb_new_inter.UseVisualStyleBackColor = true;
+        cb_new_inter.CheckedChanged += cb_new_inter_CheckedChanged;
         // 
-        // Bt_int_gen_csr
+        // Bt_gen_int_pub
         // 
-        Bt_int_gen_csr.Location = new Point(437, 263);
-        Bt_int_gen_csr.Name = "Bt_int_gen_csr";
-        Bt_int_gen_csr.Size = new Size(75, 47);
-        Bt_int_gen_csr.TabIndex = 41;
-        Bt_int_gen_csr.Text = "2. Generate Public Key";
-        Bt_int_gen_csr.UseVisualStyleBackColor = true;
-        Bt_int_gen_csr.Click += Bt_int_gen_csr_Click;
+        Bt_gen_int_pub.Location = new Point(437, 263);
+        Bt_gen_int_pub.Name = "Bt_gen_int_pub";
+        Bt_gen_int_pub.Size = new Size(75, 47);
+        Bt_gen_int_pub.TabIndex = 41;
+        Bt_gen_int_pub.Text = "2. Generate Public Key";
+        Bt_gen_int_pub.UseVisualStyleBackColor = true;
+        Bt_gen_int_pub.Click += Bt_gen_int_pub_Click;
         // 
         // Bt_gen_ca_pub
         // 
@@ -582,8 +583,8 @@ partial class Server
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1246, 663);
         Controls.Add(Bt_gen_ca_pub);
-        Controls.Add(Bt_int_gen_csr);
-        Controls.Add(checkBox1);
+        Controls.Add(Bt_gen_int_pub);
+        Controls.Add(cb_new_inter);
         Controls.Add(tb_int_name);
         Controls.Add(lbl_int_name);
         Controls.Add(lbl_int_bit);
@@ -665,8 +666,8 @@ partial class Server
     private Label lbl_int_pub_duration;
     private TextBox tb_int_name;
     private Label lbl_int_name;
-    private CheckBox checkBox1;
-    private Button Bt_int_gen_csr;
+    private CheckBox cb_new_inter;
+    private Button Bt_gen_int_pub;
     private Button Bt_read_Dest_names;
     private Button Bt_gen_ca_pub;
     private Button Bt_wrt_param;

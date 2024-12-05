@@ -26,6 +26,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
 
 namespace PL;
+
 public class Utils
 {
 
@@ -33,15 +34,14 @@ public class Utils
     {
         /// <summary>
         /// Performs a SQL INSERT INTO into the given table
-        /// </summary>
-        /// <param name="database">The SQLite database which shall be used</param>
+        /// </summary>        
         /// <param name="table">The corresponding table, depending on the type</param>
         /// <param name="Name">An unique application/server name</param>
         /// <param name="Privpass">Password for the private key</param>
         /// <param name="Privkey">The private key, as a PEM format string</param>
         /// <param name="Privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter </param>
         /// <returns>Returns the amount of entries that written to the SQL database</returns>
-        public static Result<int> InsertInto(string database, SQLTable table, string Name, byte[] RSAPrivate, byte[] RSAPublic, int Privbits, int duration)
+        public static Result<int> InsertInto(SQLTable table, string Name, byte[] RSAPrivate, byte[] RSAPublic, int Privbits, int duration)
         {
             try
             {
@@ -49,7 +49,7 @@ public class Utils
 
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -90,15 +90,14 @@ public class Utils
             }
 
         }
-        public static Result<int> InsertInto(string database, SQLTable table, string Name, string Privkey, int Privbits)
+        public static Result<int> InsertInto(SQLTable table, string Name, string Privkey, int Privbits)
         {
             try
             {
                 string _table = "";
-
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -129,15 +128,12 @@ public class Utils
                 command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
                 int rowInserted = command.ExecuteNonQuery();
 
-
-
                 return Result.Ok(rowInserted);
             }
             catch (Exception ex)
             {
                 if (ex == null)
                 {
-
                     return Result.Fail("Possible wrong SQL credentials");
                 }
                 else
@@ -149,16 +145,15 @@ public class Utils
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
-        /// <param name="database">Defines the target database</param>
         /// <param name="column">Which column should be searched for</param>
         /// <param name="table">Defines the table inside the database</param>
         /// <returns>Result<List<string>></returns>
-        public static List<string> SqlSelect(string database, string column, SQLTable table)
+        public static List<string> SqlSelect(string column, SQLTable table)
         {
 
             SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
             _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-            _connectionString.DataSource = database;
+            _connectionString.DataSource = Global.database;
             _connectionString.Password = null;
             string connectionString = _connectionString.ToString();
             using var connection = new SqliteConnection(connectionString);
@@ -187,113 +182,24 @@ public class Utils
                         columns.Add(reader.GetString("name"));
                         columns.Add(reader.GetString("private_bits"));
                         columns.Add(reader.GetString("private_content"));
-                        columns.Add(reader.GetString("private_createDT"));
-
-                        //if (!reader.IsDBNull("id"))
-                        //{
-                        //    columns.Add(reader.GetString("id"));
-                        //}
-                        //if (!reader.IsDBNull("name"))
-                        //{
-                        //    columns.Add(reader.GetString("name"));
-                        //}
-                        //if (!reader.IsDBNull("private_bits"))
-                        //{
-                        //    columns.Add(reader.GetString("private_bits"));
-                        //}
-
-                        //if (!reader.IsDBNull("private_content"))
-                        //{
-                        //    columns.Add(reader.GetString("private_content"));
-                        //}
-                        //if (!reader.IsDBNull("private_createDT"))
-                        //{
-                        //    columns.Add(reader.GetString("private_createDT"));
-                        //}
-
-                        //var v = reader.IsDBNull(6);
-                        //columns.Add(reader.GetString(6));
-                        //columns.Add(reader.GetString(7));
-                        //columns.Add(reader.GetString(8));
-                        //columns.Add(reader.GetString(9));
-                        //if (reader.IsDBNull("public_duration"))
-                        //{
+                        columns.Add(reader.GetString("private_createDT"));                        
                         columns.Add(reader.GetString("ss_duration"));
-                        //    columns.Add("Public_Duration_empty");
-                        //}
-                        //else
-                        //{
-                        //    columns.Add("Public_Duration_empty");
-                        //}
-
-
-
-                        //columns.Add(reader.GetString("public_duration"));
-
-                        //if (!reader.IsDBNull("public_csr"))
-                        //{
                         columns.Add(reader.GetString("csr_cert"));
-                        //}
-                        //if (!reader.IsDBNull("public_cert"))
-                        //{
                         columns.Add(reader.GetString("public_cert"));
-                        //}
-                        //if (!reader.IsDBNull("public_createDT"))
-                        //{
                         columns.Add(reader.GetString("public_createDT"));
-                        //}
-
-                        //if (!reader.IsDBNull("subj_country"))
-                        //{
                         columns.Add(reader.GetString("subj_country"));
-                        //}
-                        //if (!reader.IsDBNull("subj_state"))
-                        //{
-                        columns.Add(reader.GetString("subj_state"));
-                        //}
-                        //if (!reader.IsDBNull("subj_location"))
-                        //{
-                        columns.Add(reader.GetString("subj_location"));
-                        //}
-                        //if (!reader.IsDBNull("subj_organisation"))
-                        //{
-                        columns.Add(reader.GetString("subj_organisation"));
-                        //}
-                        //if (!reader.IsDBNull("subj_orgaunit"))
-                        //{
-                        columns.Add(reader.GetString("subj_orgaunit"));
-                        //}
-                        //if (!reader.IsDBNull("subj_commonname"))
-                        //{
+                        columns.Add(reader.GetString("subj_state"));                      
+                        columns.Add(reader.GetString("subj_location"));                       
+                        columns.Add(reader.GetString("subj_organisation"));                        
+                        columns.Add(reader.GetString("subj_orgaunit"));                       
                         columns.Add(reader.GetString("subj_commonname"));
-                        //}
-                        //if (!reader.IsDBNull("subj_email"))
-                        //{
-                        columns.Add(reader.GetString("subj_email"));
-                        //}
-                        //if (!reader.IsDBNull("subj_email"))
-                        //{
-                        //    columns.Add(reader.GetString("subj_email"));
-                        //}
-                        //if (!reader.IsDBNull("isCa"))
-                        //{
-                        columns.Add(reader.GetString("isCa"));
-                        //}
-                        //if (!reader.IsDBNull("not_pathlen"))
-                        //{
-                        columns.Add(reader.GetString("not_pathlen"));
-                        //}
-                        //if (!reader.IsDBNull("depth"))
-                        //{
-                        columns.Add(reader.GetString("depth"));
-                        //}
-                        //if (!reader.IsDBNull("canIssue"))
-                        {
+                        columns.Add(reader.GetString("subj_email"));           
+                        columns.Add(reader.GetString("isCa"));                      
+                        columns.Add(reader.GetString("not_pathlen"));                        
+                        columns.Add(reader.GetString("depth"));        
                             columns.Add(reader.GetString("canIssue"));
-                        }
                     }
                 }
-
                 return columns;
             }
             else
@@ -305,15 +211,14 @@ public class Utils
         /// <summary>
         /// Performs a SQL Select statement with objects as List type
         /// </summary>
-        /// <param name="database">The SQLite database which shall be used</param>
         /// <param name="column">The selection what it should be queried.</param>
         /// <param name="table">The corresponding table, depending on the type</param>
         /// <returns>Returns the statement elements as a List with objects</returns>
-        public static List<object> SqlSelectObject(string database, string column, SQLTable table)
+        public static List<object> SqlSelectObject( string column, SQLTable table)
         {
             SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
             _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-            _connectionString.DataSource = database;
+            _connectionString.DataSource = Global.database;
             _connectionString.Password = null;
             string connectionString = _connectionString.ToString();
             using var connection = new SqliteConnection(connectionString);
@@ -350,7 +255,6 @@ public class Utils
                     columns.Add(reader["depth"]);
                     columns.Add(reader["canIssue"]);
                 }
-
                 return columns;
             }
             else
@@ -363,19 +267,18 @@ public class Utils
         /// <summary>
         /// Performs a SQL SELECT WHERE statement
         /// </summary>
-        /// <param name="database">Defines the target database</param>
         /// <param name="column">Which column should be searched for</param>
         /// <param name="table">Defines the table inside the database</param>
         /// <param name="searchColumn">In which column should be searched</param>
         /// <param name="searchValue">The Value that should be searched for in the searchColumn</param>
         /// <returns>Returns the string if found</returns>
-        public static Result<byte[]> SelectWhereByte(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        public static Result<byte[]> SelectWhereByte(string column, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -411,13 +314,13 @@ public class Utils
             }
 
         }
-        public static Result<string> SelectWhereString(string database, string column, SQLTable table, string searchColumn, string searchValue)
+        public static Result<string> SelectWhereString(string column, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -450,20 +353,19 @@ public class Utils
 
         }
 
-        public static Result<List<object>> SelectWhereObject(string database, string[] column1, SQLTable table, string searchColumn, string searchValue)
+        public static Result<List<object>> SelectWhereObject(string[] column1, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
                 string column = string.Join(",", column1); // adds a comma after each element, except the last one for the SQL query
-
                 string sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue";
 
                 using var command = new SqliteCommand(sql, connection);
@@ -497,20 +399,19 @@ public class Utils
         /// <summary>
         /// Performs a SQL Update statement
         /// </summary>
-        /// <param name="database">Defines the target database</param>
         /// <param name="table">Defines the table inside the database</param>
         /// <param name="publicDuration">Set the duration of the public certificate in month</param>
         /// <param name="publicKey">The publicKey that shall be written into the database</param>
         /// <param name="searchTerm">Select the server</param>
         /// <param name="addTime">Adds the time for the time column</param>
         /// <returns></returns>
-        //public static Result<int> Update(string database, SQLTable table, int publicDuration, byte[] publicKey, string searchTerm, string addTime = null)
+        //public static Result<int> Update(SQLTable table, int publicDuration, byte[] publicKey, string searchTerm, string addTime = null)
         //{
         //    try
         //    {
         //        SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
         //        _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-        //        _connectionString.DataSource = database;
+        //        _connectionString.DataSource = Global.database;
         //        _connectionString.Password = null;
         //        string connectionString = _connectionString.ToString();
         //        using var connection = new SqliteConnection(connectionString);
@@ -546,7 +447,7 @@ public class Utils
         //        return Result.Fail(ex.Message);
         //    }
         //}
-        public static Result<int> Update(string database, SQLTable table, byte[] privateKey, byte[] publicKey, string searchTerm, string subj_country, string subj_state, string subj_location,
+        public static Result<int> Update(SQLTable table, byte[] privateKey, byte[] publicKey, string searchTerm, string subj_country, string subj_state, string subj_location,
                 string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email, bool isCa, bool pathLen, int depth, bool canIssue, bool updateTimePub)
         {
             try
@@ -558,7 +459,7 @@ public class Utils
 
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -599,13 +500,13 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(string database, SQLTable table, string publicKey, string searchTerm, string searchColumn)
+        public static Result<int> Update(SQLTable table, string publicKey, string searchTerm, string searchColumn)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWrite;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -629,21 +530,20 @@ public class Utils
 
             }
         }
-        public static Result<int> Update(string database, SQLTable table, string searchTerm, string subj_country, string subj_state, string subj_location,
+        public static Result<int> Update(SQLTable table, string searchTerm, string subj_country, string subj_state, string subj_location,
                                          string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
                 string sql = "";
-
                 if (table == SQLTable.ca)
                 {
                     sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
@@ -672,13 +572,13 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(string database, SQLTable table, string searchTerm, bool isCa, bool noPaLen, int depth, bool canIssue)
+        public static Result<int> Update(SQLTable table, string searchTerm, bool isCa, bool noPaLen, int depth, bool canIssue)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -701,16 +601,15 @@ public class Utils
                 MessageBox.Show(ex.Message);
                 return Result.Fail(ex.Message);
             }
-
         }
 
-        public static Result<int> Update(string database, SQLTable table, string searchTerm, string selfSignedCert, int duration)
+        public static Result<int> Update(SQLTable table, string searchTerm, string selfSignedCert, int duration)
         {
             try
             {
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -737,6 +636,24 @@ public class Utils
 
     public class Certs
     {
+        private readonly bool writeFile = true;
+        private readonly string privateKeyPath = "privateKey.pem";
+
+        public static string ConvertToPem(byte[] keyBytes, string header)
+        {
+            string base64Key = Convert.ToBase64String(keyBytes);
+            string pem = $"-----BEGIN {header}-----\n";
+
+            // Füge Zeilenumbrüche nach jeweils 64 Zeichen ein
+            for (int i = 0; i < base64Key.Length; i += 64)
+            {
+                pem += base64Key.Substring(i, Math.Min(64, base64Key.Length - i)) + "\n";
+            }
+
+            pem += $"-----END {header}-----";
+            return pem;
+        }
+
         /// <summary>
         /// Generates the Public- and Privatekey
         /// </summary>
@@ -754,7 +671,7 @@ public class Utils
         }
 
         /// <summary>
-        /// Generating the private key (obsolete?)
+        /// Generating the private key 
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
@@ -763,8 +680,8 @@ public class Utils
             using (RSA rsa = RSA.Create(keySize))
             {
                 byte[] privateKey = rsa.ExportRSAPrivateKey();
-                //return Result.Ok(privateKey)
-                return Result.Ok(privateKey).WithSuccess("Create private key");
+                
+                return Result.Ok(privateKey);
             }
         }
         /// <summary>
@@ -779,7 +696,7 @@ public class Utils
                 byte[] publicKey = rsa.ExportRSAPublicKey();
 
 
-                return Result.Ok(publicKey).WithSuccess("Create public key");
+                return Result.Ok(publicKey);
             }
         }
         /// <summary>
@@ -799,6 +716,8 @@ public class Utils
                 {
                     var request = new CertificateRequest(subject, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, canIssue));
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, false));
+
 
                     // Zertifikat erstellen und signieren
                     DateTimeOffset notBefore = DateTime.Now;
@@ -810,13 +729,13 @@ public class Utils
 
                     //MessageBox.Show("Selbstsigniertes Zertifikat wurde erfolgreich erstellt.");
 
-                    return Result.Ok(export).WithSuccess("TestOK");
-                    //return export;
+                    return Result.Ok(export);
+                    
                 }
             }
             catch (Exception ex)
             {
-                return Result.Fail("Fehler test").WithError("Test");
+                return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
 
@@ -839,7 +758,7 @@ public class Utils
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show(Convert.ToString(ex), "DNBuilder failed!");
                 return null;
             }
         }
