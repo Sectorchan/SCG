@@ -700,7 +700,7 @@ public class Utils
             }
         }
         /// <summary>
-        /// Generates the CSR file
+        /// Generates the self signed file
         /// </summary>
         /// <param name="keySize">Keysize in bits</param>
         /// <param name="privKey">The privatekey as byte[]</param>
@@ -709,15 +709,14 @@ public class Utils
         public static Result<byte[]> CreateSSCert(int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
         {
             try
-            {
-                //var distinguishedName = new X500DistinguishedName(subject);
-
+            {                
                 using (RSA RSAFromFile = RSA.Create(keySize))
                 {
                     var request = new CertificateRequest(subject, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, canIssue));
-                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, false));
-
+                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
+                    
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, false)); // Signatur- und CRL rights
+                    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
 
                     // Zertifikat erstellen und signieren
                     DateTimeOffset notBefore = DateTime.Now;
@@ -725,10 +724,7 @@ public class Utils
 
                     X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
                     byte[] export = certificate.Export(X509ContentType.Cert);
-                    //File.WriteAllBytes("cert\\certs.der", export);
-
-                    //MessageBox.Show("Selbstsigniertes Zertifikat wurde erfolgreich erstellt.");
-
+                    
                     return Result.Ok(export);
                     
                 }

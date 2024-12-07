@@ -59,7 +59,7 @@ partial class Server
         panel1 = new Panel();
         rb_user = new RadioButton();
         Bt_gen_ca_priv = new Button();
-        bt_gen_pub_key = new Button();
+        Bt_gen_selfSigned_key = new Button();
         cb_isCa = new CheckBox();
         cb_notPathlen = new CheckBox();
         cb_issueCert = new CheckBox();
@@ -68,7 +68,7 @@ partial class Server
         panel2 = new Panel();
         Bt_wrt_param = new Button();
         lb_inter_certs = new ListBox();
-        Bt_gen_inter = new Button();
+        Bt_gen_inter_priv = new Button();
         lbl_int_bit = new Label();
         cb_int_priv_bits = new ComboBox();
         tb_int_pub_dura = new TextBox();
@@ -78,6 +78,7 @@ partial class Server
         cb_new_inter = new CheckBox();
         Bt_gen_int_pub = new Button();
         Bt_gen_ca_pub = new Button();
+        Bt_inter_selfSigned_key = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -385,15 +386,15 @@ partial class Server
         Bt_gen_ca_priv.UseVisualStyleBackColor = true;
         Bt_gen_ca_priv.Click += Bt_gen_ca_priv_onClick;
         // 
-        // bt_gen_pub_key
+        // Bt_gen_selfSigned_key
         // 
-        bt_gen_pub_key.Location = new Point(86, 481);
-        bt_gen_pub_key.Name = "bt_gen_pub_key";
-        bt_gen_pub_key.Size = new Size(76, 47);
-        bt_gen_pub_key.TabIndex = 24;
-        bt_gen_pub_key.Text = "5. Generate CSR";
-        bt_gen_pub_key.UseVisualStyleBackColor = true;
-        bt_gen_pub_key.Click += bt_gen_csr_Click;
+        Bt_gen_selfSigned_key.Location = new Point(86, 481);
+        Bt_gen_selfSigned_key.Name = "Bt_gen_selfSigned_key";
+        Bt_gen_selfSigned_key.Size = new Size(76, 47);
+        Bt_gen_selfSigned_key.TabIndex = 24;
+        Bt_gen_selfSigned_key.Text = "5. Generate CSR";
+        Bt_gen_selfSigned_key.UseVisualStyleBackColor = true;
+        Bt_gen_selfSigned_key.Click += Bt_gen_selfSigned_key_Click;
         // 
         // cb_isCa
         // 
@@ -439,7 +440,7 @@ partial class Server
         cb_depth.RightToLeft = RightToLeft.No;
         cb_depth.Size = new Size(32, 23);
         cb_depth.TabIndex = 29;
-        cb_depth.Text = "0";
+        cb_depth.Text = "2";
         // 
         // lbl_unlimDepth
         // 
@@ -483,15 +484,15 @@ partial class Server
         lb_inter_certs.Size = new Size(120, 79);
         lb_inter_certs.TabIndex = 32;
         // 
-        // Bt_gen_inter
+        // Bt_gen_inter_priv
         // 
-        Bt_gen_inter.Location = new Point(437, 208);
-        Bt_gen_inter.Name = "Bt_gen_inter";
-        Bt_gen_inter.Size = new Size(75, 47);
-        Bt_gen_inter.TabIndex = 33;
-        Bt_gen_inter.Text = "1. Generate Private Key";
-        Bt_gen_inter.UseVisualStyleBackColor = true;
-        Bt_gen_inter.Click += Bt_gen_inter_Click;
+        Bt_gen_inter_priv.Location = new Point(437, 208);
+        Bt_gen_inter_priv.Name = "Bt_gen_inter_priv";
+        Bt_gen_inter_priv.Size = new Size(75, 47);
+        Bt_gen_inter_priv.TabIndex = 33;
+        Bt_gen_inter_priv.Text = "1. Generate Private Key";
+        Bt_gen_inter_priv.UseVisualStyleBackColor = true;
+        Bt_gen_inter_priv.Click += Bt_gen_inter_priv_Click;
         // 
         // lbl_int_bit
         // 
@@ -577,11 +578,22 @@ partial class Server
         Bt_gen_ca_pub.UseVisualStyleBackColor = true;
         Bt_gen_ca_pub.Click += Bt_gen_ca_pub_onClick;
         // 
+        // Bt_inter_selfSigned_key
+        // 
+        Bt_inter_selfSigned_key.Location = new Point(436, 481);
+        Bt_inter_selfSigned_key.Name = "Bt_inter_selfSigned_key";
+        Bt_inter_selfSigned_key.Size = new Size(76, 47);
+        Bt_inter_selfSigned_key.TabIndex = 43;
+        Bt_inter_selfSigned_key.Text = "5. Generate CSR";
+        Bt_inter_selfSigned_key.UseVisualStyleBackColor = true;
+        Bt_inter_selfSigned_key.Click += Bt_inter_selfSigned_key_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1246, 663);
+        Controls.Add(Bt_inter_selfSigned_key);
         Controls.Add(Bt_gen_ca_pub);
         Controls.Add(Bt_gen_int_pub);
         Controls.Add(cb_new_inter);
@@ -591,14 +603,14 @@ partial class Server
         Controls.Add(cb_int_priv_bits);
         Controls.Add(tb_int_pub_dura);
         Controls.Add(lbl_int_pub_duration);
-        Controls.Add(Bt_gen_inter);
+        Controls.Add(Bt_gen_inter_priv);
         Controls.Add(lb_inter_certs);
         Controls.Add(panel2);
         Controls.Add(lbl_priv_bits);
         Controls.Add(cb_priv_bits);
         Controls.Add(tb_pub_dura);
         Controls.Add(lbl_pub_duration);
-        Controls.Add(bt_gen_pub_key);
+        Controls.Add(Bt_gen_selfSigned_key);
         Controls.Add(Bt_gen_ca_priv);
         Controls.Add(panel1);
         Controls.Add(cb_new_server);
@@ -650,7 +662,7 @@ partial class Server
     private Button Bt_gen_ca_priv;
     private ComboBox cb_priv_bits;
     private RadioButton rb_user;
-    private Button bt_gen_pub_key;
+    private Button Bt_gen_selfSigned_key;
     private Button bt_wrt_dest_names;
     private CheckBox cb_isCa;
     private CheckBox cb_notPathlen;
@@ -659,7 +671,7 @@ partial class Server
     private Label lbl_unlimDepth;
     private Panel panel2;
     private ListBox lb_inter_certs;
-    private Button Bt_gen_inter;
+    private Button Bt_gen_inter_priv;
     private Label lbl_int_bit;
     private ComboBox cb_int_priv_bits;
     private TextBox tb_int_pub_dura;
@@ -671,4 +683,5 @@ partial class Server
     private Button Bt_read_Dest_names;
     private Button Bt_gen_ca_pub;
     private Button Bt_wrt_param;
+    private Button Bt_inter_selfSigned_key;
 }
