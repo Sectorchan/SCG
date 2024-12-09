@@ -14,6 +14,7 @@ using FluentResults;
 using Microsoft.Data.Sqlite;
 using PL;
 using static PL.Utils.Certs;
+using static PL.Utils.Sql;
 using WinFormsApp1;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static SCG.Ssql;
@@ -40,10 +41,10 @@ public partial class Server : Form
     private readonly bool writeFile = true;
     private readonly string c_privateKeyPath = "c_privateKey.pem";
     private readonly string c_publicKeyPath = "c_publicKey.pem";
-    private readonly string c_selfsignedKeyPath = "c_selfSignedKey.pem";
+    private readonly string c_selfsignedKeyPath = "c_selfSignedKey";
     private readonly string i_privateKeyPath = "i_privateKey.pem";
     private readonly string i_publicKeyPath = "i_publicKey.pem";
-    private readonly string i_selfsignedKeyPath = "i_selfSignedKey.pem";
+    private readonly string i_signedKeyPath = "i_selfSignedKey";
 
 
     private void server_onLoad(object sender, EventArgs e)
@@ -204,7 +205,6 @@ public partial class Server : Form
 
     private void Bt_gen_ca_priv_onClick(object sender, EventArgs e)
     {
-        //MessageBox.Show(Convert.ToString(sender));
         try
         {
             int keySize = int.Parse(cb_priv_bits.Text);
@@ -290,12 +290,12 @@ public partial class Server : Form
         {
             string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
 
-            Result<SQLTable> resTable = SqlTable();                                         //0             1                   2               3               4               5                   6               7                   8               9           10          11          12      13        
-            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue"], resTable.Value, "name", serverSelect);
-            Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
+            Result<SQLTable> resTable = SqlTable();                          //0                 1            2              3          4           5        6         7
+            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], resTable.Value, "name", serverSelect);
 
+            Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
             List<string> list = Utils.Tools.ObjectToString(resWhere2.Value);
-            Result<X500DistinguishedName> destName = DNBuilder(list[0], list[1], list[2], list[3], list[4], list[5], list[6]);
+            Result<X500DistinguishedName> destName = DNBuilder(tb_sub_c.Text, tb_sub_st.Text, tb_sub_loc.Text, tb_sub_orga.Text, tb_sub_ou.Text, tb_sub_cn.Text, tb_sub_email.Text);
 
             int keySize = Convert.ToInt16(resWhere.Value[0]);
             //Read private key
@@ -306,24 +306,24 @@ public partial class Server : Form
             string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
             byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
 
-            bool isCaFromSql = Convert.ToBoolean(resWhere.Value[10]);
-            bool notPathFromSql = Convert.ToBoolean(resWhere.Value[11]);
-            int depthFromSql = Convert.ToInt16(resWhere.Value[12]);
-            bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[13]); //not necessary?
-            int pubDuraFromSql = Convert.ToInt16(tb_pub_dura.Text);
+            bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
+            bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
+            int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
+            bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
+            int serial = Convert.ToInt32(resWhere.Value[7]); //not necessary?
+            int pubDura = Convert.ToInt16(tb_pub_dura.Text);
 
-
-            Result<byte[]> certBytes = Utils.Certs.CreateSSCert(keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDuraFromSql);
+            Result<byte[]> certBytes = Utils.Certs.CreateSSCert(SQLTable.ca, keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serial);
             if (certBytes.IsSuccess)
             {
                 if (writeFile)
                 {
-                    File.WriteAllBytes(c_selfsignedKeyPath, certBytes.Value);
+                    File.WriteAllBytes(c_selfsignedKeyPath + ".pfx", certBytes.Value);
                 }
 
                 string certStri = Convert.ToBase64String(certBytes.Value);
 
-                Result<int> resUpdate = Utils.Sql.Update(resTable.Value, serverSelect, certStri, pubDuraFromSql);
+                Result<int> resUpdate = Utils.Sql.Update(resTable.Value, serverSelect, certStri, pubDura);
                 if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
                 {
                     MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -335,7 +335,6 @@ public partial class Server : Form
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString()); }
-
     }
     #endregion
     #region intermediate   
@@ -393,7 +392,7 @@ public partial class Server : Form
                 {
                     // Convert public key into PEM format
                     string publicKeyPem = ConvertToPem(publicKeyBytes.Value, "PUBLIC KEY");
-                    File.WriteAllText("i_publicKey.pem", publicKeyPem);
+                    File.WriteAllText(i_publicKeyPath, publicKeyPem);
                 }
                 string publicKeyStri = Convert.ToBase64String(publicKeyBytes.Value);
 
@@ -410,10 +409,11 @@ public partial class Server : Form
     {
         try
         {
-            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
-                                                                              //0             1                   2               3               4               5                   6               7                   8               9           10          11          12      13        
-            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue"], SQLTable.intermediate, "name", serverSelect);
+            string serverSelect = Convert.ToString(lb_inter_certs.SelectedItem);
+            //0             1                   2               3               4               5                   6               7                   8               9           10          11          12      13        
+            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", serverSelect);
             Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", serverSelect);
+
 
             List<string> list = Utils.Tools.ObjectToString(resWhere2.Value);
             Result<X500DistinguishedName> destName = DNBuilder(list[0], list[1], list[2], list[3], list[4], list[5], list[6]);
@@ -432,6 +432,25 @@ public partial class Server : Form
             int depthFromSql = Convert.ToInt16(resWhere.Value[12]);
             bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[13]); //not necessary?
             int pubDuraFromSql = Convert.ToInt16(tb_pub_dura.Text);
+            int serialnumber = Convert.ToInt16((int)resWhere.Value[14]);
+
+            Result<byte[]> certBytes = Utils.Certs.CreateSSCert(SQLTable.intermediate, keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDuraFromSql, serialnumber);
+            if (certBytes.IsSuccess)
+            {
+                string certStri = Convert.ToBase64String(certBytes.Value);
+                if (writeFile)
+                {
+                    File.WriteAllBytes(i_signedKeyPath, certBytes.Value);
+                }
+                Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, serverSelect, certStri, pubDuraFromSql);
+                if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
+                {
+                    MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                }
+                else
+                { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
+            }
 
         }
         catch (Exception)
@@ -439,6 +458,104 @@ public partial class Server : Form
 
             throw;
         }
+    }
+    private void Bt_sign_int_cert_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
+            string interSelect = Convert.ToString(lb_inter_certs.SelectedItem);
+            Result<List<object>> caCert = SelectWhereObject(["ss_cert", "private_bits", "name"], SQLTable.ca, "name", serverSelect);
+
+            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", interSelect);
+            Result<List<object>> resSubj = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", interSelect);
+            List<string> list = Utils.Tools.ObjectToString(resSubj.Value);           
+            Result<X500DistinguishedName> destName = DNBuilder(tb_sub_c.Text, tb_sub_st.Text, tb_sub_loc.Text,tb_sub_orga.Text, tb_sub_ou.Text, tb_sub_cn.Text, tb_sub_email.Text);
+
+            int keySize = Convert.ToInt16(resWhere.Value[0]);
+            //Read private key
+            string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
+
+            //Read public key
+            string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
+            byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
+
+            bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
+            bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
+            int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
+            bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
+            int serialnumber = Convert.ToInt32(resWhere.Value[7]);
+            int pubDura = Convert.ToInt16(tb_int_pub_dura.Text);
+
+            //if (caCert.IsSuccess && resSubj.IsSuccess && destName.IsSuccess)
+            //{
+            //    string ss_certString = Convert.ToString(caCert.Value[0]);
+            //    byte[] ss_certbyte = Convert.FromBase64String(ss_certString);
+            //    // CA-Zertifikat und Schlüssel laden
+            //    var caCertificate = new X509Certificate2(ss_certbyte, "", X509KeyStorageFlags.Exportable);
+
+            //    Result<byte[]> signedCert = CreateCaSignCert(SQLTable.intermediate, caCertificate, keySize, destName.Value, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serialnumber);
+            //    if (signedCert.IsSuccess )
+            //    {
+            //        if (writeFile)
+            //        {
+            //            File.WriteAllBytes(i_signedKeyPath, signedCert.Value);
+            //        }
+            //        string certStri = Convert.ToBase64String(signedCert.Value);
+            //        Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, interSelect, certStri, pubDura);
+            //        if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
+            //        {
+
+            //            MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //        }
+            //        else
+            //        { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
+            //    }
+
+            //}
+            using (RSA rsa6 = RSA.Create(keySize))
+            {
+                // Zertifikatsanfrage erstellen
+                var request = new CertificateRequest(
+                    destName.Value, // Distinguished Name
+                    rsa6,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+
+                // Erweiterungen für eine CA hinzufügen
+                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql)); // CA: true, keine Pfadlänge
+                request.CertificateExtensions.Add(new X509KeyUsageExtension(
+                    X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+                    true)); // Signatur- und CRL-Rechte
+                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+
+                // Self-Signed Zertifikat erstellen (10 Jahre Gültigkeit)
+                var caCertificate = request.CreateSelfSigned(
+                    DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
+                    DateTimeOffset.UtcNow.AddMonths(pubDura)); // Gültig bis
+
+                // Zertifikat als Datei speichern
+                string certPath = "MyTestCA.pfx";
+                string password = "test"; // Passwort für den PFX-Schutz
+                var pfxBytes = caCertificate.Export(X509ContentType.Pfx, password);
+                System.IO.File.WriteAllBytes(certPath, pfxBytes);
+
+                MessageBox.Show(certPath + "s");
+
+            }
+
+
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+
+
+
     }
     #endregion
 
@@ -454,12 +571,18 @@ public partial class Server : Form
             string sub_ou = tb_sub_ou.Text;
             string sub_n = tb_sub_cn.Text;
             string sub_e = tb_sub_email.Text;
-            string serverSelect = lb_server_certs.SelectedItem.ToString();
 
-            Result<SQLTable> result = SqlTable();
-            if (result.IsSuccess)
+            Result<SQLTable> sqlTable = SqlTable();
+            string serverSelect = string.Empty;
+
+            if (sqlTable.IsSuccess)
             {
-                Result<int> result2 = Utils.Sql.Update(result.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
+                if (sqlTable.Value == SQLTable.ca)
+                { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+                else if (sqlTable.Value == SQLTable.intermediate)
+                { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
+
+                Result<int> result2 = Utils.Sql.Update(sqlTable.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
                 if (result2.IsSuccess && result2.Value != 0)
                 {
                     MessageBox.Show($"Updated {result2.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -479,10 +602,16 @@ public partial class Server : Form
     {
         try
         {
-            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
+            string serverSelect = string.Empty;
+
             Result<SQLTable> resTable = SqlTable();
             if (resTable.IsSuccess)
             {
+                if (resTable.Value == SQLTable.ca)
+                { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+                else if (resTable.Value == SQLTable.intermediate)
+                { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
+
                 Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
                 string subject = $"C={resWhere.Value[0]}, ST={resWhere.Value[1]}, L={resWhere.Value[2]}, O={resWhere.Value[3]}, OU={resWhere.Value[4]}, CN={resWhere.Value[5]}, Email={resWhere.Value[6]}";
                 List<string> list = Utils.Tools.ObjectToString(resWhere.Value);
@@ -513,10 +642,15 @@ public partial class Server : Form
             bool noPaLen = cb_notPathlen.Checked;
             int depth = Convert.ToInt16(cb_depth.Text);
             bool isCert = cb_issueCert.Checked;
-            Result<SQLTable> table = SqlTable();
-            string serverSelect = lb_server_certs.SelectedItem.ToString();
 
-            Result<int> resUpdateParam = Utils.Sql.Update(table.Value, serverSelect, isCa, noPaLen, depth, isCert);
+            Result<SQLTable> sqlTable = SqlTable();
+            string serverSelect = string.Empty;
+            if (sqlTable.Value == SQLTable.ca)
+            { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+            else if (sqlTable.Value == SQLTable.intermediate)
+            { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
+
+            Result<int> resUpdateParam = Utils.Sql.Update(sqlTable.Value, serverSelect, isCa, noPaLen, depth, isCert);
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
@@ -538,6 +672,6 @@ public partial class Server : Form
 
     }
 
-    
+
 }
 

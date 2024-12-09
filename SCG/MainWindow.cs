@@ -22,6 +22,7 @@ using System.Configuration;
 using SCG;
 using System.Security.Cryptography;
 using static SCG.Ssql;
+using System.Reflection.Metadata;
 
 
 namespace WinFormsApp1
@@ -446,6 +447,34 @@ namespace WinFormsApp1
     public static class Global
     {
         public static readonly string database = @"..\..\..\databasev2.db";
+        public enum dbTable
+        {
+            id,
+            name,
+            private_bits,
+            private_content,
+            private_createDT,
+            public_cert,
+            public_createDT,
+            csr_cert,
+            csr_createDT,
+            ss_cert,
+            ss_createDT,
+            ss_duration,
+            subj_country,
+            subj_state,
+            subj_location,
+            subj_organisation,
+            subj_orgaunit,
+            subj_commonname,
+            subj_email,
+            isCa,
+            not_pathlen,
+            depth,
+            canIssue,
+        }
+
     }
+    
 
 }

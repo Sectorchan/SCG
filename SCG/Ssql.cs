@@ -49,6 +49,7 @@ public class Ssql
         server,
         user
     }
+
     public enum SQLOption
     {
         INSERT_INTO,

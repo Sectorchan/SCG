@@ -79,6 +79,7 @@ partial class Server
         Bt_gen_int_pub = new Button();
         Bt_gen_ca_pub = new Button();
         Bt_inter_selfSigned_key = new Button();
+        Bt_sign_int_cert = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -296,7 +297,7 @@ partial class Server
         tb_pub_dura.Name = "tb_pub_dura";
         tb_pub_dura.Size = new Size(100, 23);
         tb_pub_dura.TabIndex = 4;
-        tb_pub_dura.Text = "12";
+        tb_pub_dura.Text = "120";
         // 
         // lbl_pub_duration
         // 
@@ -359,7 +360,7 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(203, 12);
+        panel1.Location = new Point(620, 221);
         panel1.Name = "panel1";
         panel1.Size = new Size(102, 113);
         panel1.TabIndex = 21;
@@ -460,7 +461,7 @@ partial class Server
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(206, 306);
+        panel2.Location = new Point(747, 221);
         panel2.Name = "panel2";
         panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
@@ -479,14 +480,14 @@ partial class Server
         // 
         lb_inter_certs.FormattingEnabled = true;
         lb_inter_certs.ItemHeight = 15;
-        lb_inter_certs.Location = new Point(401, 5);
+        lb_inter_certs.Location = new Point(292, 5);
         lb_inter_certs.Name = "lb_inter_certs";
         lb_inter_certs.Size = new Size(120, 79);
         lb_inter_certs.TabIndex = 32;
         // 
         // Bt_gen_inter_priv
         // 
-        Bt_gen_inter_priv.Location = new Point(437, 208);
+        Bt_gen_inter_priv.Location = new Point(328, 208);
         Bt_gen_inter_priv.Name = "Bt_gen_inter_priv";
         Bt_gen_inter_priv.Size = new Size(75, 47);
         Bt_gen_inter_priv.TabIndex = 33;
@@ -497,7 +498,7 @@ partial class Server
         // lbl_int_bit
         // 
         lbl_int_bit.AutoSize = true;
-        lbl_int_bit.Location = new Point(389, 149);
+        lbl_int_bit.Location = new Point(280, 149);
         lbl_int_bit.Name = "lbl_int_bit";
         lbl_int_bit.Size = new Size(26, 15);
         lbl_int_bit.TabIndex = 34;
@@ -507,7 +508,7 @@ partial class Server
         // 
         cb_int_priv_bits.FormattingEnabled = true;
         cb_int_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_int_priv_bits.Location = new Point(421, 145);
+        cb_int_priv_bits.Location = new Point(312, 145);
         cb_int_priv_bits.Name = "cb_int_priv_bits";
         cb_int_priv_bits.Size = new Size(100, 23);
         cb_int_priv_bits.TabIndex = 37;
@@ -515,16 +516,16 @@ partial class Server
         // 
         // tb_int_pub_dura
         // 
-        tb_int_pub_dura.Location = new Point(421, 174);
+        tb_int_pub_dura.Location = new Point(312, 174);
         tb_int_pub_dura.Name = "tb_int_pub_dura";
         tb_int_pub_dura.Size = new Size(100, 23);
         tb_int_pub_dura.TabIndex = 36;
-        tb_int_pub_dura.Text = "12";
+        tb_int_pub_dura.Text = "60";
         // 
         // lbl_int_pub_duration
         // 
         lbl_int_pub_duration.AutoSize = true;
-        lbl_int_pub_duration.Location = new Point(362, 179);
+        lbl_int_pub_duration.Location = new Point(253, 179);
         lbl_int_pub_duration.Name = "lbl_int_pub_duration";
         lbl_int_pub_duration.Size = new Size(53, 15);
         lbl_int_pub_duration.TabIndex = 35;
@@ -532,7 +533,7 @@ partial class Server
         // 
         // tb_int_name
         // 
-        tb_int_name.Location = new Point(421, 117);
+        tb_int_name.Location = new Point(312, 117);
         tb_int_name.Name = "tb_int_name";
         tb_int_name.Size = new Size(100, 23);
         tb_int_name.TabIndex = 39;
@@ -540,7 +541,7 @@ partial class Server
         // lbl_int_name
         // 
         lbl_int_name.AutoSize = true;
-        lbl_int_name.Location = new Point(303, 119);
+        lbl_int_name.Location = new Point(194, 119);
         lbl_int_name.Name = "lbl_int_name";
         lbl_int_name.Size = new Size(112, 15);
         lbl_int_name.TabIndex = 38;
@@ -549,7 +550,7 @@ partial class Server
         // cb_new_inter
         // 
         cb_new_inter.AutoSize = true;
-        cb_new_inter.Location = new Point(401, 92);
+        cb_new_inter.Location = new Point(292, 92);
         cb_new_inter.Name = "cb_new_inter";
         cb_new_inter.Size = new Size(120, 19);
         cb_new_inter.TabIndex = 40;
@@ -559,7 +560,7 @@ partial class Server
         // 
         // Bt_gen_int_pub
         // 
-        Bt_gen_int_pub.Location = new Point(437, 263);
+        Bt_gen_int_pub.Location = new Point(328, 263);
         Bt_gen_int_pub.Name = "Bt_gen_int_pub";
         Bt_gen_int_pub.Size = new Size(75, 47);
         Bt_gen_int_pub.TabIndex = 41;
@@ -580,7 +581,7 @@ partial class Server
         // 
         // Bt_inter_selfSigned_key
         // 
-        Bt_inter_selfSigned_key.Location = new Point(436, 481);
+        Bt_inter_selfSigned_key.Location = new Point(327, 481);
         Bt_inter_selfSigned_key.Name = "Bt_inter_selfSigned_key";
         Bt_inter_selfSigned_key.Size = new Size(76, 47);
         Bt_inter_selfSigned_key.TabIndex = 43;
@@ -588,11 +589,22 @@ partial class Server
         Bt_inter_selfSigned_key.UseVisualStyleBackColor = true;
         Bt_inter_selfSigned_key.Click += Bt_inter_selfSigned_key_Click;
         // 
+        // Bt_sign_int_cert
+        // 
+        Bt_sign_int_cert.Location = new Point(327, 534);
+        Bt_sign_int_cert.Name = "Bt_sign_int_cert";
+        Bt_sign_int_cert.Size = new Size(75, 44);
+        Bt_sign_int_cert.TabIndex = 44;
+        Bt_sign_int_cert.Text = "6. Sign Certificate";
+        Bt_sign_int_cert.UseVisualStyleBackColor = true;
+        Bt_sign_int_cert.Click += Bt_sign_int_cert_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1246, 663);
+        Controls.Add(Bt_sign_int_cert);
         Controls.Add(Bt_inter_selfSigned_key);
         Controls.Add(Bt_gen_ca_pub);
         Controls.Add(Bt_gen_int_pub);
@@ -684,4 +696,5 @@ partial class Server
     private Button Bt_gen_ca_pub;
     private Button Bt_wrt_param;
     private Button Bt_inter_selfSigned_key;
+    private Button Bt_sign_int_cert;
 }

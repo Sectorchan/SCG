@@ -182,22 +182,22 @@ public class Utils
                         columns.Add(reader.GetString("name"));
                         columns.Add(reader.GetString("private_bits"));
                         columns.Add(reader.GetString("private_content"));
-                        columns.Add(reader.GetString("private_createDT"));                        
+                        columns.Add(reader.GetString("private_createDT"));
                         columns.Add(reader.GetString("ss_duration"));
                         columns.Add(reader.GetString("csr_cert"));
                         columns.Add(reader.GetString("public_cert"));
                         columns.Add(reader.GetString("public_createDT"));
                         columns.Add(reader.GetString("subj_country"));
-                        columns.Add(reader.GetString("subj_state"));                      
-                        columns.Add(reader.GetString("subj_location"));                       
-                        columns.Add(reader.GetString("subj_organisation"));                        
-                        columns.Add(reader.GetString("subj_orgaunit"));                       
+                        columns.Add(reader.GetString("subj_state"));
+                        columns.Add(reader.GetString("subj_location"));
+                        columns.Add(reader.GetString("subj_organisation"));
+                        columns.Add(reader.GetString("subj_orgaunit"));
                         columns.Add(reader.GetString("subj_commonname"));
-                        columns.Add(reader.GetString("subj_email"));           
-                        columns.Add(reader.GetString("isCa"));                      
-                        columns.Add(reader.GetString("not_pathlen"));                        
-                        columns.Add(reader.GetString("depth"));        
-                            columns.Add(reader.GetString("canIssue"));
+                        columns.Add(reader.GetString("subj_email"));
+                        columns.Add(reader.GetString("isCa"));
+                        columns.Add(reader.GetString("not_pathlen"));
+                        columns.Add(reader.GetString("depth"));
+                        columns.Add(reader.GetString("canIssue"));
                     }
                 }
                 return columns;
@@ -214,7 +214,7 @@ public class Utils
         /// <param name="column">The selection what it should be queried.</param>
         /// <param name="table">The corresponding table, depending on the type</param>
         /// <returns>Returns the statement elements as a List with objects</returns>
-        public static List<object> SqlSelectObject( string column, SQLTable table)
+        public static List<object> SqlSelectObject(string column, SQLTable table)
         {
             SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
             _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
@@ -549,6 +549,11 @@ public class Utils
                     sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
 
                 }
+                else if (table == SQLTable.intermediate)
+                {
+                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
+
+                }
                 else
                 {
                     sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
@@ -680,7 +685,7 @@ public class Utils
             using (RSA rsa = RSA.Create(keySize))
             {
                 byte[] privateKey = rsa.ExportRSAPrivateKey();
-                
+
                 return Result.Ok(privateKey);
             }
         }
@@ -706,27 +711,36 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<byte[]> CreateSSCert(int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration)
+        public static Result<byte[]> CreateSSCert(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
         {
             try
-            {                
-                using (RSA RSAFromFile = RSA.Create(keySize))
+            {
+                using (RSA rsa = RSA.Create(keySize))
                 {
-                    var request = new CertificateRequest(subject, RSAFromFile, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    //rsa.ImportRSAPrivateKey(privKey, out _);
+                    //rsa.ImportRSAPublicKey(pubKey, out _);  
+                    var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
-                    
-                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, false)); // Signatur- und CRL rights
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
                     request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
 
                     // Zertifikat erstellen und signieren
-                    DateTimeOffset notBefore = DateTime.Now;
+                    DateTimeOffset notBefore = DateTimeOffset.UtcNow;
                     DateTimeOffset notAfter = notBefore.AddMonths(duration);
 
-                    X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
-                    byte[] export = certificate.Export(X509ContentType.Cert);
-                    
+                    var certificate = request.Create(
+                        subject,
+                        X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1),
+                        notBefore,
+                        notAfter,
+                        serialNumber);
+
+                    //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
+                    byte[] export = certificate.Export(X509ContentType.Pfx, "test");
+
+
                     return Result.Ok(export);
-                    
                 }
             }
             catch (Exception ex)
@@ -734,7 +748,47 @@ public class Utils
                 return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
+        public static Result<byte[]> CreateCaSignCert(SQLTable table, X509Certificate2 caCert, int keySize, X500DistinguishedName subject, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        {
+            try
+            {
 
+                using (RSA caPrivateKey = caCert.GetRSAPrivateKey())
+                {
+                    // RSA-Schlüssel für das Intermediate-Zertifikat generieren
+                    using (RSA intermediateKey = RSA.Create(keySize))
+                    {
+                        // Zertifikatsanfrage für das Intermediate-Zertifikat erstellen
+                        var intermediateRequest = new CertificateRequest(
+                            subject,
+                            intermediateKey,
+                            HashAlgorithmName.SHA256,
+                            RSASignaturePadding.Pkcs1);
+
+                        // Erweiterungen für das Intermediate-Zertifikat hinzufügen
+                        intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true)); // CA: true
+                        intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true)); // Signatur- und CRL-Rechte
+                        intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+
+                        // Intermediate-Zertifikat mit der CA signieren (5 Jahre Gültigkeit)
+                        var intermediateCertificate = intermediateRequest.Create(
+                            caCert,
+                            DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
+                            DateTimeOffset.UtcNow.AddMonths(duration), // Gültig bis
+                            new byte[] { Convert.ToByte(serialnumber) }); // Seriennummer (kann beliebig sein)
+
+                        byte[] export = intermediateCertificate.Export(X509ContentType.Cert);
+
+                        return Result.Ok(export);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
         public static Result<X500DistinguishedName> DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
         {
             try
@@ -757,6 +811,22 @@ public class Utils
                 MessageBox.Show(Convert.ToString(ex), "DNBuilder failed!");
                 return null;
             }
+        }
+        private byte[] GenerateRandomSerialNumber(int byteLength)
+        {
+            if (byteLength < 1)
+                throw new ArgumentException("Die Länge der Seriennummer muss mindestens 1 Byte sein.", nameof(byteLength));
+
+            byte[] serialNumber = new byte[byteLength];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(serialNumber);
+            }
+
+            // Sicherstellen, dass das höchste Bit nicht gesetzt ist (positiv)
+            serialNumber[0] &= 0x7F;
+
+            return serialNumber;
         }
     }
     public class Tools
