@@ -80,6 +80,8 @@ partial class Server
         Bt_gen_ca_pub = new Button();
         Bt_inter_selfSigned_key = new Button();
         Bt_sign_int_cert = new Button();
+        Bt_read_ca_subj = new Button();
+        Bt_read_int_subj = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -599,11 +601,37 @@ partial class Server
         Bt_sign_int_cert.UseVisualStyleBackColor = true;
         Bt_sign_int_cert.Click += Bt_sign_int_cert_Click;
         // 
+        // Bt_read_ca_subj
+        // 
+        Bt_read_ca_subj.AccessibleName = "ca";
+        Bt_read_ca_subj.AccessibleRole = AccessibleRole.None;
+        Bt_read_ca_subj.Location = new Point(85, 331);
+        Bt_read_ca_subj.Name = "Bt_read_ca_subj";
+        Bt_read_ca_subj.Size = new Size(75, 51);
+        Bt_read_ca_subj.TabIndex = 45;
+        Bt_read_ca_subj.Text = "Read Subjects";
+        Bt_read_ca_subj.UseVisualStyleBackColor = true;
+        Bt_read_ca_subj.Click += Bt_read_Dest_names_Click;
+        // 
+        // Bt_read_int_subj
+        // 
+        Bt_read_int_subj.AccessibleName = "int";
+        Bt_read_int_subj.AccessibleRole = AccessibleRole.None;
+        Bt_read_int_subj.Location = new Point(328, 331);
+        Bt_read_int_subj.Name = "Bt_read_int_subj";
+        Bt_read_int_subj.Size = new Size(75, 51);
+        Bt_read_int_subj.TabIndex = 46;
+        Bt_read_int_subj.Text = "Read Subjects";
+        Bt_read_int_subj.UseVisualStyleBackColor = true;
+        Bt_read_int_subj.Click += Bt_read_Dest_names_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1246, 663);
+        Controls.Add(Bt_read_int_subj);
+        Controls.Add(Bt_read_ca_subj);
         Controls.Add(Bt_sign_int_cert);
         Controls.Add(Bt_inter_selfSigned_key);
         Controls.Add(Bt_gen_ca_pub);
@@ -697,4 +725,6 @@ partial class Server
     private Button Bt_wrt_param;
     private Button Bt_inter_selfSigned_key;
     private Button Bt_sign_int_cert;
+    private Button Bt_read_ca_subj;
+    private Button Bt_read_int_subj;
 }

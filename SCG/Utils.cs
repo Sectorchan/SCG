@@ -717,7 +717,7 @@ public class Utils
             {
                 using (RSA rsa = RSA.Create(keySize))
                 {
-                    //rsa.ImportRSAPrivateKey(privKey, out _);
+                    rsa.ImportRSAPrivateKey(privKey, out _);
                     //rsa.ImportRSAPublicKey(pubKey, out _);  
                     var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
@@ -737,7 +737,8 @@ public class Utils
                         serialNumber);
 
                     //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
-                    byte[] export = certificate.Export(X509ContentType.Pfx, "test");
+                    byte[] export = certificate.Export(X509ContentType.Cert);
+                    //byte[] export = certificate.Export(X509ContentType.Pfx, "test");
 
 
                     return Result.Ok(export);
