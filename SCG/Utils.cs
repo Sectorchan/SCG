@@ -628,7 +628,35 @@ public class Utils
                 command.Parameters.AddWithValue("@_ss_duration", duration);
 
                 int rowInserted = command.ExecuteNonQuery();
-                return Result.Ok(rowInserted).WithSuccess("Update");
+                return Result.Ok(rowInserted);
+
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.Message);
+            }
+        }
+        public static Result<int> UpdateCert(SQLTable table, string searchTerm, X509Certificate2 cert)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string sql = $"UPDATE {table} SET csr_createDT = @_csr_cert, csr_createDT = @_csr_createDT WHERE name = @_searchTerm";
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_csr_cert", cert);
+                command.Parameters.AddWithValue("@_csr_createDT", Convert.ToString(DateTime.Now));
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+
+
+                int rowInserted = command.ExecuteNonQuery();
+                return Result.Ok(rowInserted);
 
             }
             catch (Exception ex)
@@ -680,11 +708,11 @@ public class Utils
         /// </summary>
         /// <param name="KeySize">Default = 4096; Represents the size, in bits, of the key modulus used by the asymmetric algorithm.</param>
         /// <returns>The privatekey in PEM format as String</returns>
-        public static Result<byte[]> CreatePrivKey(int keySize)
+        public static Result<string> CreatePrivKey(int keySize)
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                byte[] privateKey = rsa.ExportRSAPrivateKey();
+                string privateKey = rsa.ExportRSAPrivateKeyPem();
 
                 return Result.Ok(privateKey);
             }
@@ -693,12 +721,13 @@ public class Utils
         /// Generate the public key (obsolete?)
         /// </summary>
         /// <returns>Returns the public key in PEM format</returns>
-        public static Result<byte[]> CreatePubKey(int keySize, byte[] privateKey)
+        public static Result<string> CreatePubKey(int keySize, string privateKey)
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                rsa.ImportRSAPrivateKey(privateKey, out _);
-                byte[] publicKey = rsa.ExportRSAPublicKey();
+                rsa.ImportFromPem(privateKey);
+                //rsa.ImportRSAPrivateKey(privateKey, out _);
+                string publicKey = rsa.ExportRSAPublicKeyPem();
 
 
                 return Result.Ok(publicKey);
@@ -738,10 +767,52 @@ public class Utils
 
                     //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
                     byte[] export = certificate.Export(X509ContentType.Cert);
-                    //byte[] export = certificate.Export(X509ContentType.Pfx, "test");
-
+                    //byte[] export2 = certificate.Export(X509ContentType.Pfx, "test");
 
                     return Result.Ok(export);
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail($"Fehler test: {ex}").WithError("Test");
+            }
+        }
+        public static Result<X509Certificate2> CreateSSCert2(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        {
+            try
+            {
+                using (RSA rsa = RSA.Create(keySize))
+                {
+                    rsa.ImportRSAPrivateKey(privKey, out _);
+                    //rsa.ImportRSAPublicKey(pubKey, out _);  
+                    var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
+                    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
+
+                    // Zertifikat erstellen und signieren
+                    DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                    DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+                    var certificate = request.Create(
+                        subject,
+                        X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1),
+                        notBefore,
+                        notAfter,
+                        serialNumber);
+
+                    //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
+                    byte[] export = certificate.Export(X509ContentType.Cert);
+                    byte[] export2 = certificate.Export(X509ContentType.Pfx, "test");
+                    string certPath = "c_selfsignedKeyPfx.pfx";
+                    string password = "test"; // Passwort für den PFX-Schutz
+                    var pfxBytes = certificate.Export(X509ContentType.Pfx, password);
+                    //System.IO.File.WriteAllBytes(certPath, pfxBytes);
+
+                    return Result.Ok(certificate);
+
                 }
             }
             catch (Exception ex)

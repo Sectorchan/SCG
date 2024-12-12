@@ -209,20 +209,18 @@ public partial class Server : Form
             int keySize = int.Parse(cb_priv_bits.Text);
             Result<SQLTable> table = SqlTable();
 
-            Result<byte[]> privKeyByte = Utils.Certs.CreatePrivKey(keySize);
+            Result<string> privKeyByte = Utils.Certs.CreatePrivKey(keySize);
             if (privKeyByte.IsSuccess)
             {
-                string privKeyStri = Convert.ToBase64String(privKeyByte.Value);
-
-                Result<int> resInsert = Utils.Sql.InsertInto(table.Value, tb_ca_name.Text, privKeyStri, keySize);
+                Result<int> resInsert = Utils.Sql.InsertInto(SQLTable.ca, tb_ca_name.Text, privKeyByte.Value, keySize);
 
                 if (resInsert.IsSuccess)
                 {
                     if (writeFile)
                     {
                         //Convert private key into PEM format
-                        string privateKeyPem = ConvertToPem(privKeyByte.Value, "RSA PRIVATE KEY");
-                        File.WriteAllText(c_privateKeyPath, privateKeyPem);
+                        File.WriteAllText("ca_pk.pem", privKeyByte.Value);
+                        MessageBox.Show($"Privatekey written to file: {c_privateKeyPath}");
                     }
                     MessageBox.Show($"Private key saved in {Global.database}.");
                     lb_server_certs.Items.Clear();
@@ -252,17 +250,19 @@ public partial class Server : Form
             if (resWhere.IsSuccess)
             {
                 //Read privatekey from SQL
-                string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
-                byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
+                string privateKeyBytes = File.ReadAllText("ca_pk.pem");
 
-                Result<byte[]> publicKeyBytes = Utils.Certs.CreatePubKey(Convert.ToInt16(resWhere.Value[0]), privateKeyBytes);
+                Result<string> publicKeyBytes = Utils.Certs.CreatePubKey(Convert.ToInt16(resWhere.Value[0]), privateKeyBytes);
                 if (publicKeyBytes.IsSuccess)
                 {
                     if (writeFile)
                     {
                         // Convert public key into PEM format
-                        string publicKeyPem = ConvertToPem(publicKeyBytes.Value, "PUBLIC KEY");
-                        File.WriteAllText(c_publicKeyPath, publicKeyPem);
+                        //string publicKeyPem = ConvertToPem(publicKeyBytes.Value, "PUBLIC KEY");
+                        File.WriteAllText("ca_pub.pem", publicKeyPem);
+                        File.WriteAllBytes("c_publicKeyPathB.pem", publicKeyBytes.Value);
+
+                        MessageBox.Show($"Publickey written to file: {c_privateKeyPath}");
                     }
                     string publicKeyStri = Convert.ToBase64String(publicKeyBytes.Value);
 
@@ -290,7 +290,7 @@ public partial class Server : Form
             string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
 
             Result<SQLTable> resTable = SqlTable();                          //0                 1            2              3          4           5        6         7
-            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], resTable.Value, "name", serverSelect);
+            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.ca, "name", serverSelect);
 
             //Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], resTable.Value, "name", serverSelect);
             //List<string> list = Utils.Tools.ObjectToString(resWhere2.Value);
@@ -315,18 +315,22 @@ public partial class Server : Form
             if (destName.IsSuccess)
             {
                 Result<byte[]> certBytes = Utils.Certs.CreateSSCert(SQLTable.ca, keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serial);
+                Result<X509Certificate2> certBytes2 = Utils.Certs.CreateSSCert2(SQLTable.ca, keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serial);
                 if (certBytes.IsSuccess)
-                {
+                {                    
                     if (writeFile)
                     {
-                        File.WriteAllBytes(c_selfsignedKeyPath + ".pem", certBytes.Value);
+                        var pfxBytes = certBytes2.Value.Export(X509ContentType.Pfx, string.Empty);
+                        System.IO.File.WriteAllBytes("ca_ss.pfx", pfxBytes);
+                        MessageBox.Show("Cert and PFX written to file");
                     }
+                    Result<int> updateCert = Utils.Sql.UpdateCert(SQLTable.ca, serverSelect, certBytes2.Value);
 
                     string certStri = Convert.ToBase64String(certBytes.Value);
                     Result<int> resUpdate = Utils.Sql.Update(resTable.Value, serverSelect, certStri, pubDura);
                     if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
                     {
-                        MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         //MessageBox.Show($"Selfsigned certificate for {serverSelect} saved in {Global.database}");
                     }
                     else
@@ -356,8 +360,10 @@ public partial class Server : Form
                 if (writeFile)
                 {
                     //Convert private key into PEM format
-                    string privateKeyPem = ConvertToPem(privKeyByte.Value, "RSA PRIVATE KEY");
-                    File.WriteAllText(i_privateKeyPath, privateKeyPem);
+                    string privateKeyPem = Utils.Certs.ConvertToPem(privKeyByte.Value, "RSA PRIVATE KEY");
+                    File.WriteAllText("i_privateKeyPathP.pem", privateKeyPem);
+                    File.WriteAllBytes("i_privateKeyPathB.pem", privKeyByte.Value);
+                    MessageBox.Show($"Privatekey written to file: {i_privateKeyPath}");
                 }
                 MessageBox.Show($"Private key saved in {Global.database}.");
                 lb_inter_certs.Items.Clear();
@@ -411,7 +417,7 @@ public partial class Server : Form
         try
         {
             string serverSelect = Convert.ToString(lb_inter_certs.SelectedItem);
-                                                                            //0             1                   2             3         4           5           6        7
+            //0             1                   2             3         4           5           6        7
             Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_content", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", serverSelect);
             Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", serverSelect);
 
@@ -489,9 +495,7 @@ public partial class Server : Form
             bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
             int serialnumber = Convert.ToInt32(resWhere.Value[7]);
             int pubDura = Convert.ToInt16(tb_int_pub_dura.Text);
-
-
-
+            #region temp
             //if (caCert.IsSuccess && resSubj.IsSuccess && destName.IsSuccess)
             //{
             //    string ss_certString = Convert.ToString(caCert.Value[0]);
@@ -516,54 +520,47 @@ public partial class Server : Form
             //        else
             //        { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
             //    }
-
             //}
-
-            //privateKeyBytes
+            #endregion
             // CA-Zertifikat laden
-            string caCertPath = "MyTestCA.pfx";
-            string caPassword = "securepassword";
-            //var caCertificate = new X509Certificate2(caCertPath, caPassword, X509KeyStorageFlags.Exportable);
-            var caCertificate = new X509Certificate2("c_selfSignedKey1.pem");
-
+            var caCertificate = new X509Certificate2("ca_ss.pfx", string.Empty, X509KeyStorageFlags.Exportable);
+            if (!caCertificate.HasPrivateKey)
+            {
+                Console.WriteLine("Das CA-Zertifikat hat keinen privaten Schlüssel.");
+            }
+            else
+            {
+                Console.WriteLine("Das CA-Zertifikat hat einen privaten Schlüssel.");
+            }
             // RSA-Schlüssel für das Intermediate-Zertifikat generieren
             using (RSA intermediateKey = RSA.Create(keySize))
             {
-                intermediateKey.ImportRSAPrivateKey(privateKeyBytes, out _);
                 // Zertifikatsanfrage für das Intermediate-Zertifikat erstellen
                 var request = new CertificateRequest(
-                    destName.Value,
+                    "CN=MyIntermediateCA",
                     intermediateKey,
                     HashAlgorithmName.SHA256,
                     RSASignaturePadding.Pkcs1);
 
                 // Erweiterungen für eine Intermediate CA hinzufügen
-                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql)); // CA: true
+                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true)); // CA: true
                 request.CertificateExtensions.Add(new X509KeyUsageExtension(
                     X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
                     true)); // Signatur- und CRL-Rechte
                 request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
 
-                using (RSA caPriv = RSA.Create(keySizeCa))
-                {
-                    caPriv.ImportRSAPrivateKey(privateCaKeyBytes, out _);
+                // Intermediate-Zertifikat von der Root-CA signieren (5 Jahre Gültigkeit)
+                var intermediateCertificate = request.Create(
+                    caCertificate,
+                    DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
+                    DateTimeOffset.UtcNow.AddYears(5), // Gültig bis
+                    new byte[] { 1, 0, 0, 0 }); // Serial Number (eindeutig)
 
-                    // Intermediate-Zertifikat von der Root-CA signieren (5 Jahre Gültigkeit)
-                    var intermediateCertificate = request.Create(
-                        caCertificate,
-                        DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
-                        DateTimeOffset.UtcNow.AddYears(20), // Gültig bis
-                        new byte[] { 1, 0, 0, 0 }); // Serial Number (eindeutig)
-
-                }
                 // Intermediate-Zertifikat als Datei speichern
                 string intermediateCertPath = "MyIntermediateCA.pfx";
                 string intermediatePassword = "intermediatepassword";
                 var pfxBytes = intermediateCertificate.Export(X509ContentType.Pfx, intermediatePassword);
-                var certBytes = intermediateCertificate.Export(X509ContentType.Cert);
                 System.IO.File.WriteAllBytes(intermediateCertPath, pfxBytes);
-                System.IO.File.WriteAllBytes(i_signedKeyPath, certBytes);
-
 
             }
         }
