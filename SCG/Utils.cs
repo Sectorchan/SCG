@@ -33,15 +33,76 @@ public class Utils
     public class Sql
     {
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="table">The corresponding table, depending on the type</param>
+        /// <param name="name">An unique application/server name</param>
+        /// <param name="privKey">The privateKey in PEM format</param>
+        /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
+        /// <returns>Returns the amount of entries that written to the SQL database.</returns>
+        public static int InsertInto(SQLTable table, string name, string privKey, int keySize)
+        {
+            try
+            {
+                string _table = "";
+                var _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                switch (table)
+                {
+                    case (SQLTable.ca):
+                        _table = "ca";
+                        break;
+                    case (SQLTable.intermediate):
+                        _table = "intermediate";
+                        break;
+                    case (SQLTable.server):
+                        _table = "server";
+                        break;
+                    case (SQLTable.user):
+                        _table = "user";
+                        break;
+                }
+
+                string sql = $"INSERT INTO {_table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_name", name);
+                command.Parameters.AddWithValue("@_keySize", keySize);
+                command.Parameters.AddWithValue("@_private_key", privKey);
+                command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
+                int rowInserted = command.ExecuteNonQuery();
+
+                return rowInserted;
+            }
+            catch (Exception ex)
+            {
+                if (ex == null)
+                {
+                    return 0; // Result.Fail("Possible wrong SQL credentials");
+                }
+                else
+                {
+                    return 0; // Result.Fail(ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs a SQL INSERT INTO into the given table
         /// </summary>        
         /// <param name="table">The corresponding table, depending on the type</param>
-        /// <param name="Name">An unique application/server name</param>
-        /// <param name="Privpass">Password for the private key</param>
-        /// <param name="Privkey">The private key, as a PEM format string</param>
-        /// <param name="Privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter </param>
+        /// <param name="name">An unique application/server name</param>
+        /// <param name="privpass">Password for the private key</param>
+        /// <param name="privkey">The private key, as a PEM format string</param>
+        /// <param name="keySize">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter </param>
         /// <returns>Returns the amount of entries that written to the SQL database</returns>
-        public static Result<int> InsertInto(SQLTable table, string Name, byte[] RSAPrivate, byte[] RSAPublic, int Privbits, int duration)
+        public static Result<int> InsertInto(SQLTable table, string name, byte[] RSAPrivate, byte[] RSAPublic, int keySize, int duration)
         {
             try
             {
@@ -70,11 +131,11 @@ public class Utils
                         _table = "user";
                         break;
                 }
-                string sql = $"INSERT INTO {_table} (name, private_bits, private_content, private_createDT, ss_duration, csr_cert, public_createDT) VALUES (@_Name, @_priv_bits, @_priv_content, @_priv_createDT, @_ss_duration, @_csr_cert, @_public_createDT)";
+                string sql = $"INSERT INTO {_table} (name, private_bits, private_key, private_createDT, ss_duration, csr_cert, public_createDT) VALUES (@_Name, @_keySize, @_private_key, @_priv_createDT, @_ss_duration, @_csr_cert, @_public_createDT)";
                 using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_Name", Name);
-                command.Parameters.AddWithValue("@_priv_bits", Privbits);
-                command.Parameters.AddWithValue("@_priv_content", RSAPrivate);
+                command.Parameters.AddWithValue("@_Name", name);
+                command.Parameters.AddWithValue("@_keySize", keySize);
+                command.Parameters.AddWithValue("@_private_key", RSAPrivate);
                 command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
                 command.Parameters.AddWithValue("@_ss_duration", duration);
                 command.Parameters.AddWithValue("@_csr_cert", RSAPublic);
@@ -90,58 +151,7 @@ public class Utils
             }
 
         }
-        public static Result<int> InsertInto(SQLTable table, string Name, string Privkey, int Privbits)
-        {
-            try
-            {
-                string _table = "";
-                var _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-
-                switch (table)
-                {
-                    case (SQLTable.ca):
-                        _table = "ca";
-                        break;
-                    case (SQLTable.intermediate):
-                        _table = "intermediate";
-                        break;
-                    case (SQLTable.server):
-                        _table = "server";
-                        break;
-                    case (SQLTable.user):
-                        _table = "user";
-                        break;
-                }
-
-                string sql = $"INSERT INTO {_table} (name, private_bits, private_content, private_createDT) VALUES (@_Name, @priv_bits, @priv_content, @priv_createDT)";
-
-                using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_Name", Name);
-                command.Parameters.AddWithValue("@priv_bits", Privbits);
-                command.Parameters.AddWithValue("@priv_content", Privkey);
-                command.Parameters.AddWithValue("@priv_createDT", DateTime.Now.ToString());
-                int rowInserted = command.ExecuteNonQuery();
-
-                return Result.Ok(rowInserted);
-            }
-            catch (Exception ex)
-            {
-                if (ex == null)
-                {
-                    return Result.Fail("Possible wrong SQL credentials");
-                }
-                else
-                {
-                    return Result.Fail(ex.Message);
-                }
-            }
-        }
+   
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
@@ -181,7 +191,7 @@ public class Utils
                         columns.Add(reader.GetString("id"));
                         columns.Add(reader.GetString("name"));
                         columns.Add(reader.GetString("private_bits"));
-                        columns.Add(reader.GetString("private_content"));
+                        columns.Add(reader.GetString("private_key"));
                         columns.Add(reader.GetString("private_createDT"));
                         columns.Add(reader.GetString("ss_duration"));
                         columns.Add(reader.GetString("csr_cert"));
@@ -237,7 +247,7 @@ public class Utils
                     columns.Add(reader["id"]);
                     columns.Add(reader["name"]);
                     columns.Add(reader["private_bits"]);
-                    columns.Add(reader["private_content"]);
+                    columns.Add(reader["private_key"]);
                     columns.Add(reader["private_createDT"]);
                     columns.Add(reader["ss_duration"]);
                     columns.Add(reader["csr_cert"]);
@@ -292,7 +302,7 @@ public class Utils
                 {
                     switch (column)
                     {
-                        case "private_content":
+                        case "private_key":
                             while (reader.Read())
                             {
                                 byte[] privKey = reader[column] as byte[];
@@ -314,7 +324,7 @@ public class Utils
             }
 
         }
-        public static Result<string> SelectWhereString(string column, SQLTable table, string searchColumn, string searchValue)
+        public static string SelectWhereString(SQLTable table,string column, string searchColumn, string searchValue)
         {
             try
             {
@@ -338,25 +348,26 @@ public class Utils
                         readString = reader.GetString(0);
 
                     }
-                    return Result.Ok(readString);
+                    return readString;
                 }
                 else
                 {
-                    return Result.Fail(sql);
+                    return sql;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return Result.Fail(ex.Message);
+                return ex.Message;
             }
 
         }
 
-        public static Result<List<object>> SelectWhereObject(string[] column1, SQLTable table, string searchColumn, string searchValue)
+        public static List<object> SelectWhereObject(SQLTable table, string[] column1,  string searchColumn, string searchValue)
         {
             try
             {
+                List<object> columns = new List<object>();
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
                 _connectionString.DataSource = Global.database;
@@ -374,7 +385,50 @@ public class Utils
 
                 if (reader.HasRows)
                 {
-                    List<object> columns = new List<object>();
+                    //List<object> columns = new List<object>();
+                    while (reader.Read())
+                    {
+                        foreach (string row in column1)
+                        {
+                            columns.Add(reader[row]);
+                        }
+                    }
+                    return columns;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+        }
+        public static Result<List<object>> SelectWhereObject(string[] column1,SQLTable table,  string searchColumn, string searchValue)
+        {
+            try
+            {
+                List<object> columns = new List<object>();
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string column = string.Join(",", column1); // adds a comma after each element, except the last one for the SQL query
+                string sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue";
+
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                using var reader = command.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    //List<object> columns = new List<object>();
                     while (reader.Read())
                     {
                         foreach (string row in column1)
@@ -386,12 +440,12 @@ public class Utils
                 }
                 else
                 {
-                    return Result.Fail("No Server found");
+                    return null;
                 }
             }
             catch (Exception ex)
             {
-                return Result.Fail(ex.ToString());
+                return null;
             }
 
         }
@@ -500,7 +554,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(SQLTable table, string publicKey, string searchTerm, string searchColumn)
+        public static int Update(SQLTable table, string publicKey, string searchTerm, string searchColumn)
         {
             try
             {
@@ -522,11 +576,11 @@ public class Utils
 
                 int rowUpdated = command.ExecuteNonQuery();
 
-                return Result.Ok(rowUpdated);
+                return rowUpdated;
             }
             catch (Exception ex)
             {
-                return Result.Fail(ex.ToString());
+                return 0;
 
             }
         }
@@ -712,27 +766,106 @@ public class Utils
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                string privateKey = rsa.ExportRSAPrivateKeyPem();
+                string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
 
-                return Result.Ok(privateKey);
+                return Result.Ok(privateKeyPem);
             }
         }
+
+        public static string CreatePrivateKey3(int keySize, string filePath)
+        {
+            using (RSA rsa = RSA.Create(keySize))
+            {
+                //string privateKeyPem = ConvertToPem(rsa.ExportRSAPrivateKey(), "RSA PRIVATE KEY");
+                string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
+                //File.WriteAllText(filePath, privateKeyPem);
+                //Console.WriteLine($"Private Key in {filePath} gespeichert.");
+                //MessageBox.Show($"Private Key in {filePath} gespeichert.");
+
+                return privateKeyPem;
+            }
+            
+        }
+
         /// <summary>
         /// Generate the public key (obsolete?)
         /// </summary>
         /// <returns>Returns the public key in PEM format</returns>
-        public static Result<string> CreatePubKey(int keySize, string privateKey)
+        public static Result<string> CreatePubKey(string privateKey)
         {
-            using (RSA rsa = RSA.Create(keySize))
+            using (RSA rsa = RSA.Create())
             {
                 rsa.ImportFromPem(privateKey);
-                //rsa.ImportRSAPrivateKey(privateKey, out _);
-                string publicKey = rsa.ExportRSAPublicKeyPem();
+                //rsa.ImportFromPem(privateKeyPem2);
+                string publicKeyPem = rsa.ExportRSAPublicKeyPem();
+                return Result.Ok(publicKeyPem);
+            }
 
+        }
+        public static string CreatePubKey3(string privateKey/*, string publicKey*/)
+        {
+            try
+            {
+                //string privateKeyPem = File.ReadAllText(privateKey);
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem(privateKey);
+                    string publicKeyPem = rsa.ExportRSAPublicKeyPem();
 
-                return Result.Ok(publicKey);
+                    //string publicKeyPem = ConvertToPem(rsa.ExportRSAPublicKey(), "PUBLIC KEY");
+                    //File.WriteAllText(publicKeyPath, publicKeyPem);
+                    //Console.WriteLine($"Public Key in {publicKeyPath} gespeichert.");
+                    //MessageBox.Show($"Public Key in {publicKeyPath} gespeichert.");
+
+                    return publicKeyPem;
+                }
+            }
+            catch
+            {
+                return "failed";
             }
         }
+        public static byte[] CreateSelfSigned3(string privateKeyPath, string publicKeyPath, string pfxPath, string password)
+        {
+            string privateKeyPem = File.ReadAllText(privateKeyPath);
+            string publicKeyPem = File.ReadAllText(publicKeyPath);
+
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(privateKeyPem);
+                var request = new CertificateRequest("CN=SelfSignedCertificate", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+
+                byte[] selfSignedCert = certificate.Export(X509ContentType.Pfx, password);
+                //File.WriteAllBytes(pfxPath, certificate.Export(X509ContentType.Pfx, password));
+                Console.WriteLine($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                MessageBox.Show($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                return selfSignedCert;
+            }
+        }
+        public static X509Certificate2 CreateSelfSigned4(string privateKeyPath, string serverName, string[] fqdn, /*, string publicKeyPath*/ string pfxPath, string password)
+        {
+            //string privateKeyPem = File.ReadAllText(privateKeyPath);
+            //string publicKeyPem = File.ReadAllText(publicKeyPath);
+            List<object> fqdnRes = Sql.SelectWhereObject(SQLTable.ca, fqdn, "name", serverName);
+            //List<string> list = Utils.Tools.ObjectToString(fqdnRes);
+            X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(privateKeyPath);
+                var request = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+
+                byte[] selfSignedCert = certificate.Export(X509ContentType.Pfx, password);
+                //File.WriteAllBytes(pfxPath, certificate.Export(X509ContentType.Pfx, password));
+                Console.WriteLine($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                MessageBox.Show($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                return certificate;
+            }
+        }
+
+
         /// <summary>
         /// Generates the self signed file
         /// </summary>
@@ -740,25 +873,26 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<byte[]> CreateSSCert(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<X509Certificate2> CreateSSCert(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
         {
             try
             {
-                using (RSA rsa = RSA.Create(keySize))
+                using (RSA rsa = RSA.Create())
                 {
-                    rsa.ImportRSAPrivateKey(privKey, out _);
-                    //rsa.ImportRSAPublicKey(pubKey, out _);  
+                    rsa.ImportFromPem(privKey);
+                    
                     var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
                     request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
                     request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
-                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
 
+
+                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
                     // Zertifikat erstellen und signieren
                     DateTimeOffset notBefore = DateTimeOffset.UtcNow;
                     DateTimeOffset notAfter = notBefore.AddMonths(duration);
 
-                    var certificate = request.Create(
+                    X509Certificate2 certificate = request.Create(
                         subject,
                         X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1),
                         notBefore,
@@ -766,11 +900,11 @@ public class Utils
                         serialNumber);
 
                     //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
-                    byte[] export = certificate.Export(X509ContentType.Cert);
+                    //byte[] export = certificate.Export(X509ContentType.Cert);
                     //byte[] export2 = certificate.Export(X509ContentType.Pfx, "test");
 
-                    return Result.Ok(export);
-                    
+                    return Result.Ok(certificate);
+
                 }
             }
             catch (Exception ex)
@@ -778,6 +912,47 @@ public class Utils
                 return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
+        public static Result<byte[]> CreateSSCertb(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        {
+            try
+            {
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem(privKey);
+
+                    var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
+                    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+
+
+                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
+                    // Zertifikat erstellen und signieren
+                    DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                    DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+                    X509Certificate2 certificate = request.Create(
+                        subject,
+                        X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1),
+                        notBefore,
+                        notAfter,
+                        serialNumber);
+
+                    X509Certificate2 certificatex = request.CreateSelfSigned(notBefore, notAfter);
+                    
+                    //byte[] export = certificate.Export(X509ContentType.Cert);
+                    byte[] export= certificate.Export(X509ContentType.Pfx, "test");
+
+                    return Result.Ok(export);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail($"Fehler test: {ex}").WithError("Test");
+            }
+        }
+
         public static Result<X509Certificate2> CreateSSCert2(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
         {
             try
@@ -820,6 +995,49 @@ public class Utils
                 return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
+        public static Result<byte[]> CreateSSCert2b(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        {
+            try
+            {
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem(privKey);
+                    //rsa.ImportRSAPublicKey(pubKey, out _);  
+                    var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
+                    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
+                    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                    byte[] serialNumber = { Convert.ToByte(serialnumber) };
+
+                    // Zertifikat erstellen und signieren
+                    DateTimeOffset notBefore = DateTimeOffset.UtcNow;
+                    DateTimeOffset notAfter = notBefore.AddMonths(duration);
+
+                    var certificate = request.Create(
+                        subject,
+                        X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1),
+                        notBefore,
+                        notAfter,
+                        serialNumber);
+
+                    //X509Certificate2 certificate = request.CreateSelfSigned(notBefore, notAfter);
+                    byte[] export = certificate.Export(X509ContentType.Cert);
+                    byte[] export2 = certificate.Export(X509ContentType.Pfx, "test");
+                    string certPath = "c_selfsignedKeyPfx.pfx";
+                    string password = "test"; // Passwort für den PFX-Schutz
+                    byte[] pfxBytes = certificate.Export(X509ContentType.Pfx, password);
+                    //System.IO.File.WriteAllBytes(certPath, pfxBytes);
+
+                    return Result.Ok(pfxBytes);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail($"Fehler test: {ex}").WithError("Test");
+            }
+        }
+
         public static Result<byte[]> CreateCaSignCert(SQLTable table, X509Certificate2 caCert, int keySize, X500DistinguishedName subject, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
         {
             try
@@ -861,7 +1079,7 @@ public class Utils
                 throw;
             }
         }
-        public static Result<X500DistinguishedName> DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
+        public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
         {
             try
             {
@@ -876,11 +1094,11 @@ public class Utils
                 DNs.AddEmailAddress(Convert.ToString(emailAddress));
                 var build = DNs.Build();
 
-                return Result.Ok(build).WithSuccess("DNBuilder");
+                return build;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(Convert.ToString(ex), "DNBuilder failed!");
+                MessageBox.Show(Convert.ToString(ex));
                 return null;
             }
         }
@@ -900,6 +1118,19 @@ public class Utils
 
             return serialNumber;
         }
+        public static void checkPrivKey(X509Certificate2 caCertificate)
+        {
+            if (!caCertificate.HasPrivateKey)
+            {
+                Console.WriteLine("Das CA-Zertifikat hat keinen privaten Schlüssel.");
+                MessageBox.Show("Das CA - Zertifikat hat keinen privaten Schlüssel.");
+            }
+            else
+            {
+                Console.WriteLine("Das CA-Zertifikat hat einen privaten Schlüssel.");
+                MessageBox.Show("Das CA-Zertifikat hat einen privaten Schlüssel.");
+            }
+        }
     }
     public class Tools
     {
@@ -916,5 +1147,5 @@ public class Utils
         }
     }
 
-}
 
+}

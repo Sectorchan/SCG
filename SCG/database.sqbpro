@@ -8,7 +8,7 @@
 
 	&quot;private_pass&quot;	TEXT,
 
-	&quot;private_content&quot;	TEXT,
+	&quot;private_key&quot;	TEXT,
 
 	&quot;private_createDT&quot;	INTEGER,
 

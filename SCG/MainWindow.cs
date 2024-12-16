@@ -452,7 +452,7 @@ namespace WinFormsApp1
             id,
             name,
             private_bits,
-            private_content,
+            private_key,
             private_createDT,
             public_cert,
             public_createDT,

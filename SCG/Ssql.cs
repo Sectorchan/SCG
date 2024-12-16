@@ -25,7 +25,7 @@ public class Ssql
 
     public string Name { get; set; }
 
-    public string Priv_bits { get; set; }
+    public string keySize { get; set; }
     public string Priv_pass { get; set; }
     public string Pub_duration { get; set; }
     public string Pub_pass { get; set; }
@@ -108,14 +108,14 @@ public class Ssql
                 _table = "user";
                 break;
         }
-        var sql = $"{_option} {_table} (name, private_bits, private_pass, private_content, private_createDT) VALUES (@Ca_Name, @priv_bits, @priv_pass, @priv_content, @priv_createDT)";
+        var sql = $"{_option} {_table} (name, private_bits, private_pass, private_key, private_createDT) VALUES (@Ca_Name, @keySize, @priv_pass, @private_key, @priv_createDT)";
         //SELECT CustomerName, City FROM Customers;
         //var sql = "SELECT name FROM ca";
         using var command = new SqliteCommand(sql, connection);
         command.Parameters.AddWithValue("@Ca_Name", CaName);
-        command.Parameters.AddWithValue("@priv_bits", Privbits);
+        command.Parameters.AddWithValue("@keySize", Privbits);
         command.Parameters.AddWithValue("@priv_pass", Privpass);
-        command.Parameters.AddWithValue("@priv_content", Privkey);
+        command.Parameters.AddWithValue("@private_key", Privkey);
         command.Parameters.AddWithValue("@priv_createDT", PrivCreateDT);
         var rowInserted = command.ExecuteNonQuery();
         

@@ -48,8 +48,8 @@ partial class Server
         lbl_def_country = new Label();
         lbl_ca_name = new Label();
         lb_server_certs = new ListBox();
-        cb_priv_bits = new ComboBox();
-        lbl_priv_bits = new Label();
+        cb_keySize = new ComboBox();
+        lbl_keySize = new Label();
         tb_pub_dura = new TextBox();
         lbl_pub_duration = new Label();
         cb_new_server = new CheckBox();
@@ -70,7 +70,7 @@ partial class Server
         lb_inter_certs = new ListBox();
         Bt_gen_inter_priv = new Button();
         lbl_int_bit = new Label();
-        cb_int_priv_bits = new ComboBox();
+        cb_int_keySize = new ComboBox();
         tb_int_pub_dura = new TextBox();
         lbl_int_pub_duration = new Label();
         tb_int_name = new TextBox();
@@ -112,7 +112,7 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(620, 367);
+        gb_default_disti_names.Location = new Point(457, 367);
         gb_default_disti_names.Name = "gb_default_disti_names";
         gb_default_disti_names.Size = new Size(229, 239);
         gb_default_disti_names.TabIndex = 11;
@@ -274,24 +274,24 @@ partial class Server
         lb_server_certs.Size = new Size(124, 79);
         lb_server_certs.TabIndex = 14;
         // 
-        // cb_priv_bits
+        // cb_keySize
         // 
-        cb_priv_bits.FormattingEnabled = true;
-        cb_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_priv_bits.Location = new Point(86, 145);
-        cb_priv_bits.Name = "cb_priv_bits";
-        cb_priv_bits.Size = new Size(100, 23);
-        cb_priv_bits.TabIndex = 24;
-        cb_priv_bits.Text = "4096";
+        cb_keySize.FormattingEnabled = true;
+        cb_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
+        cb_keySize.Location = new Point(86, 145);
+        cb_keySize.Name = "cb_keySize";
+        cb_keySize.Size = new Size(100, 23);
+        cb_keySize.TabIndex = 24;
+        cb_keySize.Text = "4096";
         // 
-        // lbl_priv_bits
+        // lbl_keySize
         // 
-        lbl_priv_bits.AutoSize = true;
-        lbl_priv_bits.Location = new Point(54, 149);
-        lbl_priv_bits.Name = "lbl_priv_bits";
-        lbl_priv_bits.Size = new Size(26, 15);
-        lbl_priv_bits.TabIndex = 0;
-        lbl_priv_bits.Text = "Bits";
+        lbl_keySize.AutoSize = true;
+        lbl_keySize.Location = new Point(54, 149);
+        lbl_keySize.Name = "lbl_keySize";
+        lbl_keySize.Size = new Size(26, 15);
+        lbl_keySize.TabIndex = 0;
+        lbl_keySize.Text = "Bits";
         // 
         // tb_pub_dura
         // 
@@ -362,7 +362,7 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(620, 221);
+        panel1.Location = new Point(457, 221);
         panel1.Name = "panel1";
         panel1.Size = new Size(102, 113);
         panel1.TabIndex = 21;
@@ -463,7 +463,7 @@ partial class Server
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(747, 221);
+        panel2.Location = new Point(584, 221);
         panel2.Name = "panel2";
         panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
@@ -506,15 +506,15 @@ partial class Server
         lbl_int_bit.TabIndex = 34;
         lbl_int_bit.Text = "Bits";
         // 
-        // cb_int_priv_bits
+        // cb_int_keySize
         // 
-        cb_int_priv_bits.FormattingEnabled = true;
-        cb_int_priv_bits.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_int_priv_bits.Location = new Point(312, 145);
-        cb_int_priv_bits.Name = "cb_int_priv_bits";
-        cb_int_priv_bits.Size = new Size(100, 23);
-        cb_int_priv_bits.TabIndex = 37;
-        cb_int_priv_bits.Text = "4096";
+        cb_int_keySize.FormattingEnabled = true;
+        cb_int_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
+        cb_int_keySize.Location = new Point(312, 145);
+        cb_int_keySize.Name = "cb_int_keySize";
+        cb_int_keySize.Size = new Size(100, 23);
+        cb_int_keySize.TabIndex = 37;
+        cb_int_keySize.Text = "4096";
         // 
         // tb_int_pub_dura
         // 
@@ -629,7 +629,7 @@ partial class Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(1246, 663);
+        ClientSize = new Size(730, 663);
         Controls.Add(Bt_read_int_subj);
         Controls.Add(Bt_read_ca_subj);
         Controls.Add(Bt_sign_int_cert);
@@ -640,14 +640,14 @@ partial class Server
         Controls.Add(tb_int_name);
         Controls.Add(lbl_int_name);
         Controls.Add(lbl_int_bit);
-        Controls.Add(cb_int_priv_bits);
+        Controls.Add(cb_int_keySize);
         Controls.Add(tb_int_pub_dura);
         Controls.Add(lbl_int_pub_duration);
         Controls.Add(Bt_gen_inter_priv);
         Controls.Add(lb_inter_certs);
         Controls.Add(panel2);
-        Controls.Add(lbl_priv_bits);
-        Controls.Add(cb_priv_bits);
+        Controls.Add(lbl_keySize);
+        Controls.Add(cb_keySize);
         Controls.Add(tb_pub_dura);
         Controls.Add(lbl_pub_duration);
         Controls.Add(Bt_gen_selfSigned_key);
@@ -691,7 +691,7 @@ partial class Server
     private Label lbl_def_country;
     private Label lbl_ca_name;
     private ListBox lb_server_certs;
-    private Label lbl_priv_bits;
+    private Label lbl_keySize;
     private TextBox tb_pub_dura;
     private Label lbl_pub_duration;
     private CheckBox cb_new_server;
@@ -700,7 +700,7 @@ partial class Server
     private RadioButton rb_server;
     private Panel panel1;
     private Button Bt_gen_ca_priv;
-    private ComboBox cb_priv_bits;
+    private ComboBox cb_keySize;
     private RadioButton rb_user;
     private Button Bt_gen_selfSigned_key;
     private Button bt_wrt_dest_names;
@@ -713,7 +713,7 @@ partial class Server
     private ListBox lb_inter_certs;
     private Button Bt_gen_inter_priv;
     private Label lbl_int_bit;
-    private ComboBox cb_int_priv_bits;
+    private ComboBox cb_int_keySize;
     private TextBox tb_int_pub_dura;
     private Label lbl_int_pub_duration;
     private TextBox tb_int_name;
