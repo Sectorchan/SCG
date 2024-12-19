@@ -78,7 +78,6 @@ public partial class Server : Form
     {
         try
         {
-            Result<SQLTable> result = SqlTable();
             List<string> serverList = new List<string>();
             Result<List<string>> result2 = Utils.Sql.SqlSelect("name", table);
 
@@ -205,25 +204,23 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    string privateKeyPath = "private_key.pem";
-    string publicKeyPath = "public_key.pem";
-    string pfxPath = "certificate.pfx";
-    string password = "mypassword";
 
     private void Bt_gen_ca_priv_onClick(object sender, EventArgs e)
     {
         try
         {
-            int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
+            int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
             string serverName = tb_ca_name.Text;
             //GenerateRsaPrivateKey(c_privateKeyPath);
             //string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, c_privateKeyPath);
             //File.WriteAllText(c_privateKeyPath, privateKeyPem);
             string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, serverName);
             int insertRow = Utils.Sql.InsertInto(SQLTable.ca, serverName, privateKeyPem, keySize);
-            File.WriteAllText("c_" + serverName + "_priv.pem", privateKeyPem);
+            File.WriteAllText("ca_" + serverName + "_priv.pem", privateKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
-
+            lb_server_certs.Items.Clear();
+            ReadServers(lb_server_certs, SQLTable.ca);
+            lb_server_certs.Sorted = true;
         }
         catch (Exception ex)
         {
@@ -247,7 +244,7 @@ public partial class Server : Form
 
             string publicKeyPem = Utils.Certs.CreatePubKey3(c_privateKeyPath);
             int insertRow = Utils.Sql.Update(SQLTable.ca, publicKeyPem, serverName, "name");
-            File.WriteAllText("c_" + serverName + "_pub.pem", publicKeyPem);
+            File.WriteAllText("ca_" + serverName + "_pub.pem", publicKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
         }
@@ -263,19 +260,26 @@ public partial class Server : Form
     {
         try
         {
+            int ss_duration = Convert.ToInt32(tb_ca_dura.Text);
             string serverName = Convert.ToString(lb_server_certs.SelectedItem);
-            //CreateSelfSignedCertificate(c_privateKeyPath, c_publicKeyPath, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx);
-            //byte[] selfSignedCert = Utils.Certs.CreateSelfSigned3(c_privateKeyPath, c_publicKeyPath, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx);
+
             string c_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.ca, "private_key", "name", serverName);
 
-            X509Certificate2 selfSignedCert = Utils.Certs.CreateSelfSigned4(c_privateKeyPath, serverName, fqdn,  /*, c_publicKeyPath*/ c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx);
-            // byte[] selfSignedCert = certificate.Export(X509ContentType.Pfx, password);
-            string filename = "c_" + serverName + "_ss.pfx";
-            File.WriteAllBytes(filename, selfSignedCert.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx));
-            //File.WriteAllBytes(pfxPath, certificate.Export(X509ContentType.Pfx, password));
+            X509Certificate2 selfSignedCert = Utils.Certs.CreateSelfSigned4(c_privateKeyPath, serverName, fqdn, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx, ss_duration);
 
+            byte[] sql = selfSignedCert.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
+            int resUpdate = Utils.Sql.Update(SQLTable.ca, serverName, sql, ss_duration);
+
+            string filename = "ca_" + serverName + "_ss.pfx";
+            File.WriteAllBytes(filename, selfSignedCert.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx));
             var caCertificate = new X509Certificate2(filename, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-            checkPrivKey(caCertificate);
+            // Zertifikat laden (enthält den Public Key)
+            byte[] ssSert = Utils.Sql.SelectWhereByte("ss_cert", SQLTable.ca, "name", serverName);
+            var caca = new X509Certificate2(ssSert, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+
+
+
+            checkPrivKey(caca);
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString()); }
@@ -331,37 +335,19 @@ public partial class Server : Form
     }
     #endregion
     #region intermediate   
-    private void Bt_gen_inter_priv_Click(object sender, EventArgs e)
+    private void Bt_gen_int_priv_Click(object sender, EventArgs e)
     {
         try
         {
-            //int keySize = int.Parse(cb_keySize.Text);
-            //Result<SQLTable> table = SqlTable();
-
-            //Result<byte[]> privKeyByte = Utils.Certs.CreatePrivKey(keySize);
-            //string privKeyStri = Convert.ToBase64String(privKeyByte.Value);
-
-            //Result<int> resInsert = Utils.Sql.InsertInto(SQLTable.intermediate, tb_int_name.Text, privKeyStri, keySize);
-
-            //if (resInsert.IsSuccess)
-            //{
-            //    if (writeFile)
-            //    {
-            //        //Convert private key into PEM format
-            //        string privateKeyPem = Utils.Certs.ConvertToPem(privKeyByte.Value, "RSA PRIVATE KEY");
-            //        File.WriteAllText("i_privateKeyPathP.pem", privateKeyPem);
-            //        File.WriteAllBytes("i_privateKeyPathB.pem", privKeyByte.Value);
-            //        MessageBox.Show($"Privatekey written to file: {i_privateKeyPath}");
-            //    }
-            //    MessageBox.Show($"Private key saved in {Global.database}.");
-            //    lb_inter_certs.Items.Clear();
-            //    ReadServers(lb_inter_certs, SQLTable.intermediate);
-            //    lb_inter_certs.Sorted = true;
-            //}
-            //else
-            //{
-            //    MessageBox.Show(Convert.ToString(resInsert.Reasons[0].Message));
-            //}
+            int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
+            string interName = tb_int_name.Text;
+            string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, interName);
+            int insertRow = Utils.Sql.InsertInto(SQLTable.intermediate, interName, privateKeyPem, keySize);
+            File.WriteAllText("ci_" + interName + "_priv.pem", privateKeyPem);
+            MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
+            lb_inter_certs.Items.Clear();
+            ReadServers(lb_inter_certs, SQLTable.intermediate);
+            lb_inter_certs.Sorted = true;
         }
         catch (Exception ex)
         {
@@ -370,193 +356,197 @@ public partial class Server : Form
     }
     private void Bt_gen_int_pub_Click(object sender, EventArgs e)
     {
-        //string serverSelect = Convert.ToString(lb_inter_certs.SelectedItem);
-        //Result<SQLTable> resTable = SqlTable();
+        string interName = Convert.ToString(lb_inter_certs.SelectedItem);
+        string i_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.intermediate, "private_key", "name", interName);
 
-        //Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_key"], SQLTable.intermediate, "name", serverSelect);
-        ////Read privatekey from SQL
-        //if (resWhere.IsSuccess)
-        //{
-        //    string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
-        //    byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
-        //    Result<byte[]> publicKeyBytes = Utils.Certs.CreatePubKey(Convert.ToInt16(resWhere.Value[0]), privateKeyBytes);
+        string publicKeyPem = Utils.Certs.CreatePubKey3(i_privateKeyPath);
+        int insertRow = Utils.Sql.Update(SQLTable.intermediate, publicKeyPem, interName, "name");
+        File.WriteAllText("ci_" + interName + "_pub.pem", publicKeyPem);
+        MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
-        //    if (publicKeyBytes.IsSuccess)
-        //    {
-        //        if (writeFile)
-        //        {
-        //            // Convert public key into PEM format
-        //            string publicKeyPem = ConvertToPem(publicKeyBytes.Value, "PUBLIC KEY");
-        //            File.WriteAllText(i_publicKeyPath, publicKeyPem);
-        //        }
-        //        string publicKeyStri = Convert.ToBase64String(publicKeyBytes.Value);
-
-        //        Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, publicKeyStri, serverSelect, "name");
-        //        if (resUpdate.IsSuccess)
-        //        {
-        //            MessageBox.Show($"Public key saved in {Global.database}.");
-        //        }
-        //        lb_inter_certs.SelectedItem = serverSelect;
-        //    }
-        //}
     }
-    private void Bt_inter_selfSigned_key_Click(object sender, EventArgs e)
+    /// <summary>
+    /// Button 5. Generate CSR
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Bt_gen_int_selfSigned_key_Click(object sender, EventArgs e)
     {
         try
         {
-            //string serverSelect = Convert.ToString(lb_inter_certs.SelectedItem);
-            ////0             1                   2             3         4           5           6        7
-            //Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_key", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", serverSelect);
-            //Result<List<object>> resWhere2 = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", serverSelect);
-
-            //List<string> list = Utils.Tools.ObjectToString(resWhere2.Value);
-            //Result<X500DistinguishedName> destName = DNBuilder(list[0], list[1], list[2], list[3], list[4], list[5], list[6]);
-
-            //int keySize = Convert.ToInt16(resWhere.Value[0]);
-            ////Read private key
-            //string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
-            //byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
-
-            ////Read public key
-            //string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
-            //byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
-
-            //bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
-            //bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
-            //int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
-            //bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
-            //int pubDuraFromSql = Convert.ToInt16(tb_pub_dura.Text);
-            //int serialnumber = Convert.ToInt32((int)resWhere.Value[7]);
-
-            //Result<byte[]> certBytes = Utils.Certs.CreateSSCert(SQLTable.intermediate, keySize, destName.Value, privateKeyBytes, publicKeyBytes, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDuraFromSql, serialnumber);
-            //if (certBytes.IsSuccess)
-            //{
-            //    string certStri = Convert.ToBase64String(certBytes.Value);
-            //    if (writeFile)
-            //    {
-            //        File.WriteAllBytes(i_signedKeyPath, certBytes.Value);
-            //    }
-            //    Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, Server, certBytes.Value, duration)
-            //    if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
-            //    {
-            //        MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //    }
-            //    else
-            //    { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
-            //}
-        }
-        catch (Exception)
-        {
-            throw;
-        }
-    }
-    private void Bt_sign_int_cert_Click(object sender, EventArgs e)
-    {
-        try
-        {
-            string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
-            string interSelect = Convert.ToString(lb_inter_certs.SelectedItem);
-            Result<List<object>> caCert = SelectWhereObject(["private_key", "private_bits", "name"], SQLTable.ca, "name", serverSelect);
-            //Read private key
-            string privateCaKeyFromSql = Convert.ToString(caCert.Value[0]);
-            byte[] privateCaKeyBytes = Convert.FromBase64String(privateCaKeyFromSql);
-            int keySizeCa = Convert.ToInt32(caCert.Value[1]);
-
-
-            Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_key", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", interSelect);
-            //Result<List<object>> resSubj = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", interSelect);
-            //List<string> list = Utils.Tools.ObjectToString(resSubj.Value);
-            Result<X500DistinguishedName> destName = DNBuilder(tb_sub_c.Text, tb_sub_st.Text, tb_sub_loc.Text, tb_sub_orga.Text, tb_sub_ou.Text, tb_sub_cn.Text, tb_sub_email.Text);
-
-            int keySize = Convert.ToInt16(resWhere.Value[0]);
-            //Read private key
-            string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
-            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
-
-            //Read public key
-            string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
-            byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
-
-            bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
-            bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
-            int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
-            bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
-            int serialnumber = Convert.ToInt32(resWhere.Value[7]);
-            int pubDura = Convert.ToInt16(tb_int_pub_dura.Text);
-            #region temp
-            //if (caCert.IsSuccess && resSubj.IsSuccess && destName.IsSuccess)
-            //{
-            //    string ss_certString = Convert.ToString(caCert.Value[0]);
-            //    byte[] ss_certbyte = Convert.FromBase64String(ss_certString);
-            //    // CA-Zertifikat und Schlüssel laden
-            //    var caCertificate = new X509Certificate2(ss_certbyte, "", X509KeyStorageFlags.Exportable);
-
-            //    Result<byte[]> signedCert = CreateCaSignCert(SQLTable.intermediate, caCertificate, keySize, destName.Value, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serialnumber);
-            //    if (signedCert.IsSuccess )
-            //    {
-            //        if (writeFile)
-            //        {
-            //            File.WriteAllBytes(i_signedKeyPath, signedCert.Value);
-            //        }
-            //        string certStri = Convert.ToBase64String(signedCert.Value);
-            //        Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, interSelect, certStri, pubDura);
-            //        if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
-            //        {
-
-            //            MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //        }
-            //        else
-            //        { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
-            //    }
-            //}
-            #endregion
+            string interName = Convert.ToString(lb_inter_certs.SelectedItem);
+            string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            int duration = Convert.ToInt32(tb_int_pub_dura.Text);
             // CA-Zertifikat laden
-            var caCertificate = new X509Certificate2("ca_ss.pfx", string.Empty, X509KeyStorageFlags.Exportable);
-            if (!caCertificate.HasPrivateKey)
-            {
-                Console.WriteLine("Das CA-Zertifikat hat keinen privaten Schlüssel.");
-            }
-            else
-            {
-                Console.WriteLine("Das CA-Zertifikat hat einen privaten Schlüssel.");
-            }
-            // RSA-Schlüssel für das Intermediate-Zertifikat generieren
-            using (RSA intermediateKey = RSA.Create(keySize))
-            {
-                // Zertifikatsanfrage für das Intermediate-Zertifikat erstellen
-                var request = new CertificateRequest(
-                    "CN=MyIntermediateCA",
-                    intermediateKey,
-                    HashAlgorithmName.SHA256,
-                    RSASignaturePadding.Pkcs1);
+            string caCertPath = "ca_" + serverName + "_ss.pfx";
+            string caPassword = "";
+            // Intermediate-Zertifikat als Datei speichern
+            string intermediateCertPath = "ci_" + interName + "_ss.pfx";
+            string intermediateCertPathc = "ci_" + interName + "_ss.cer";
+            string intermediateCertChainPath = "ci_" + interName + "_chain_ss.pfx";
+            string intermediatePassword = "";
 
-                // Erweiterungen für eine Intermediate CA hinzufügen
-                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true)); // CA: true
-                request.CertificateExtensions.Add(new X509KeyUsageExtension(
-                    X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
-                    true)); // Signatur- und CRL-Rechte
-                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+            int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
 
-                // Intermediate-Zertifikat von der Root-CA signieren (5 Jahre Gültigkeit)
-                var intermediateCertificate = request.Create(
-                    caCertificate,
-                    DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
-                    DateTimeOffset.UtcNow.AddYears(5), // Gültig bis
-                    new byte[] { 1, 0, 0, 0 }); // Serial Number (eindeutig)
+            string i_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.intermediate, "private_key", "name", interName);
+            X509Certificate2 interCert = Utils.Certs.CreateInterCertificate(interName, i_privateKeyPath, fqdn, caCertPath, caPassword, duration);
 
-                // Intermediate-Zertifikat als Datei speichern
-                string intermediateCertPath = "MyIntermediateCA.pfx";
-                string intermediatePassword = "intermediatepassword";
-                var pfxBytes = intermediateCertificate.Export(X509ContentType.Pfx, intermediatePassword);
-                System.IO.File.WriteAllBytes(intermediateCertPath, pfxBytes);
 
-            }
+            #region temp
+            //using (RSA rsa = RSA.Create(2048))
+            //{
+            //var intermediateRequest = new CertificateRequest("CN=IntermediateCertificate", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            //intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+            //intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+
+            //// Load the CA certificate and private key
+            //var caCertificate = new X509Certificate2(caCertPath, caPassword, X509KeyStorageFlags.Exportable);
+
+            //// Ensure the CA certificate has a Basic Constraints extension
+            //if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+            //{
+            //    throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+            //}
+
+            //var signedCertificate = intermediateRequest.Create(caCertificate, DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5), Guid.NewGuid().ToByteArray());
+            //var signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+
+            // Combine the intermediate certificate with the CA certificate chain
+            //var chain = new X509Certificate2Collection();
+            //chain.Add(signedCertificateWithKey);
+            //chain.Add(caCertificate);
+
+
+            // Export the full chain
+            //byte[] fullChainBytes = chain.Cast<X509Certificate2>().Reverse().Aggregate(new List<byte>(), (list, cert) =>
+            //{
+            //    list.AddRange(cert.RawData);
+            //    return list;
+            //}).ToArray();
+
+
+            //File.WriteAllBytes(intermediateCertPath, signedCertificateWithKey.Export(X509ContentType.Pfx, caPassword));
+            //File.WriteAllBytes(intermediateCertChainPath, chain.Export(X509ContentType.Pfx, caPassword));
+            #endregion
+            Console.WriteLine($"Intermediate-Zertifikat in {intermediateCertChainPath} gespeichert.");
+            File.WriteAllBytes(intermediateCertPath, interCert.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx));
+            File.WriteAllBytes(intermediateCertPathc, interCert.Export(X509ContentType.Cert));
+
+
+            MessageBox.Show($"Intermediate-Zertifikat in {intermediateCertChainPath} gespeichert.");
+            //}
         }
         catch (Exception)
         {
             throw;
         }
     }
+    //    private void Bt_sign_int_cert_Click(object sender, EventArgs e)
+    //    {
+    //        try
+    //        {
+    //#region temp
+
+    //            //string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
+    //            //string interSelect = Convert.ToString(lb_inter_certs.SelectedItem);
+    //            //Result<List<object>> caCert = SelectWhereObject(["private_key", "private_bits", "name"], SQLTable.ca, "name", serverSelect);
+    //            ////Read private key
+    //            //string privateCaKeyFromSql = Convert.ToString(caCert.Value[0]);
+    //            //byte[] privateCaKeyBytes = Convert.FromBase64String(privateCaKeyFromSql);
+    //            //int keySizeCa = Convert.ToInt32(caCert.Value[1]);
+
+
+    //            //Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_key", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", interSelect);
+    //            ////Result<List<object>> resSubj = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", interSelect);
+    //            ////List<string> list = Utils.Tools.ObjectToString(resSubj.Value);
+    //            //Result<X500DistinguishedName> destName = DNBuilder(tb_sub_c.Text, tb_sub_st.Text, tb_sub_loc.Text, tb_sub_orga.Text, tb_sub_ou.Text, tb_sub_cn.Text, tb_sub_email.Text);
+
+    //            //int keySize = Convert.ToInt16(resWhere.Value[0]);
+    //            ////Read private key
+    //            //string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
+    //            //byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
+
+    //            ////Read public key
+    //            //string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
+    //            //byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
+
+    //            //bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
+    //            //bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
+    //            //int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
+    //            //bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
+    //            //int serialnumber = Convert.ToInt32(resWhere.Value[7]);
+    //            //int pubDura = Convert.ToInt16(tb_int_pub_dura.Text);
+    //            //#region temp
+    //            ////if (caCert.IsSuccess && resSubj.IsSuccess && destName.IsSuccess)
+    //            ////{
+    //            ////    string ss_certString = Convert.ToString(caCert.Value[0]);
+    //            ////    byte[] ss_certbyte = Convert.FromBase64String(ss_certString);
+    //            ////    // CA-Zertifikat und Schlüssel laden
+    //            ////    var caCertificate = new X509Certificate2(ss_certbyte, "", X509KeyStorageFlags.Exportable);
+
+    //            ////    Result<byte[]> signedCert = CreateCaSignCert(SQLTable.intermediate, caCertificate, keySize, destName.Value, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serialnumber);
+    //            ////    if (signedCert.IsSuccess )
+    //            ////    {
+    //            ////        if (writeFile)
+    //            ////        {
+    //            ////            File.WriteAllBytes(i_signedKeyPath, signedCert.Value);
+    //            ////        }
+    //            ////        string certStri = Convert.ToBase64String(signedCert.Value);
+    //            ////        Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, interSelect, certStri, pubDura);
+    //            ////        if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
+    //            ////        {
+
+    //            ////            MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    //            ////        }
+    //            ////        else
+    //            ////        { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
+    //            ////    }
+    //            ////}
+    //            #endregion
+    //            // CA-Zertifikat laden
+    //            var caCertificate = new X509Certificate2("ca_ss.pfx", string.Empty, X509KeyStorageFlags.Exportable);
+    //            if (!caCertificate.HasPrivateKey)
+    //            {
+    //                Console.WriteLine("Das CA-Zertifikat hat keinen privaten Schlüssel.");
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine("Das CA-Zertifikat hat einen privaten Schlüssel.");
+    //            }
+    //            // RSA-Schlüssel für das Intermediate-Zertifikat generieren
+    //            using (RSA intermediateKey = RSA.Create())
+    //            {
+    //                intermediateKey.ImportFromPem("ci_ii_priv.pem");
+    //                // Zertifikatsanfrage für das Intermediate-Zertifikat erstellen
+    //                var request = new CertificateRequest( "CN=MyIntermediateCA", intermediateKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+    //                // Erweiterungen für eine Intermediate CA hinzufügen
+    //                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true)); // CA: true
+    //                request.CertificateExtensions.Add(new X509KeyUsageExtension(
+    //                    X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+    //                    true)); // Signatur- und CRL-Rechte
+    //                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+
+    //                // Intermediate-Zertifikat von der Root-CA signieren (5 Jahre Gültigkeit)
+    //                var intermediateCertificate = request.Create(
+    //                    caCertificate,
+    //                    DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
+    //                    DateTimeOffset.UtcNow.AddYears(5), // Gültig bis
+    //                    new byte[] { 1, 0, 0, 0 }); // Serial Number (eindeutig)
+
+    //                // Intermediate-Zertifikat als Datei speichern
+    //                string intermediateCertPath = "MyIntermediateCA.pfx";
+    //                string intermediatePassword = "intermediatepassword";
+    //                var pfxBytes = intermediateCertificate.Export(X509ContentType.Pfx, intermediatePassword);
+    //                System.IO.File.WriteAllBytes(intermediateCertPath, pfxBytes);
+
+    //            }
+    //        }
+    //        catch (Exception)
+    //        {
+    //            throw;
+    //        }
+    //    }
     #endregion
 
     #region Destingusted Names
@@ -685,5 +675,7 @@ public partial class Server : Form
     {
 
     }
+
+
 }
 

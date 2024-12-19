@@ -282,7 +282,7 @@ public class Utils
         /// <param name="searchColumn">In which column should be searched</param>
         /// <param name="searchValue">The Value that should be searched for in the searchColumn</param>
         /// <returns>Returns the string if found</returns>
-        public static Result<byte[]> SelectWhereByte(string column, SQLTable table, string searchColumn, string searchValue)
+        public static byte[] SelectWhereByte(string column, SQLTable table, string searchColumn, string searchValue)
         {
             try
             {
@@ -306,21 +306,28 @@ public class Utils
                             while (reader.Read())
                             {
                                 byte[] privKey = reader[column] as byte[];
-                                return Result.Ok(privKey);
+                                return privKey;
+                            }
+                            break;
+                        case "ss_cert":
+                            while (reader.Read())
+                            {
+                                byte[] privKey = reader[column] as byte[];
+                                return privKey;
                             }
                             break;
                     }
-                    return Result.Fail("No Case selected");
+                    return null;
                 }
                 else
                 {
-                    return Result.Fail(sql);
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return Result.Fail(ex.Message);
+                return null;
             }
 
         }
@@ -662,7 +669,7 @@ public class Utils
             }
         }
 
-        public static Result<int> Update(SQLTable table, string searchTerm, string selfSignedCert, int duration)
+        public static int Update(SQLTable table, string searchTerm, byte[] selfSignedCert, int duration)
         {
             try
             {
@@ -682,12 +689,12 @@ public class Utils
                 command.Parameters.AddWithValue("@_ss_duration", duration);
 
                 int rowInserted = command.ExecuteNonQuery();
-                return Result.Ok(rowInserted);
+                return rowInserted;
 
             }
             catch (Exception ex)
             {
-                return Result.Fail(ex.Message);
+                return 0;
             }
         }
         public static Result<int> UpdateCert(SQLTable table, string searchTerm, X509Certificate2 cert)
@@ -767,7 +774,6 @@ public class Utils
             using (RSA rsa = RSA.Create(keySize))
             {
                 string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
-
                 return Result.Ok(privateKeyPem);
             }
         }
@@ -776,12 +782,7 @@ public class Utils
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                //string privateKeyPem = ConvertToPem(rsa.ExportRSAPrivateKey(), "RSA PRIVATE KEY");
                 string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
-                //File.WriteAllText(filePath, privateKeyPem);
-                //Console.WriteLine($"Private Key in {filePath} gespeichert.");
-                //MessageBox.Show($"Private Key in {filePath} gespeichert.");
-
                 return privateKeyPem;
             }
             
@@ -796,7 +797,6 @@ public class Utils
             using (RSA rsa = RSA.Create())
             {
                 rsa.ImportFromPem(privateKey);
-                //rsa.ImportFromPem(privateKeyPem2);
                 string publicKeyPem = rsa.ExportRSAPublicKeyPem();
                 return Result.Ok(publicKeyPem);
             }
@@ -806,17 +806,10 @@ public class Utils
         {
             try
             {
-                //string privateKeyPem = File.ReadAllText(privateKey);
                 using (RSA rsa = RSA.Create())
                 {
                     rsa.ImportFromPem(privateKey);
                     string publicKeyPem = rsa.ExportRSAPublicKeyPem();
-
-                    //string publicKeyPem = ConvertToPem(rsa.ExportRSAPublicKey(), "PUBLIC KEY");
-                    //File.WriteAllText(publicKeyPath, publicKeyPem);
-                    //Console.WriteLine($"Public Key in {publicKeyPath} gespeichert.");
-                    //MessageBox.Show($"Public Key in {publicKeyPath} gespeichert.");
-
                     return publicKeyPem;
                 }
             }
@@ -843,26 +836,65 @@ public class Utils
                 return selfSignedCert;
             }
         }
-        public static X509Certificate2 CreateSelfSigned4(string privateKeyPath, string serverName, string[] fqdn, /*, string publicKeyPath*/ string pfxPath, string password)
+        public static X509Certificate2 CreateSelfSigned4(string privateKeyPath, string serverName, string[] fqdn, string pfxPath, string password, int duration)
         {
-            //string privateKeyPem = File.ReadAllText(privateKeyPath);
-            //string publicKeyPem = File.ReadAllText(publicKeyPath);
+            
             List<object> fqdnRes = Sql.SelectWhereObject(SQLTable.ca, fqdn, "name", serverName);
-            //List<string> list = Utils.Tools.ObjectToString(fqdnRes);
             X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             using (RSA rsa = RSA.Create())
             {
                 rsa.ImportFromPem(privateKeyPath);
+                // Zertifikatsanfrage erstellen
                 var request = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+                // Erweiterungen für eine CA hinzufügen
+                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true)); // CA: true, keine Pfadlänge
+                request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+                    true)); // Signatur- und CRL-Rechte
+                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+
+                var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(duration));
 
                 byte[] selfSignedCert = certificate.Export(X509ContentType.Pfx, password);
-                //File.WriteAllBytes(pfxPath, certificate.Export(X509ContentType.Pfx, password));
                 Console.WriteLine($"Self-signed Zertifikat in {pfxPath} gespeichert.");
                 MessageBox.Show($"Self-signed Zertifikat in {pfxPath} gespeichert.");
                 return certificate;
             }
+        }
+        public static X509Certificate2 CreateInterCertificate(string interName, string intPrivateKey, string[] fqdn, string caCertPath, string caPassword, int duration)
+        {
+            List<object> fqdnRes = Sql.SelectWhereObject(SQLTable.intermediate, fqdn, "name", interName);
+            X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+
+            int serialnumber = 1;
+            byte[] serialNumber = { Convert.ToByte(serialnumber) };
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(intPrivateKey);
+
+                var intermediateRequest = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+
+                var caCertificate = new X509Certificate2(caCertPath, caPassword, X509KeyStorageFlags.Exportable);
+                // Ensure the CA certificate has a Basic Constraints extension
+                if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                {
+                    throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                }
+                var signedCertificate = intermediateRequest.Create(caCertificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(duration), serialNumber);
+                X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+
+                return signedCertificateWithKey;
+            }
+        }
+        public static X509Certificate2Collection ChainCaIntCerts(X509Certificate2 signedInterCert , X509Certificate2 signedCaCert)
+        {
+            X509Certificate2Collection chain = new X509Certificate2Collection();
+            chain.Add(signedInterCert);
+            chain.Add(signedCaCert);
+
+            return chain;
         }
 
 
@@ -885,7 +917,6 @@ public class Utils
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
                     request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
                     request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
-
 
                     byte[] serialNumber = { Convert.ToByte(serialnumber) };
                     // Zertifikat erstellen und signieren
