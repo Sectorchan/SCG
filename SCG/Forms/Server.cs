@@ -52,19 +52,31 @@ public partial class Server : Form
 
     private void server_onLoad(object sender, EventArgs e)
     {
+        #region !Visible Boxes
         lbl_ca_name.Visible = false;
         tb_ca_name.Visible = false;
-        lbl_int_name.Visible = false;
-        tb_int_name.Visible = false;
-
-
         lb_ca_certs.Items.Clear();
         ReadServers(lb_ca_certs, SQLTable.ca);
         lb_ca_certs.Sorted = true;
 
-        lb_inter_certs.Items.Clear();
-        ReadServers(lb_inter_certs, SQLTable.intermediate);
-        lb_inter_certs.Sorted = true;
+        lbl_int_name.Visible = false;
+        tb_int_name.Visible = false;
+        lb_int_certs.Items.Clear();
+        ReadServers(lb_int_certs, SQLTable.intermediate);
+        lb_int_certs.Sorted = true;
+
+        tb_server_name.Visible = false;
+        lbl_server_name.Visible = false;
+        lb_server_certs.Items.Clear();
+        ReadServers(lb_server_certs, SQLTable.server);
+        lb_server_certs.Sorted = true;
+
+        tb_user_name.Visible = false;
+        lbl_user_name.Visible = false;
+        lb_user_certs.Items.Clear();
+        ReadServers(lb_user_certs, SQLTable.user);
+        lb_user_certs.Sorted = true;
+        #endregion
 
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         if (SqlTable == "CA")
@@ -79,13 +91,13 @@ public partial class Server : Form
         try
         {
             List<string> serverList = new List<string>();
-            Result<List<string>> result2 = Utils.Sql.SqlSelect("name", table);
+            Result<List<string>> result = Utils.Sql.SqlSelect("name", table);
 
-            if (result2.IsSuccess)
+            if (result.IsSuccess)
             {
-                if (result2.Value != null)
+                if (result.Value != null)
                 {
-                    foreach (var item in result2.Value)
+                    foreach (var item in result.Value)
                     {
                         control.Items.Add(item);
                     }
@@ -162,7 +174,7 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void cb_new_server_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_server.Checked)
+        if (cb_new_ca.Checked)
         { tb_ca_name.Visible = true; lbl_ca_name.Visible = true; }
         else
         { tb_ca_name.Visible = false; lbl_ca_name.Visible = false; }
@@ -345,9 +357,9 @@ public partial class Server : Form
             int insertRow = Utils.Sql.InsertInto(SQLTable.intermediate, interName, privateKeyPem, keySize);
             File.WriteAllText("ci_" + interName + "_priv.pem", privateKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
-            lb_inter_certs.Items.Clear();
-            ReadServers(lb_inter_certs, SQLTable.intermediate);
-            lb_inter_certs.Sorted = true;
+            lb_int_certs.Items.Clear();
+            ReadServers(lb_int_certs, SQLTable.intermediate);
+            lb_int_certs.Sorted = true;
         }
         catch (Exception ex)
         {
@@ -356,7 +368,7 @@ public partial class Server : Form
     }
     private void Bt_gen_int_pub_Click(object sender, EventArgs e)
     {
-        string interName = Convert.ToString(lb_inter_certs.SelectedItem);
+        string interName = Convert.ToString(lb_int_certs.SelectedItem);
         string i_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.intermediate, "private_key", "name", interName);
 
         string publicKeyPem = Utils.Certs.CreatePubKey3(i_privateKeyPath);
@@ -374,9 +386,9 @@ public partial class Server : Form
     {
         try
         {
-            string interName = Convert.ToString(lb_inter_certs.SelectedItem);
+            string interName = Convert.ToString(lb_int_certs.SelectedItem);
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-            int duration = Convert.ToInt32(tb_int_pub_dura.Text);
+            int duration = Convert.ToInt32(tb_int_dura.Text);
             // CA-Zertifikat laden
             string caCertPath = "ca_" + serverName + "_ss.pfx";
             string caPassword = "";
@@ -384,8 +396,7 @@ public partial class Server : Form
             string intermediateCertPath = "ci_" + interName + "_ss.pfx";
             string intermediateCertPathc = "ci_" + interName + "_ss.cer";
             string intermediateCertChainPath = "ci_" + interName + "_chain_ss.pfx";
-            string intermediatePassword = "";
-
+            
             int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
 
             string i_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.intermediate, "private_key", "name", interName);
@@ -441,112 +452,6 @@ public partial class Server : Form
             throw;
         }
     }
-    //    private void Bt_sign_int_cert_Click(object sender, EventArgs e)
-    //    {
-    //        try
-    //        {
-    //#region temp
-
-    //            //string serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
-    //            //string interSelect = Convert.ToString(lb_inter_certs.SelectedItem);
-    //            //Result<List<object>> caCert = SelectWhereObject(["private_key", "private_bits", "name"], SQLTable.ca, "name", serverSelect);
-    //            ////Read private key
-    //            //string privateCaKeyFromSql = Convert.ToString(caCert.Value[0]);
-    //            //byte[] privateCaKeyBytes = Convert.FromBase64String(privateCaKeyFromSql);
-    //            //int keySizeCa = Convert.ToInt32(caCert.Value[1]);
-
-
-    //            //Result<List<object>> resWhere = Utils.Sql.SelectWhereObject(["private_bits", "private_key", "public_cert", "isCa", "not_pathlen", "depth", "canIssue", "id"], SQLTable.intermediate, "name", interSelect);
-    //            ////Result<List<object>> resSubj = Utils.Sql.SelectWhereObject(["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"], SQLTable.intermediate, "name", interSelect);
-    //            ////List<string> list = Utils.Tools.ObjectToString(resSubj.Value);
-    //            //Result<X500DistinguishedName> destName = DNBuilder(tb_sub_c.Text, tb_sub_st.Text, tb_sub_loc.Text, tb_sub_orga.Text, tb_sub_ou.Text, tb_sub_cn.Text, tb_sub_email.Text);
-
-    //            //int keySize = Convert.ToInt16(resWhere.Value[0]);
-    //            ////Read private key
-    //            //string privateKeyFromSql = Convert.ToString(resWhere.Value[1]);
-    //            //byte[] privateKeyBytes = Convert.FromBase64String(privateKeyFromSql);
-
-    //            ////Read public key
-    //            //string publicKeyFromSql = Convert.ToString(resWhere.Value[2]);
-    //            //byte[] publicKeyBytes = Convert.FromBase64String(publicKeyFromSql);
-
-    //            //bool isCaFromSql = Convert.ToBoolean(resWhere.Value[3]);
-    //            //bool notPathFromSql = Convert.ToBoolean(resWhere.Value[4]);
-    //            //int depthFromSql = Convert.ToInt16(resWhere.Value[5]);
-    //            //bool canIssueFromSql = Convert.ToBoolean(resWhere.Value[6]); //not necessary?
-    //            //int serialnumber = Convert.ToInt32(resWhere.Value[7]);
-    //            //int pubDura = Convert.ToInt16(tb_int_pub_dura.Text);
-    //            //#region temp
-    //            ////if (caCert.IsSuccess && resSubj.IsSuccess && destName.IsSuccess)
-    //            ////{
-    //            ////    string ss_certString = Convert.ToString(caCert.Value[0]);
-    //            ////    byte[] ss_certbyte = Convert.FromBase64String(ss_certString);
-    //            ////    // CA-Zertifikat und Schlüssel laden
-    //            ////    var caCertificate = new X509Certificate2(ss_certbyte, "", X509KeyStorageFlags.Exportable);
-
-    //            ////    Result<byte[]> signedCert = CreateCaSignCert(SQLTable.intermediate, caCertificate, keySize, destName.Value, isCaFromSql, notPathFromSql, depthFromSql, canIssueFromSql, pubDura, serialnumber);
-    //            ////    if (signedCert.IsSuccess )
-    //            ////    {
-    //            ////        if (writeFile)
-    //            ////        {
-    //            ////            File.WriteAllBytes(i_signedKeyPath, signedCert.Value);
-    //            ////        }
-    //            ////        string certStri = Convert.ToBase64String(signedCert.Value);
-    //            ////        Result<int> resUpdate = Utils.Sql.Update(SQLTable.intermediate, interSelect, certStri, pubDura);
-    //            ////        if (resUpdate.IsSuccess && resUpdate.ValueOrDefault != 0)
-    //            ////        {
-
-    //            ////            MessageBox.Show($"{resUpdate.Reasons[0].Message} succeded for {resUpdate.Value} row(s) in the database", "SQL Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
-    //            ////        }
-    //            ////        else
-    //            ////        { MessageBox.Show($"Update failed:{resUpdate.Errors[0].Message}"); }
-    //            ////    }
-    //            ////}
-    //            #endregion
-    //            // CA-Zertifikat laden
-    //            var caCertificate = new X509Certificate2("ca_ss.pfx", string.Empty, X509KeyStorageFlags.Exportable);
-    //            if (!caCertificate.HasPrivateKey)
-    //            {
-    //                Console.WriteLine("Das CA-Zertifikat hat keinen privaten Schlüssel.");
-    //            }
-    //            else
-    //            {
-    //                Console.WriteLine("Das CA-Zertifikat hat einen privaten Schlüssel.");
-    //            }
-    //            // RSA-Schlüssel für das Intermediate-Zertifikat generieren
-    //            using (RSA intermediateKey = RSA.Create())
-    //            {
-    //                intermediateKey.ImportFromPem("ci_ii_priv.pem");
-    //                // Zertifikatsanfrage für das Intermediate-Zertifikat erstellen
-    //                var request = new CertificateRequest( "CN=MyIntermediateCA", intermediateKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-    //                // Erweiterungen für eine Intermediate CA hinzufügen
-    //                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true)); // CA: true
-    //                request.CertificateExtensions.Add(new X509KeyUsageExtension(
-    //                    X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
-    //                    true)); // Signatur- und CRL-Rechte
-    //                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
-
-    //                // Intermediate-Zertifikat von der Root-CA signieren (5 Jahre Gültigkeit)
-    //                var intermediateCertificate = request.Create(
-    //                    caCertificate,
-    //                    DateTimeOffset.UtcNow.AddDays(-1), // Gültig ab
-    //                    DateTimeOffset.UtcNow.AddYears(5), // Gültig bis
-    //                    new byte[] { 1, 0, 0, 0 }); // Serial Number (eindeutig)
-
-    //                // Intermediate-Zertifikat als Datei speichern
-    //                string intermediateCertPath = "MyIntermediateCA.pfx";
-    //                string intermediatePassword = "intermediatepassword";
-    //                var pfxBytes = intermediateCertificate.Export(X509ContentType.Pfx, intermediatePassword);
-    //                System.IO.File.WriteAllBytes(intermediateCertPath, pfxBytes);
-
-    //            }
-    //        }
-    //        catch (Exception)
-    //        {
-    //            throw;
-    //        }
-    //    }
     #endregion
 
     #region Destingusted Names
@@ -570,7 +475,7 @@ public partial class Server : Form
                 if (sqlTable.Value == SQLTable.ca)
                 { serverSelect = Convert.ToString(lb_ca_certs.SelectedItem); }
                 else if (sqlTable.Value == SQLTable.intermediate)
-                { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
+                { serverSelect = Convert.ToString(lb_int_certs.SelectedItem); }
 
                 Result<int> result2 = Utils.Sql.Update(sqlTable.Value, serverSelect, sub_c, sub_s, sub_l, sub_o, sub_ou, sub_n, sub_e);
                 if (result2.IsSuccess && result2.Value != 0)
@@ -604,7 +509,7 @@ public partial class Server : Form
             else if (btn.AccessibleName == "int")
             {
                 table = SQLTable.intermediate;
-                serverSelect = Convert.ToString(lb_inter_certs.SelectedItem);
+                serverSelect = Convert.ToString(lb_int_certs.SelectedItem);
             }
             else
                 throw new Exception("Fehler");
@@ -648,7 +553,7 @@ public partial class Server : Form
             if (sqlTable.Value == SQLTable.ca)
             { serverSelect = Convert.ToString(lb_ca_certs.SelectedItem); }
             else if (sqlTable.Value == SQLTable.intermediate)
-            { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
+            { serverSelect = Convert.ToString(lb_int_certs.SelectedItem); }
 
             Result<int> resUpdateParam = Utils.Sql.Update(sqlTable.Value, serverSelect, isCa, noPaLen, depth, isCert);
         }
@@ -665,16 +570,13 @@ public partial class Server : Form
     /// <param name="e"></param>
     private void cb_new_inter_CheckedChanged(object sender, EventArgs e)
     {
-        if (cb_new_inter.Checked)
+        if (cb_new_int.Checked)
         { tb_int_name.Visible = true; lbl_int_name.Visible = true; }
         else
         { tb_int_name.Visible = false; lbl_int_name.Visible = false; }
     }
 
-    private void Bt_read_ca_subj_Click(object sender, EventArgs e)
-    {
 
-    }
 
     
 }
