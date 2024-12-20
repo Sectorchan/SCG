@@ -47,7 +47,7 @@ partial class Server
         lbl_def_state = new Label();
         lbl_def_country = new Label();
         lbl_ca_name = new Label();
-        lb_server_certs = new ListBox();
+        lb_ca_certs = new ListBox();
         cb_ca_keySize = new ComboBox();
         lbl_keySize = new Label();
         tb_ca_dura = new TextBox();
@@ -59,7 +59,7 @@ partial class Server
         panel1 = new Panel();
         rb_user = new RadioButton();
         Bt_gen_ca_priv = new Button();
-        Bt_gen_selfSigned_key = new Button();
+        Bt_gen_ca_selfSigned_key = new Button();
         cb_isCa = new CheckBox();
         cb_notPathlen = new CheckBox();
         cb_issueCert = new CheckBox();
@@ -82,6 +82,30 @@ partial class Server
         Bt_sign_int_cert = new Button();
         Bt_read_ca_subj = new Button();
         Bt_read_int_subj = new Button();
+        Bt_read_server_subj = new Button();
+        Bt_gen_server_selfSigned_key = new Button();
+        Bt_gen_server_pub = new Button();
+        checkBox1 = new CheckBox();
+        textBox1 = new TextBox();
+        label1 = new Label();
+        label2 = new Label();
+        comboBox1 = new ComboBox();
+        textBox2 = new TextBox();
+        label3 = new Label();
+        Bt_gen_server_priv = new Button();
+        lb_server_certs = new ListBox();
+        Bt_read_user_subj = new Button();
+        Bt_gen_user_selfSigned_key = new Button();
+        Bt_gen_user_pub = new Button();
+        checkBox2 = new CheckBox();
+        textBox3 = new TextBox();
+        label4 = new Label();
+        label5 = new Label();
+        comboBox2 = new ComboBox();
+        textBox4 = new TextBox();
+        label6 = new Label();
+        Bt_gen_user_priv = new Button();
+        lb_user_certs = new ListBox();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -112,7 +136,7 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(457, 367);
+        gb_default_disti_names.Location = new Point(69, 607);
         gb_default_disti_names.Name = "gb_default_disti_names";
         gb_default_disti_names.Size = new Size(229, 239);
         gb_default_disti_names.TabIndex = 11;
@@ -264,15 +288,15 @@ partial class Server
         lbl_ca_name.TabIndex = 10;
         lbl_ca_name.Text = "Server Name:";
         // 
-        // lb_server_certs
+        // lb_ca_certs
         // 
-        lb_server_certs.FormattingEnabled = true;
-        lb_server_certs.ItemHeight = 15;
-        lb_server_certs.Location = new Point(62, 5);
-        lb_server_certs.Margin = new Padding(2);
-        lb_server_certs.Name = "lb_server_certs";
-        lb_server_certs.Size = new Size(124, 79);
-        lb_server_certs.TabIndex = 14;
+        lb_ca_certs.FormattingEnabled = true;
+        lb_ca_certs.ItemHeight = 15;
+        lb_ca_certs.Location = new Point(62, 5);
+        lb_ca_certs.Margin = new Padding(2);
+        lb_ca_certs.Name = "lb_ca_certs";
+        lb_ca_certs.Size = new Size(124, 79);
+        lb_ca_certs.TabIndex = 14;
         // 
         // cb_ca_keySize
         // 
@@ -362,7 +386,7 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(457, 221);
+        panel1.Location = new Point(69, 461);
         panel1.Name = "panel1";
         panel1.Size = new Size(102, 113);
         panel1.TabIndex = 21;
@@ -389,15 +413,15 @@ partial class Server
         Bt_gen_ca_priv.UseVisualStyleBackColor = true;
         Bt_gen_ca_priv.Click += Bt_gen_ca_priv_onClick;
         // 
-        // Bt_gen_selfSigned_key
+        // Bt_gen_ca_selfSigned_key
         // 
-        Bt_gen_selfSigned_key.Location = new Point(86, 481);
-        Bt_gen_selfSigned_key.Name = "Bt_gen_selfSigned_key";
-        Bt_gen_selfSigned_key.Size = new Size(76, 47);
-        Bt_gen_selfSigned_key.TabIndex = 24;
-        Bt_gen_selfSigned_key.Text = "5. Generate CSR";
-        Bt_gen_selfSigned_key.UseVisualStyleBackColor = true;
-        Bt_gen_selfSigned_key.Click += Bt_gen_selfSigned_key_Click;
+        Bt_gen_ca_selfSigned_key.Location = new Point(85, 369);
+        Bt_gen_ca_selfSigned_key.Name = "Bt_gen_ca_selfSigned_key";
+        Bt_gen_ca_selfSigned_key.Size = new Size(76, 47);
+        Bt_gen_ca_selfSigned_key.TabIndex = 24;
+        Bt_gen_ca_selfSigned_key.Text = "5. Generate CSR";
+        Bt_gen_ca_selfSigned_key.UseVisualStyleBackColor = true;
+        Bt_gen_ca_selfSigned_key.Click += Bt_gen_ca_selfSigned_key_Click;
         // 
         // cb_isCa
         // 
@@ -463,7 +487,7 @@ partial class Server
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_issueCert);
-        panel2.Location = new Point(584, 221);
+        panel2.Location = new Point(196, 461);
         panel2.Name = "panel2";
         panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
@@ -489,7 +513,7 @@ partial class Server
         // 
         // Bt_gen_int_priv
         // 
-        Bt_gen_int_priv.Location = new Point(328, 208);
+        Bt_gen_int_priv.Location = new Point(329, 208);
         Bt_gen_int_priv.Name = "Bt_gen_int_priv";
         Bt_gen_int_priv.Size = new Size(75, 47);
         Bt_gen_int_priv.TabIndex = 33;
@@ -562,7 +586,7 @@ partial class Server
         // 
         // Bt_gen_int_pub
         // 
-        Bt_gen_int_pub.Location = new Point(328, 263);
+        Bt_gen_int_pub.Location = new Point(328, 260);
         Bt_gen_int_pub.Name = "Bt_gen_int_pub";
         Bt_gen_int_pub.Size = new Size(75, 47);
         Bt_gen_int_pub.TabIndex = 41;
@@ -583,7 +607,7 @@ partial class Server
         // 
         // Bt_gen_int_selfSigned_key
         // 
-        Bt_gen_int_selfSigned_key.Location = new Point(327, 481);
+        Bt_gen_int_selfSigned_key.Location = new Point(326, 370);
         Bt_gen_int_selfSigned_key.Name = "Bt_gen_int_selfSigned_key";
         Bt_gen_int_selfSigned_key.Size = new Size(76, 47);
         Bt_gen_int_selfSigned_key.TabIndex = 43;
@@ -593,7 +617,7 @@ partial class Server
         // 
         // Bt_sign_int_cert
         // 
-        Bt_sign_int_cert.Location = new Point(327, 534);
+        Bt_sign_int_cert.Location = new Point(231, 351);
         Bt_sign_int_cert.Name = "Bt_sign_int_cert";
         Bt_sign_int_cert.Size = new Size(75, 44);
         Bt_sign_int_cert.TabIndex = 44;
@@ -605,7 +629,7 @@ partial class Server
         // 
         Bt_read_ca_subj.AccessibleName = "ca";
         Bt_read_ca_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_ca_subj.Location = new Point(85, 331);
+        Bt_read_ca_subj.Location = new Point(86, 312);
         Bt_read_ca_subj.Name = "Bt_read_ca_subj";
         Bt_read_ca_subj.Size = new Size(75, 51);
         Bt_read_ca_subj.TabIndex = 45;
@@ -617,7 +641,7 @@ partial class Server
         // 
         Bt_read_int_subj.AccessibleName = "int";
         Bt_read_int_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_int_subj.Location = new Point(328, 331);
+        Bt_read_int_subj.Location = new Point(328, 313);
         Bt_read_int_subj.Name = "Bt_read_int_subj";
         Bt_read_int_subj.Size = new Size(75, 51);
         Bt_read_int_subj.TabIndex = 46;
@@ -625,11 +649,256 @@ partial class Server
         Bt_read_int_subj.UseVisualStyleBackColor = true;
         Bt_read_int_subj.Click += Bt_read_Dest_names_Click;
         // 
+        // Bt_read_server_subj
+        // 
+        Bt_read_server_subj.AccessibleName = "int";
+        Bt_read_server_subj.AccessibleRole = AccessibleRole.None;
+        Bt_read_server_subj.Location = new Point(518, 313);
+        Bt_read_server_subj.Name = "Bt_read_server_subj";
+        Bt_read_server_subj.Size = new Size(75, 51);
+        Bt_read_server_subj.TabIndex = 58;
+        Bt_read_server_subj.Text = "Read Subjects";
+        Bt_read_server_subj.UseVisualStyleBackColor = true;
+        // 
+        // Bt_gen_server_selfSigned_key
+        // 
+        Bt_gen_server_selfSigned_key.Location = new Point(516, 370);
+        Bt_gen_server_selfSigned_key.Name = "Bt_gen_server_selfSigned_key";
+        Bt_gen_server_selfSigned_key.Size = new Size(76, 47);
+        Bt_gen_server_selfSigned_key.TabIndex = 57;
+        Bt_gen_server_selfSigned_key.Text = "5. Generate CSR";
+        Bt_gen_server_selfSigned_key.UseVisualStyleBackColor = true;
+        // 
+        // Bt_gen_server_pub
+        // 
+        Bt_gen_server_pub.Location = new Point(518, 260);
+        Bt_gen_server_pub.Name = "Bt_gen_server_pub";
+        Bt_gen_server_pub.Size = new Size(75, 47);
+        Bt_gen_server_pub.TabIndex = 56;
+        Bt_gen_server_pub.Text = "2. Generate Public Key";
+        Bt_gen_server_pub.UseVisualStyleBackColor = true;
+        // 
+        // checkBox1
+        // 
+        checkBox1.AutoSize = true;
+        checkBox1.Location = new Point(482, 92);
+        checkBox1.Name = "checkBox1";
+        checkBox1.Size = new Size(85, 19);
+        checkBox1.TabIndex = 55;
+        checkBox1.Text = "New Server";
+        checkBox1.TextAlign = ContentAlignment.MiddleRight;
+        checkBox1.UseVisualStyleBackColor = true;
+        // 
+        // textBox1
+        // 
+        textBox1.Location = new Point(502, 117);
+        textBox1.Name = "textBox1";
+        textBox1.Size = new Size(100, 23);
+        textBox1.TabIndex = 54;
+        // 
+        // label1
+        // 
+        label1.AutoSize = true;
+        label1.Location = new Point(419, 120);
+        label1.Name = "label1";
+        label1.Size = new Size(77, 15);
+        label1.TabIndex = 53;
+        label1.Text = "Server Name:";
+        // 
+        // label2
+        // 
+        label2.AutoSize = true;
+        label2.Location = new Point(451, 148);
+        label2.Name = "label2";
+        label2.Size = new Size(45, 15);
+        label2.TabIndex = 49;
+        label2.Text = "Keysize";
+        // 
+        // comboBox1
+        // 
+        comboBox1.FormattingEnabled = true;
+        comboBox1.Items.AddRange(new object[] { "2048", "4096", "8192" });
+        comboBox1.Location = new Point(502, 145);
+        comboBox1.Name = "comboBox1";
+        comboBox1.Size = new Size(100, 23);
+        comboBox1.TabIndex = 52;
+        comboBox1.Text = "4096";
+        // 
+        // textBox2
+        // 
+        textBox2.Location = new Point(502, 174);
+        textBox2.Name = "textBox2";
+        textBox2.Size = new Size(100, 23);
+        textBox2.TabIndex = 51;
+        textBox2.Text = "60";
+        // 
+        // label3
+        // 
+        label3.AutoSize = true;
+        label3.Location = new Point(443, 179);
+        label3.Name = "label3";
+        label3.Size = new Size(53, 15);
+        label3.TabIndex = 50;
+        label3.Text = "Duration";
+        // 
+        // Bt_gen_server_priv
+        // 
+        Bt_gen_server_priv.Location = new Point(519, 208);
+        Bt_gen_server_priv.Name = "Bt_gen_server_priv";
+        Bt_gen_server_priv.Size = new Size(75, 47);
+        Bt_gen_server_priv.TabIndex = 48;
+        Bt_gen_server_priv.Text = "1. Generate Private Key";
+        Bt_gen_server_priv.UseVisualStyleBackColor = true;
+        // 
+        // lb_server_certs
+        // 
+        lb_server_certs.FormattingEnabled = true;
+        lb_server_certs.ItemHeight = 15;
+        lb_server_certs.Location = new Point(482, 5);
+        lb_server_certs.Name = "lb_server_certs";
+        lb_server_certs.Size = new Size(120, 79);
+        lb_server_certs.TabIndex = 47;
+        // 
+        // Bt_read_user_subj
+        // 
+        Bt_read_user_subj.AccessibleName = "int";
+        Bt_read_user_subj.AccessibleRole = AccessibleRole.None;
+        Bt_read_user_subj.Location = new Point(701, 313);
+        Bt_read_user_subj.Name = "Bt_read_user_subj";
+        Bt_read_user_subj.Size = new Size(75, 51);
+        Bt_read_user_subj.TabIndex = 70;
+        Bt_read_user_subj.Text = "Read Subjects";
+        Bt_read_user_subj.UseVisualStyleBackColor = true;
+        // 
+        // Bt_gen_user_selfSigned_key
+        // 
+        Bt_gen_user_selfSigned_key.Location = new Point(699, 370);
+        Bt_gen_user_selfSigned_key.Name = "Bt_gen_user_selfSigned_key";
+        Bt_gen_user_selfSigned_key.Size = new Size(76, 47);
+        Bt_gen_user_selfSigned_key.TabIndex = 69;
+        Bt_gen_user_selfSigned_key.Text = "5. Generate CSR";
+        Bt_gen_user_selfSigned_key.UseVisualStyleBackColor = true;
+        // 
+        // Bt_gen_user_pub
+        // 
+        Bt_gen_user_pub.Location = new Point(701, 260);
+        Bt_gen_user_pub.Name = "Bt_gen_user_pub";
+        Bt_gen_user_pub.Size = new Size(75, 47);
+        Bt_gen_user_pub.TabIndex = 68;
+        Bt_gen_user_pub.Text = "2. Generate Public Key";
+        Bt_gen_user_pub.UseVisualStyleBackColor = true;
+        // 
+        // checkBox2
+        // 
+        checkBox2.AutoSize = true;
+        checkBox2.Location = new Point(665, 92);
+        checkBox2.Name = "checkBox2";
+        checkBox2.Size = new Size(76, 19);
+        checkBox2.TabIndex = 67;
+        checkBox2.Text = "New User";
+        checkBox2.TextAlign = ContentAlignment.MiddleRight;
+        checkBox2.UseVisualStyleBackColor = true;
+        // 
+        // textBox3
+        // 
+        textBox3.Location = new Point(685, 117);
+        textBox3.Name = "textBox3";
+        textBox3.Size = new Size(100, 23);
+        textBox3.TabIndex = 66;
+        // 
+        // label4
+        // 
+        label4.AutoSize = true;
+        label4.Location = new Point(611, 120);
+        label4.Name = "label4";
+        label4.Size = new Size(68, 15);
+        label4.TabIndex = 65;
+        label4.Text = "User Name:";
+        label4.TextAlign = ContentAlignment.TopRight;
+        // 
+        // label5
+        // 
+        label5.AutoSize = true;
+        label5.Location = new Point(634, 148);
+        label5.Name = "label5";
+        label5.Size = new Size(45, 15);
+        label5.TabIndex = 61;
+        label5.Text = "Keysize";
+        // 
+        // comboBox2
+        // 
+        comboBox2.FormattingEnabled = true;
+        comboBox2.Items.AddRange(new object[] { "2048", "4096", "8192" });
+        comboBox2.Location = new Point(685, 145);
+        comboBox2.Name = "comboBox2";
+        comboBox2.Size = new Size(100, 23);
+        comboBox2.TabIndex = 64;
+        comboBox2.Text = "4096";
+        // 
+        // textBox4
+        // 
+        textBox4.Location = new Point(685, 174);
+        textBox4.Name = "textBox4";
+        textBox4.Size = new Size(100, 23);
+        textBox4.TabIndex = 63;
+        textBox4.Text = "60";
+        // 
+        // label6
+        // 
+        label6.AutoSize = true;
+        label6.Location = new Point(626, 179);
+        label6.Name = "label6";
+        label6.Size = new Size(53, 15);
+        label6.TabIndex = 62;
+        label6.Text = "Duration";
+        // 
+        // Bt_gen_user_priv
+        // 
+        Bt_gen_user_priv.Location = new Point(702, 208);
+        Bt_gen_user_priv.Name = "Bt_gen_user_priv";
+        Bt_gen_user_priv.Size = new Size(75, 47);
+        Bt_gen_user_priv.TabIndex = 60;
+        Bt_gen_user_priv.Text = "1. Generate Private Key";
+        Bt_gen_user_priv.UseVisualStyleBackColor = true;
+        // 
+        // lb_user_certs
+        // 
+        lb_user_certs.FormattingEnabled = true;
+        lb_user_certs.ItemHeight = 15;
+        lb_user_certs.Location = new Point(665, 5);
+        lb_user_certs.Name = "lb_user_certs";
+        lb_user_certs.Size = new Size(120, 79);
+        lb_user_certs.TabIndex = 59;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(730, 663);
+        ClientSize = new Size(797, 915);
+        Controls.Add(Bt_read_user_subj);
+        Controls.Add(Bt_gen_user_selfSigned_key);
+        Controls.Add(Bt_gen_user_pub);
+        Controls.Add(checkBox2);
+        Controls.Add(textBox3);
+        Controls.Add(label4);
+        Controls.Add(label5);
+        Controls.Add(comboBox2);
+        Controls.Add(textBox4);
+        Controls.Add(label6);
+        Controls.Add(Bt_gen_user_priv);
+        Controls.Add(lb_user_certs);
+        Controls.Add(Bt_read_server_subj);
+        Controls.Add(Bt_gen_server_selfSigned_key);
+        Controls.Add(Bt_gen_server_pub);
+        Controls.Add(checkBox1);
+        Controls.Add(textBox1);
+        Controls.Add(label1);
+        Controls.Add(label2);
+        Controls.Add(comboBox1);
+        Controls.Add(textBox2);
+        Controls.Add(label3);
+        Controls.Add(Bt_gen_server_priv);
+        Controls.Add(lb_server_certs);
         Controls.Add(Bt_read_int_subj);
         Controls.Add(Bt_read_ca_subj);
         Controls.Add(Bt_sign_int_cert);
@@ -650,11 +919,11 @@ partial class Server
         Controls.Add(cb_ca_keySize);
         Controls.Add(tb_ca_dura);
         Controls.Add(lbl_pub_duration);
-        Controls.Add(Bt_gen_selfSigned_key);
+        Controls.Add(Bt_gen_ca_selfSigned_key);
         Controls.Add(Bt_gen_ca_priv);
         Controls.Add(panel1);
         Controls.Add(cb_new_server);
-        Controls.Add(lb_server_certs);
+        Controls.Add(lb_ca_certs);
         Controls.Add(tb_ca_name);
         Controls.Add(gb_default_disti_names);
         Controls.Add(lbl_ca_name);
@@ -690,7 +959,7 @@ partial class Server
     private Label lbl_def_state;
     private Label lbl_def_country;
     private Label lbl_ca_name;
-    private ListBox lb_server_certs;
+    private ListBox lb_ca_certs;
     private Label lbl_keySize;
     private TextBox tb_ca_dura;
     private Label lbl_pub_duration;
@@ -702,7 +971,7 @@ partial class Server
     private Button Bt_gen_ca_priv;
     private ComboBox cb_ca_keySize;
     private RadioButton rb_user;
-    private Button Bt_gen_selfSigned_key;
+    private Button Bt_gen_ca_selfSigned_key;
     private Button bt_wrt_dest_names;
     private CheckBox cb_isCa;
     private CheckBox cb_notPathlen;
@@ -727,4 +996,28 @@ partial class Server
     private Button Bt_sign_int_cert;
     private Button Bt_read_ca_subj;
     private Button Bt_read_int_subj;
+    private Button Bt_read_server_subj;
+    private Button Bt_gen_server_selfSigned_key;
+    private Button Bt_gen_server_pub;
+    private CheckBox checkBox1;
+    private TextBox textBox1;
+    private Label label1;
+    private Label label2;
+    private ComboBox comboBox1;
+    private TextBox textBox2;
+    private Label label3;
+    private Button Bt_gen_server_priv;
+    private ListBox lb_server_certs;
+    private Button Bt_read_user_subj;
+    private Button Bt_gen_user_selfSigned_key;
+    private Button Bt_gen_user_pub;
+    private CheckBox checkBox2;
+    private TextBox textBox3;
+    private Label label4;
+    private Label label5;
+    private ComboBox comboBox2;
+    private TextBox textBox4;
+    private Label label6;
+    private Button Bt_gen_user_priv;
+    private ListBox lb_user_certs;
 }

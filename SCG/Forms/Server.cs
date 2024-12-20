@@ -58,9 +58,9 @@ public partial class Server : Form
         tb_int_name.Visible = false;
 
 
-        lb_server_certs.Items.Clear();
-        ReadServers(lb_server_certs, SQLTable.ca);
-        lb_server_certs.Sorted = true;
+        lb_ca_certs.Items.Clear();
+        ReadServers(lb_ca_certs, SQLTable.ca);
+        lb_ca_certs.Sorted = true;
 
         lb_inter_certs.Items.Clear();
         ReadServers(lb_inter_certs, SQLTable.intermediate);
@@ -218,9 +218,9 @@ public partial class Server : Form
             int insertRow = Utils.Sql.InsertInto(SQLTable.ca, serverName, privateKeyPem, keySize);
             File.WriteAllText("ca_" + serverName + "_priv.pem", privateKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
-            lb_server_certs.Items.Clear();
-            ReadServers(lb_server_certs, SQLTable.ca);
-            lb_server_certs.Sorted = true;
+            lb_ca_certs.Items.Clear();
+            ReadServers(lb_ca_certs, SQLTable.ca);
+            lb_ca_certs.Sorted = true;
         }
         catch (Exception ex)
         {
@@ -236,7 +236,7 @@ public partial class Server : Form
     {
         try
         {
-            string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
             //GenerateRsaPublicKeyFromPrivateKey(c_privateKeyPath, c_publicKeyPath);
             //string publicKeyPem = Utils.Certs.CreatePubKey3(c_privateKeyPath, c_publicKeyPath);
 
@@ -256,12 +256,12 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Bt_gen_selfSigned_key_Click(object sender, EventArgs e)
+    private void Bt_gen_ca_selfSigned_key_Click(object sender, EventArgs e)
     {
         try
         {
             int ss_duration = Convert.ToInt32(tb_ca_dura.Text);
-            string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
 
             string c_privateKeyPath = Utils.Sql.SelectWhereString(SQLTable.ca, "private_key", "name", serverName);
 
@@ -375,7 +375,7 @@ public partial class Server : Form
         try
         {
             string interName = Convert.ToString(lb_inter_certs.SelectedItem);
-            string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
             int duration = Convert.ToInt32(tb_int_pub_dura.Text);
             // CA-Zertifikat laden
             string caCertPath = "ca_" + serverName + "_ss.pfx";
@@ -568,7 +568,7 @@ public partial class Server : Form
             if (sqlTable.IsSuccess)
             {
                 if (sqlTable.Value == SQLTable.ca)
-                { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+                { serverSelect = Convert.ToString(lb_ca_certs.SelectedItem); }
                 else if (sqlTable.Value == SQLTable.intermediate)
                 { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
 
@@ -599,7 +599,7 @@ public partial class Server : Form
             if (btn.AccessibleName == "ca")
             {
                 table = SQLTable.ca;
-                serverSelect = Convert.ToString(lb_server_certs.SelectedItem);
+                serverSelect = Convert.ToString(lb_ca_certs.SelectedItem);
             }
             else if (btn.AccessibleName == "int")
             {
@@ -646,7 +646,7 @@ public partial class Server : Form
             Result<SQLTable> sqlTable = SqlTable();
             string serverSelect = string.Empty;
             if (sqlTable.Value == SQLTable.ca)
-            { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+            { serverSelect = Convert.ToString(lb_ca_certs.SelectedItem); }
             else if (sqlTable.Value == SQLTable.intermediate)
             { serverSelect = Convert.ToString(lb_inter_certs.SelectedItem); }
 
@@ -676,6 +676,6 @@ public partial class Server : Form
 
     }
 
-
+    
 }
 

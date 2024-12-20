@@ -47,7 +47,7 @@ public class Utils
                 string _table = "";
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
+                    _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
