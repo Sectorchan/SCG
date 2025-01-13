@@ -23,6 +23,8 @@ using SCG;
 using System.Security.Cryptography;
 using static SCG.Ssql;
 using System.Reflection.Metadata;
+using System.Windows.Forms.VisualStyles;
+using System.Security.Cryptography.X509Certificates;
 
 
 namespace WinFormsApp1
@@ -38,11 +40,7 @@ namespace WinFormsApp1
         int _caIndex = Settings.Default.CaIndex;
         public string _exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
-        public string ExePath
-        {
-            get { return _exePath; }
-        }
-
+        public string ExePath { get { return _exePath; } }
 
         /// <summary>
         /// Will be passed to the OpenSSL binary
@@ -81,6 +79,7 @@ namespace WinFormsApp1
                 return SSLargument1;
             }
         }
+
         public void UseOpenSSL(string SSLargument1)
         {
             try
@@ -104,7 +103,6 @@ namespace WinFormsApp1
                 process.Close();
                 process.StartInfo.ErrorDialog = true;
                 int result = process.ExitCode;
-
             }
             catch (Exception ex)
             {
@@ -136,33 +134,24 @@ namespace WinFormsApp1
                         Directory.CreateDirectory(folder);
                     }
                 }
-
             }
             #endregion
+
             if (!File.Exists(xml))
             {
                 XDocument doc =
-                  new XDocument(
-                    new XElement("root",
-                      new XElement("name", new XAttribute("filename", xml)),
-                      new XElement("date", new XAttribute("created", DateTime.Now), new XAttribute("modified", "")),
-
-                      // From here the CA Section
-                      new XElement("ca", "")
-                      )
-                  );
+                  new XDocument(new XElement("root", new XElement("name", new XAttribute("filename", xml)), new XElement("date", new XAttribute("created", DateTime.Now), new XAttribute("modified", "")),
+ // From here the CA Section
+ new XElement("ca", "")));
 
                 doc.Save(xml);
             }
 
             InitializeComponent();
+        }
 
-        }
-       
-        private void button2_Click(object sender, EventArgs e)
-        {
-            RefreshCaPrivLb(xml);
-        }
+        private void button2_Click(object sender, EventArgs e) { RefreshCaPrivLb(xml); }
+
         public void RefreshCaPrivLb(string xmlfile)
         {
             lb_ca_priv.Items.Clear();
@@ -174,6 +163,7 @@ namespace WinFormsApp1
                 MessageBox.Show(xe.Element("id").Value);
             }
         }
+
         /// <summary>
         /// Creates the CA private Key
         /// </summary>
@@ -182,7 +172,9 @@ namespace WinFormsApp1
         private void ca_priv_key_gen_click(object sender, EventArgs e)
         {
             //Openssl command: openssl2.exe genrsa -aes256 -passout pass:test -out certificates/ca/private/ca.key.pem 4096
-            if (!string.IsNullOrWhiteSpace(tb_ca_priv_name.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw1.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw2.Text))// Check if no box is empty.
+            if (!string.IsNullOrWhiteSpace(tb_ca_priv_name.Text) ||
+                !string.IsNullOrWhiteSpace(tb_ca_key_pw1.Text) ||
+                !string.IsNullOrWhiteSpace(tb_ca_key_pw2.Text))// Check if no box is empty.
             {
                 if ((tb_ca_key_pw1.Text.Length >= 4) && (tb_ca_key_pw2.Text.Length >= 4)) //openssl requires atleast 4 digit passwords
                 {
@@ -196,20 +188,26 @@ namespace WinFormsApp1
                         var Privpass = tb_ca_key_pw1.Text;
                         var Privkey = rsa.ExportRSAPrivateKeyPem();
 
-                        
-                        
-
                         //tb_debugoutput.Text = debugoutput(SSLargument);
                         return;
                     }
                     else
-                    { _error = ["Passwort nicht identisch", "Fehlende Information"]; }
+                    {
+                        _error = ["Passwort nicht identisch", "Fehlende Information"];
+                    }
                 }
-                else { _error = ["Passwort mindestern 4 Stellen", "Passwort falsch"]; }
+                else
+                {
+                    _error = ["Passwort mindestern 4 Stellen", "Passwort falsch"];
+                }
             }
-            else { _error = ["Eingabe unvollständig", "Fehlende Information"]; }
+            else
+            {
+                _error = ["Eingabe unvollständig", "Fehlende Information"];
+            }
             MessageBox.Show(_error[0], _error[1]);
         }
+
         /// <summary>
         /// Creates the CA public certificate
         /// </summary>
@@ -218,13 +216,25 @@ namespace WinFormsApp1
         private void ca_cert_key_gen_Click(object sender, EventArgs e)
         {
             //Openssl command: openssl2.exe req -config openssl-ca.cnf -key certificates/ca/private/ca.key.pem -passin pass:test -new -x509 -days 7300 -sha256 -extensions v3_ca -out certificates/ca/certs/ca.cert.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA2509/emailAddress=admin3@diefamilielang.de"
-            if (!string.IsNullOrWhiteSpace(tb_ca_priv_name.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw1.Text) || !string.IsNullOrWhiteSpace(tb_ca_key_pw2.Text))// Check if no box is empty.
+            if (!string.IsNullOrWhiteSpace(tb_ca_priv_name.Text) ||
+                !string.IsNullOrWhiteSpace(tb_ca_key_pw1.Text) ||
+                !string.IsNullOrWhiteSpace(tb_ca_key_pw2.Text))// Check if no box is empty.
             {
                 if (tb_ca_key_pw1.Text.Length >= 4 && tb_ca_key_pw2.Text.Length >= 4)
                 {
                     if (tb_ca_key_pw1.Text.Equals(tb_ca_key_pw2.Text))
                     {
-                        SSLargument = @"req -config " + openSSLcnf_ca + " -key certificates/ca/private/" + tb_ca_priv_name.Text + ".key.pem -passin pass:" + tb_ca_key_pw_in.Text + " -new -x509 -days " + tb_ca_cert_days.Text + " -sha256 -extensions v3_ca -out certificates/ca/certs/" + tb_ca_priv_name.Text + ".cert.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admmin@diefamilielang.de\"";
+                        SSLargument = @"req -config " +
+                            openSSLcnf_ca +
+                            " -key certificates/ca/private/" +
+                            tb_ca_priv_name.Text +
+                            ".key.pem -passin pass:" +
+                            tb_ca_key_pw_in.Text +
+                            " -new -x509 -days " +
+                            tb_ca_cert_days.Text +
+                            " -sha256 -extensions v3_ca -out certificates/ca/certs/" +
+                            tb_ca_priv_name.Text +
+                            ".cert.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-CA/emailAddress=admmin@diefamilielang.de\"";
 
                         var sql = "UPDATE ca SET ss_duration = @_ss_Duration, public_pass = @Public_Pass, public_createDT = @Public_CreateDT, cnf = @Ca_Cnf, subj_country = @Subj_Country, subj_state = @Subj_State, subj_location = @Subj_Location, subj_orgaunit = @Subj_OrgaUnit, subj_commonname = @Subj_CommonName, subj_email= @Subj_EMail WHERE name = @Ca_Name";
 
@@ -256,11 +266,8 @@ namespace WinFormsApp1
                         command.Parameters.AddWithValue("@Subj_EMail", SubjEMail);
                         command.Parameters.AddWithValue("@Ca_Name", CaName);
 
-
-
                         // Execute the INSERT statement
                         var rowInserted = command.ExecuteNonQuery();
-
 
                         tb_debugoutput.Text = debugoutput(SSLargument);
                         return;
@@ -271,11 +278,18 @@ namespace WinFormsApp1
                         //MessageBox.Show("Passwort NICHT Identisch", "Fehlende Information", MessageBoxButtons.OK);
                     }
                 }
-                else { _error = ["Passwort mindestern 4 Stellen", "Passwort falsch"]; }
+                else
+                {
+                    _error = ["Passwort mindestern 4 Stellen", "Passwort falsch"];
+                }
             }
-            else { _error = ["Eingabe unvollständig", "Fehlende Information"]; }
+            else
+            {
+                _error = ["Eingabe unvollständig", "Fehlende Information"];
+            }
             MessageBox.Show(_error[0], _error[1]);
         }
+
         /// <summary>
         /// Creates the Intermediate private key
         /// </summary>
@@ -284,21 +298,37 @@ namespace WinFormsApp1
         private void bt_inter_key_gen_Click(object sender, EventArgs e)
         {
             //Openssl command: openssl2.exe genrsa -aes256 -passout pass:test2 -out certificates/intermediate/private/int.key.pem 4096
-            if ((!string.IsNullOrWhiteSpace(tb_inter_priv_name.Text) || !string.IsNullOrWhiteSpace(tb_inter_key_pw1.Text) || !string.IsNullOrWhiteSpace(tb_inter_key_pw2.Text)))// Check if no box is empty.
+            if ((!string.IsNullOrWhiteSpace(tb_inter_priv_name.Text) ||
+                !string.IsNullOrWhiteSpace(tb_inter_key_pw1.Text) ||
+                !string.IsNullOrWhiteSpace(tb_inter_key_pw2.Text)))// Check if no box is empty.
             {
                 if (tb_inter_key_pw1.Text.Length >= 4 && tb_inter_key_pw2.Text.Length >= 4)
                 {
                     if (tb_inter_key_pw1.Text.Equals(tb_inter_key_pw2.Text))
                     {
-                        SSLargument = @"genrsa -aes256 -passout pass:" + tb_inter_key_pw1.Text + " -out certificates/intermediate/private/" + tb_inter_priv_name.Text + ".key.pem 4096";
+                        SSLargument = @"genrsa -aes256 -passout pass:" +
+                            tb_inter_key_pw1.Text +
+                            " -out certificates/intermediate/private/" +
+                            tb_inter_priv_name.Text +
+                            ".key.pem 4096";
                         tb_debugoutput.Text = debugoutput(SSLargument);
                     }
-                    else { MessageBox.Show("Passwort NICHT Identisch", "Fehlende Information", MessageBoxButtons.OK); }
+                    else
+                    {
+                        MessageBox.Show("Passwort NICHT Identisch", "Fehlende Information", MessageBoxButtons.OK);
+                    }
                 }
-                else { MessageBox.Show("Passwort mindestern 4 Stellen", "Fehlende Information", MessageBoxButtons.OK); }
+                else
+                {
+                    MessageBox.Show("Passwort mindestern 4 Stellen", "Fehlende Information", MessageBoxButtons.OK);
+                }
             }
-            else { MessageBox.Show("Eingabe unvollständig!", "Fehlende Information", MessageBoxButtons.OK); }
+            else
+            {
+                MessageBox.Show("Eingabe unvollständig!", "Fehlende Information", MessageBoxButtons.OK);
+            }
         }
+
         /// <summary>
         /// Creates the Intermediate CSR
         /// </summary>
@@ -307,21 +337,41 @@ namespace WinFormsApp1
         private void bt_inter_csr_gen_Click(object sender, EventArgs e)
         {
             //Openssl command: openssl2.exe req -config openssl-inter.cnf -new -sha256 -key certificates/intermediate/private/int.key.pem -passin pass:test2 -out certificates/intermediate/csr/int.csr.pem -subj "/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-Intermediate2509/emailAddress=admin2@diefamilielang.de"
-            if (!string.IsNullOrWhiteSpace(tb_inter_priv_name.Text) || !string.IsNullOrWhiteSpace(tb_inter_key_pw1.Text) || !string.IsNullOrWhiteSpace(tb_inter_key_pw2.Text))// Check if no box is empty.
+            if (!string.IsNullOrWhiteSpace(tb_inter_priv_name.Text) ||
+                !string.IsNullOrWhiteSpace(tb_inter_key_pw1.Text) ||
+                !string.IsNullOrWhiteSpace(tb_inter_key_pw2.Text))// Check if no box is empty.
             {
                 if (tb_inter_key_pw1.Text.Length >= 4 && tb_inter_key_pw2.Text.Length >= 4)
                 {
                     if (tb_inter_key_pw1.Text.Equals(tb_inter_key_pw2.Text))
                     {
-                        SSLargument = @"req -config " + openSSLcnf_inter + " -new -sha256 -key certificates/intermediate/private/" + tb_inter_priv_name.Text + ".key.pem -passin pass:" + tb_inter_key_pw1.Text + "  -out certificates/intermediate/csr/" + tb_inter_priv_name.Text + ".csr.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-Intermediate2709/emailAddress=admin-intermediate@diefamilielang.de\"";
+                        SSLargument = @"req -config " +
+                            openSSLcnf_inter +
+                            " -new -sha256 -key certificates/intermediate/private/" +
+                            tb_inter_priv_name.Text +
+                            ".key.pem -passin pass:" +
+                            tb_inter_key_pw1.Text +
+                            "  -out certificates/intermediate/csr/" +
+                            tb_inter_priv_name.Text +
+                            ".csr.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=Lang-Intermediate2709/emailAddress=admin-intermediate@diefamilielang.de\"";
                         tb_debugoutput.Text = debugoutput(SSLargument);
                     }
-                    else { MessageBox.Show("Passwort NICHT Identisch", "Fehlende Information", MessageBoxButtons.OK); }
+                    else
+                    {
+                        MessageBox.Show("Passwort NICHT Identisch", "Fehlende Information", MessageBoxButtons.OK);
+                    }
                 }
-                else { MessageBox.Show("Passwort mindestern 4 Stellen", "Fehlende Information", MessageBoxButtons.OK); }
+                else
+                {
+                    MessageBox.Show("Passwort mindestern 4 Stellen", "Fehlende Information", MessageBoxButtons.OK);
+                }
             }
-            else { MessageBox.Show("Eingabe unvollständig!", "Fehlende Information", MessageBoxButtons.OK); }
+            else
+            {
+                MessageBox.Show("Eingabe unvollständig!", "Fehlende Information", MessageBoxButtons.OK);
+            }
         }
+
         /// <summary>
         /// Creates the Intermediate certificate signed by the CA
         /// </summary>
@@ -333,10 +383,21 @@ namespace WinFormsApp1
             //                              ca -config openssl-ca.cnf -passin pass:test -rand_serial -extensions v3_intermediate_ca -days 3650 -batch -md sha256 -in certificates/intermediate/csr/int.csr.pem -out certificates/intermediate/certs/int.cert.pem"
             if (tb_inter_sign_ca_key_in.Text.Length >= 4)
             {
-                SSLargument = @"ca -config " + openSSLcnf_ca + " -passin pass:" + tb_inter_sign_ca_key_in.Text + " -rand_serial -extensions v3_intermediate_ca -days " + tb_inter_cert_days.Text + " -batch -md sha256 -in certificates/intermediate/csr/" + tb_inter_cert_name.Text + ".csr.pem -out certificates/intermediate/certs/" + tb_inter_cert_name.Text + ".cert.pem";
+                SSLargument = @"ca -config " +
+                    openSSLcnf_ca +
+                    " -passin pass:" +
+                    tb_inter_sign_ca_key_in.Text +
+                    " -rand_serial -extensions v3_intermediate_ca -days " +
+                    tb_inter_cert_days.Text +
+                    " -batch -md sha256 -in certificates/intermediate/csr/" +
+                    tb_inter_cert_name.Text +
+                    ".csr.pem -out certificates/intermediate/certs/" +
+                    tb_inter_cert_name.Text +
+                    ".cert.pem";
                 tb_debugoutput.Text = debugoutput(SSLargument);
             }
         }
+
         private void cb_inter_sign_CheckStateChanged(object sender, EventArgs e)
         {
             if (cb_inter_sign.Checked)
@@ -348,6 +409,7 @@ namespace WinFormsApp1
                 bt_inter_sign_ca_name.Enabled = false;
             }
         }
+
         /// <summary>
         /// Creates the application or server private key
         /// </summary>
@@ -358,6 +420,7 @@ namespace WinFormsApp1
             SSLargument = @"genrsa -out certificates/server/private/" + tb_appl_priv_name.Text + ".key.pem 4096";
             tb_debugoutput.Text = debugoutput(SSLargument);
         }
+
         /// <summary>
         /// Creates the application or server CSR
         /// </summary>
@@ -365,9 +428,16 @@ namespace WinFormsApp1
         /// <param name="e"></param>
         private void bt_appl_csr_gen_click(object sender, EventArgs e)
         {
-            SSLargument = @"req -config " + openSSLcnf_inter + " -x509 -key certificates/server/private/" + tb_appl_priv_name.Text + ".key.pem -sha256 -out certificates/server/csr/" + tb_appl_csr_name.Text + ".csr.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang,DNS:grafana,IP:192.168.1.20\"";
+            SSLargument = @"req -config " +
+                openSSLcnf_inter +
+                " -x509 -key certificates/server/private/" +
+                tb_appl_priv_name.Text +
+                ".key.pem -sha256 -out certificates/server/csr/" +
+                tb_appl_csr_name.Text +
+                ".csr.pem -subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang,DNS:grafana,IP:192.168.1.20\"";
             tb_debugoutput.Text = debugoutput(SSLargument);
         }
+
         /// <summary>
         /// Creates the application or server public certificate signed from the Intermediate
         /// </summary>
@@ -375,49 +445,45 @@ namespace WinFormsApp1
         /// <param name="e"></param>
         private void bt_appl_sign_inter_name_Click(object sender, EventArgs e)
         {
-            SSLargument = @"ca -config " + openSSLcnf_inter + " -passin pass:" + tb_inter_key_pw1.Text + " -extensions server_cert  -rand_serial -batch -days " + tb_appl_cert_days.Text + " -md sha256 -in certificates/server/csr/" + tb_appl_priv_name.Text + ".csr.pem -out certificates/server/certs/" + tb_appl_csr_name.Text + ".cert.pem ";    //-subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang, DNS:grafana, IP:192.168.1.20\"";
+            SSLargument = @"ca -config " +
+                openSSLcnf_inter +
+                " -passin pass:" +
+                tb_inter_key_pw1.Text +
+                " -extensions server_cert  -rand_serial -batch -days " +
+                tb_appl_cert_days.Text +
+                " -md sha256 -in certificates/server/csr/" +
+                tb_appl_priv_name.Text +
+                ".csr.pem -out certificates/server/certs/" +
+                tb_appl_csr_name.Text +
+                ".cert.pem ";    //-subj \"/C=DE/ST=Bavaria/L=Schwabhausen/O=Lang-Lan/OU=IT/CN=server/emailAddress=admin@diefamilielang.de/subjectAltName=DNS:ubn-grafana.lang, DNS:grafana, IP:192.168.1.20\"";
             tb_debugoutput.Text = debugoutput(SSLargument);
         }
+
         private void opensslCnfCa_click(object sender, EventArgs e)
         {
             openSSL_CA_Configfile form2 = new openSSL_CA_Configfile();
             form2.ShowDialog();
             tb_cat_ca_name.Text = form2.opensslCaCnfPath;
-
         }
-        private void opensslCnfInt_click(object sender, EventArgs e)
-        {
 
+        private void opensslCnfInt_click(object sender, EventArgs e) { }
 
-        }
         private void button1_Click(object sender, EventArgs e)
         {
-            XDocument d = new XDocument(
-    new XComment("This is a comment."),
-    new XProcessingInstruction("xml-stylesheet",
-        "href='mystyle.css' title='Compact' type='text/css'"),
-    new XElement("Pubs",
-        new XElement("Book",
-            new XElement("Title", "Artifacts of Roman Civilization"),
-            new XElement("Author", "Moreno, Jordao")
-        ),
-        new XElement("Book",
-            new XElement("Title", "Midieval Tools and Implements"),
-            new XElement("Author", "Gazit, Inbar")
-        )
-    ),
-    new XComment("This is another comment.")
+            XDocument d = new XDocument(new XComment("This is a comment."), new XProcessingInstruction("xml-stylesheet", "href='mystyle.css' title='Compact' type='text/css'"), new XElement("Pubs", new XElement("Book", new XElement("Title", "Artifacts of Roman Civilization"), new XElement("Author", "Moreno, Jordao")), new XElement("Book", new XElement("Title", "Midieval Tools and Implements"), new XElement("Author", "Gazit, Inbar"))), new XComment("This is another comment.")
 );
             d.Declaration = new XDeclaration("1.0", "utf-8", "true");
             Console.WriteLine(d);
 
             d.Save("ApplicationSettings.xml");
         }
+
         private void serverConfigList_click(object sender, EventArgs e)
         {
             Server form3 = new Server();
             form3.ShowDialog();
         }
+
         private void Main_onLoad(object sender, EventArgs e)
         {
             //RefreshCaPrivLb(xml);
@@ -438,15 +504,42 @@ namespace WinFormsApp1
             //{
             //    MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
             //}
-
         }
-
-
     }
+    
+
+
 
     public static class Global
     {
         public static readonly string database = @"..\..\..\databasev2.db";
+
+        //public static readonly string[] caBasicConstraint = ["true","",null, "true"];
+        public static readonly string[] caKeyUsage = ["critical", "digitalSignature", "cRLSign", "keyCertSign"]; //critical, digitalSignature, cRLSign, keyCertSign
+        public static readonly X509BasicConstraintsExtension caBasicConstraint = new X509BasicConstraintsExtension(true, false, 0, true);
+        public static readonly X509KeyUsageExtension caKeyUsageExtension = new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.CrlSign, true);
+        public static readonly string[] intBasicConstraint = ["true", "", "0", "true"];
+        public static readonly string[] intKeyUsage = ["critical", "digitalSignature", "cRLSign", "keyCertSign"]; //critical, digitalSignature, cRLSign, keyCertSign
+
+        public static readonly string[] serBasicConstraint = ["false", "", null, "false"];
+        public static readonly string[] serKeyUsage = ["critical", "digitalSignature", "keyEncipherment"]; //critical, digitalSignature, keyEncipherment
+        public static readonly string[] serExtKeyUsage2 = ["serverAuth"]; //extendedKeyUsage = serverAuth
+        public static readonly OidCollection serverAuth = new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }; //extendedKeyUsage = serverAuth new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") } 
+
+        public static readonly string[] usrBasicConstraint = ["false", "", null, "false"];
+        public static readonly string[] usrKeyUsage = ["critical", "nonRepudiation", "digitalSignature", "keyEncipherment"]; //critical, nonRepudiation, digitalSignature, keyEncipherment
+        public static readonly string[] usrExtKeyUsage = ["clientAuth", "emailProtection"]; //extendedKeyUsage = clientAuth, emailProtection
+        public static readonly OidCollection clientAuth = new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }; //extendedKeyUsage = clientAuth new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }
+        public static readonly OidCollection secureEmail = new OidCollection { new Oid("1.3.6.1.5.5.7.3.4") }; //extendedKeyUsage = secureEmail new OidCollection { new Oid("1.3.6.1.5.5.7.3.4") }
+
+        public enum certType2
+        {
+            ca,
+            intermediate,
+            server,
+            user
+        }
+
         public enum dbTable
         {
             id,
@@ -471,7 +564,7 @@ namespace WinFormsApp1
             isCa,
             not_pathlen,
             depth,
-            canIssue,
+            critical,
         }
 
     }

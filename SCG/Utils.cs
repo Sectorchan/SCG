@@ -1,34 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FluentResults;
+using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
+using System;
+using System.Collections;
+using System.Data;
 using System.Linq;
+using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using FluentResults;
-using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
-using SCG;
 using WinFormsApp1;
+using static PL.Utils.Tools;
 using static SCG.Ssql;
-using System.Diagnostics.Contracts;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Diagnostics;
-using Microsoft.VisualBasic;
-using static PL.Utils;
-using System.Xml.Linq;
-using System.Collections;
-using System.Runtime.InteropServices.JavaScript;
-using SCG.Forms;
-using System.Data;
-using System.Xml;
-using System.Data.Common;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.AccessControl;
 
 namespace PL;
 
 public class Utils
 {
+    private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
+    private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
 
     public class Sql
     {
@@ -40,14 +30,14 @@ public class Utils
         /// <param name="privKey">The privateKey in PEM format</param>
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
-        public static int InsertInto(SQLTable table, string name, string privKey, int keySize)
+        public static int InsertInto(certType table, string name, string privKey, int keySize)
         {
             try
             {
-                string _table = "";
+                string _table = string.Empty;
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                    _connectionString.DataSource = Global.database;
+                _connectionString.DataSource = Global.database;
                 _connectionString.Password = null;
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
@@ -55,16 +45,16 @@ public class Utils
 
                 switch (table)
                 {
-                    case (SQLTable.ca):
+                    case (certType.ca):
                         _table = "ca";
                         break;
-                    case (SQLTable.intermediate):
+                    case (certType.intermediate):
                         _table = "intermediate";
                         break;
-                    case (SQLTable.server):
+                    case (certType.server):
                         _table = "server";
                         break;
-                    case (SQLTable.user):
+                    case (certType.user):
                         _table = "user";
                         break;
                 }
@@ -106,7 +96,7 @@ public class Utils
         {
             try
             {
-                string _table = "";
+                string _table = string.Empty;
 
                 var _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
@@ -151,14 +141,14 @@ public class Utils
             }
 
         }
-   
+
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
         /// <param name="column">Which column should be searched for</param>
         /// <param name="table">Defines the table inside the database</param>
         /// <returns>Result<List<string>></returns>
-        public static List<string> SqlSelect(string column, SQLTable table)
+        public static List<string> SqlSelect(string column, certType table)
         {
 
             SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
@@ -207,14 +197,14 @@ public class Utils
                         columns.Add(reader.GetString("isCa"));
                         columns.Add(reader.GetString("not_pathlen"));
                         columns.Add(reader.GetString("depth"));
-                        columns.Add(reader.GetString("canIssue"));
+                        columns.Add(reader.GetString("critical"));
                     }
                 }
                 return columns;
             }
             else
             {
-                MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+                MessageBox.Show("No Server found", string.Empty, MessageBoxButtons.OK);
                 return null;
             }
         }
@@ -263,13 +253,13 @@ public class Utils
                     columns.Add(reader["isCa"]);
                     columns.Add(reader["not_pathlen"]);
                     columns.Add(reader["depth"]);
-                    columns.Add(reader["canIssue"]);
+                    columns.Add(reader["critical"]);
                 }
                 return columns;
             }
             else
             {
-                MessageBox.Show("No Server found", "", MessageBoxButtons.OK);
+                MessageBox.Show("No Server found", string.Empty, MessageBoxButtons.OK);
                 return null;
             }
         }
@@ -282,7 +272,7 @@ public class Utils
         /// <param name="searchColumn">In which column should be searched</param>
         /// <param name="searchValue">The Value that should be searched for in the searchColumn</param>
         /// <returns>Returns the string if found</returns>
-        public static byte[] SelectWhereByte(string column, SQLTable table, string searchColumn, string searchValue)
+        public static byte[] SelectWhereByte(string column, certType table, string searchColumn, string searchValue)
         {
             try
             {
@@ -331,7 +321,87 @@ public class Utils
             }
 
         }
-        public static string SelectWhereString(SQLTable table,string column, string searchColumn, string searchValue)
+        public static string SelectWhereString(certType table, string resultColumn, string searchColumn, string searchValue)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                var sql = $"SELECT {resultColumn} FROM {table} WHERE {searchColumn}=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                using var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    string readString = string.Empty;
+                    while (reader.Read())
+                    {
+                        readString = reader.GetString(0);
+
+                    }
+                    connection.Close();
+                    return readString;
+                }
+                else
+                {
+                    connection.Close();
+                    return sql;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return ex.Message;
+            }
+
+        }
+        public static string SelectBasicConstraints(certType table, string resultColumn, string searchColumn, string searchValue)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                var sql = $"SELECT {resultColumn} FROM {table} WHERE {searchColumn}=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", searchValue);
+                using var reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    string readString = string.Empty;
+                    while (reader.Read())
+                    {
+                        readString = reader.GetString(0);
+
+                    }
+                    connection.Close();
+                    return readString;
+                }
+                else
+                {
+                    connection.Close();
+                    return sql;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return ex.Message;
+            }
+
+        }
+        public static byte[] SelectSsCert(certType table, string column, string searchColumn, string searchValue)
         {
             try
             {
@@ -346,31 +416,29 @@ public class Utils
                 using var command = new SqliteCommand(sql, connection);
 
                 command.Parameters.AddWithValue("@_searchValue", searchValue);
-                using var reader = command.ExecuteReader();
-                if (reader.HasRows)
-                {
-                    string readString = "";
-                    while (reader.Read())
-                    {
-                        readString = reader.GetString(0);
 
-                    }
-                    return readString;
-                }
-                else
+                using (SqliteDataReader reader = command.ExecuteReader())
                 {
-                    return sql;
+                    if (reader.Read())
+                    {
+                        // `byte_column` auslesen
+                        byte[] byteArray = (byte[])reader["ss_cert"];
+
+                        return byteArray;
+                    }
                 }
+                return null;
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return ex.Message;
+                return null;
             }
 
         }
 
-        public static List<object> SelectWhereObject(SQLTable table, string[] column1,  string searchColumn, string searchValue)
+        public static List<object> SelectWhereObject(certType table, string[] column1, string searchColumn, string searchValue)
         {
             try
             {
@@ -413,7 +481,7 @@ public class Utils
             }
 
         }
-        public static Result<List<object>> SelectWhereObject(string[] column1,SQLTable table,  string searchColumn, string searchValue)
+        public static Result<List<object>> SelectWhereObject(string[] column1, certType table, string searchColumn, string searchValue)
         {
             try
             {
@@ -508,14 +576,14 @@ public class Utils
         //        return Result.Fail(ex.Message);
         //    }
         //}
-        public static Result<int> Update(SQLTable table, byte[] privateKey, byte[] publicKey, string searchTerm, string subj_country, string subj_state, string subj_location,
-                string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email, bool isCa, bool pathLen, int depth, bool canIssue, bool updateTimePub)
+        public static Result<int> Update(certType table, byte[] privateKey, byte[] publicKey, string searchTerm, string subj_country, string subj_state, string subj_location,
+                string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email, bool isCa, bool pathLen, int depth, bool critical, bool updateTimePub)
         {
             try
             {
                 int iIsCa = Convert.ToInt16(isCa);
                 int ipathLen = Convert.ToInt16(pathLen);
-                int iCanIssue = Convert.ToInt16(canIssue);
+                int icritical = Convert.ToInt16(critical);
                 string sql;
 
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
@@ -528,12 +596,12 @@ public class Utils
                 if (!updateTimePub)
                 {
                     sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email, isCa = @_isCa" +
-                    $", not_pathlen = @_pathLen, depth = @_depth, canIssue = @_ICanIssue WHERE name = @_searchTerm";
+                    $", not_pathlen = @_pathLen, depth = @_depth, critical = @_Icritical WHERE name = @_searchTerm";
                 }
                 else
                 {
                     sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email, isCa = @_isCa" +
-                    $", not_pathlen = @_pathLen, depth = @_depth, canIssue = @_ICanIssue, public_createDT = @_public_createDT WHERE name = @_searchTerm";
+                    $", not_pathlen = @_pathLen, depth = @_depth, critical = @_Icritical, public_createDT = @_public_createDT WHERE name = @_searchTerm";
                 }
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_subj_country", subj_country);
@@ -546,7 +614,7 @@ public class Utils
                 command.Parameters.AddWithValue("@_isCa", iIsCa);
                 command.Parameters.AddWithValue("@_pathLen", ipathLen);
                 command.Parameters.AddWithValue("@_depth", depth);
-                command.Parameters.AddWithValue("@_ICanIssue", iCanIssue);
+                command.Parameters.AddWithValue("@_Icritical", icritical);
                 if (updateTimePub)
                 {
                     command.Parameters.AddWithValue("@_public_createDT", DateTime.Now.ToString());
@@ -561,7 +629,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static int Update(SQLTable table, string publicKey, string searchTerm, string searchColumn)
+        public static int Update(certType table, string publicKey, string searchTerm, string searchColumn)
         {
             try
             {
@@ -591,7 +659,7 @@ public class Utils
 
             }
         }
-        public static Result<int> Update(SQLTable table, string searchTerm, string subj_country, string subj_state, string subj_location,
+        public static Result<int> Update(certType table, string searchTerm, string subj_country, string subj_state, string subj_location,
                                          string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email)
         {
             try
@@ -604,21 +672,21 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string sql = "";
-                if (table == SQLTable.ca)
-                {
-                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
+                //string sql = "";
+                //if (table == SQLTable.ca)
+                //{
+                string sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
 
-                }
-                else if (table == SQLTable.intermediate)
-                {
-                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
+                //}
+                //else if (table == SQLTable.intermediate)
+                //{
+                //    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
 
-                }
-                else
-                {
-                    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
-                }
+                //}
+                //else
+                //{
+                //    sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
+                //}
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_subj_country", subj_country);
@@ -638,7 +706,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(SQLTable table, string searchTerm, bool isCa, bool noPaLen, int depth, bool canIssue)
+        public static int UpdateBasicConstraints(certType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
         {
             try
             {
@@ -649,27 +717,26 @@ public class Utils
                 string connectionString = _connectionString.ToString();
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
-                string sql = $"UPDATE {table} SET isCa = @_isCa, not_pathlen = @_not_pathLen, depth = @_depth, canIssue = @_canIssue WHERE name = @_searchTerm";
+                string sql = $"UPDATE {table} SET isCa = @_isCa, not_pathlen = @_not_pathLen, depth = @_depth, critical = @_critical WHERE name = @_searchTerm";
                 using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_isCa", isCa);
-                command.Parameters.AddWithValue("@_not_pathLen", noPaLen);
+                command.Parameters.AddWithValue("@_isCa", Convert.ToString(isCa));
+                command.Parameters.AddWithValue("@_not_pathLen", Convert.ToString(noPaLen));
                 command.Parameters.AddWithValue("@_depth", depth);
-                command.Parameters.AddWithValue("@_canIssue", canIssue);
+                command.Parameters.AddWithValue("@_critical", Convert.ToString(critical));
 
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
 
                 int rowInserted = command.ExecuteNonQuery();
-                return Result.Ok(rowInserted);
+                return rowInserted;
             }
 
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-                return Result.Fail(ex.Message);
+                return 0;
             }
         }
-
-        public static int Update(SQLTable table, string searchTerm, byte[] selfSignedCert, int duration)
+        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration)
         {
             try
             {
@@ -689,6 +756,39 @@ public class Utils
                 command.Parameters.AddWithValue("@_ss_duration", duration);
 
                 int rowInserted = command.ExecuteNonQuery();
+                connection.Close();
+                return rowInserted;
+
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
+        }
+        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int idSignedCa, int duration, int serialNumber)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert, signed_against = @_signed_against, signed_createDT = @_signed_createDT, ss_createDT = @_ss_createDT, ss_duration = @_ss_duration, serialNumber = @_serialNumber WHERE name = @_searchTerm";
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_signed_against", idSignedCa); 
+                command.Parameters.AddWithValue("@_signed_createDT", Convert.ToString(DateTime.Now));
+                command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
+                command.Parameters.AddWithValue("@_ss_createDT", Convert.ToString(DateTime.Now));
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+                command.Parameters.AddWithValue("@_ss_duration", duration); //serialNumber
+                command.Parameters.AddWithValue("@_serialNumber", serialNumber);
+
+                int rowInserted = command.ExecuteNonQuery();
+                connection.Close();
                 return rowInserted;
 
             }
@@ -732,6 +832,8 @@ public class Utils
     {
         private readonly bool writeFile = true;
         private readonly string privateKeyPath = "privateKey.pem";
+        private readonly string[] basicConstraint = []; //bool certificateAuthority, bool hasPathLengthConstraint, int pathLengthConstraint, bool critical);
+
 
         public static string ConvertToPem(byte[] keyBytes, string header)
         {
@@ -785,7 +887,7 @@ public class Utils
                 string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
                 return privateKeyPem;
             }
-            
+
         }
 
         /// <summary>
@@ -838,8 +940,8 @@ public class Utils
         }
         public static X509Certificate2 CreateSelfSigned4(string privateKeyPath, string serverName, string[] fqdn, string pfxPath, string password, int duration)
         {
-            
-            List<object> fqdnRes = Sql.SelectWhereObject(SQLTable.ca, fqdn, "name", serverName);
+
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, fqdn, "name", serverName);
             X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             using (RSA rsa = RSA.Create())
@@ -849,8 +951,7 @@ public class Utils
                 var request = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                 // Erweiterungen für eine CA hinzufügen
                 request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true)); // CA: true, keine Pfadlänge
-                request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
-                    true)); // Signatur- und CRL-Rechte
+                request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.CrlSign, true)); // Signatur- und CRL-Rechte
                 request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
 
                 var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(duration));
@@ -861,9 +962,155 @@ public class Utils
                 return certificate;
             }
         }
-        public static X509Certificate2 CreateInterCertificate(string interName, string intPrivateKey, string[] fqdn, string caCertPath, string caPassword, int duration)
+        public static X509Certificate2 CreateSelfSigned4(string privateKeyPath, string serverName, X500DistinguishedName distinguishedName, string pfxPath, string password, int duration)
         {
-            List<object> fqdnRes = Sql.SelectWhereObject(SQLTable.intermediate, fqdn, "name", interName);
+
+            //List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, fqdn, "name", serverName);
+            //X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(privateKeyPath);
+                // Zertifikatsanfrage erstellen
+                var request = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                // Erweiterungen für eine CA hinzufügen
+                request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true)); // CA: true, keine Pfadlänge
+                request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.CrlSign, true)); // Signatur- und CRL-Rechte
+                request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+
+                var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(duration));
+
+                byte[] selfSignedCert = certificate.Export(X509ContentType.Pfx, password);
+                Console.WriteLine($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                MessageBox.Show($"Self-signed Zertifikat in {pfxPath} gespeichert.");
+                return certificate;
+            }
+        }
+
+        public static X509Certificate2 CreateInterCertificate(
+            string interName,
+            string intPrivateKey,
+            string[] fqdn,
+            string caCertPath,
+            string caPassword,
+            int duration)
+        {
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.intermediate, fqdn, "name", interName);
+            X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+
+            int serialnumber = 1;
+            byte[] serialNumber = { Convert.ToByte(serialnumber) };
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(intPrivateKey);
+
+                var intermediateRequest = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+
+                intermediateRequest.CertificateExtensions
+                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+
+                var caCertificate = new X509Certificate2(caCertPath, caPassword, X509KeyStorageFlags.Exportable);
+                // Ensure the CA certificate has a Basic Constraints extension
+                if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                {
+                    throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                }
+                var signedCertificate = intermediateRequest.Create(caCertificate, DateTimeOffset.Now, DateTimeOffset.Now
+                    .AddMonths(duration), serialNumber);
+                X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+
+                return signedCertificateWithKey;
+            }
+        }
+        public static X509Certificate2 CreateInterCertificate2(string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, int requesterSerialNumber, certType certType)
+        {
+            byte[] sN = { Convert.ToByte(requesterSerialNumber) };
+            X509Certificate2 caCertificate;
+            CertificateRequest intermediateRequest;
+            X509Certificate2 signedCertificate;
+
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(requestPrivKey);
+
+                intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                if (certType == certType.ca )
+                {
+                    //intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                    intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                    intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
+                    //intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.CrlSign, true));
+                    intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+                }
+                else if(certType == certType.intermediate)
+                {
+                    //intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                    intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                    intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+                }
+                else if (certType == certType.server)
+                {
+                    intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                    intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                    intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
+                }
+                else if (certType == certType.user)
+                {
+                    intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true)); 
+                    intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                    intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
+                }
+                if (certType == certType.ca)
+                {
+                    signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration));
+                    return signedCertificate;
+                }
+                else { 
+                    caCertificate = new X509Certificate2(issuerCert, issuerPasswd, X509KeyStorageFlags.Exportable);
+                    signedCertificate = intermediateRequest.Create(caCertificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
+                    if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                    {
+                        throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                    }
+                    X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+                    return signedCertificateWithKey;
+                }
+            }
+        }
+        public static X509Certificate2 CreateServerCertificate(string serverName, string intPrivateKey, string[] fqdn, byte[] intCertPath, string intPassword, int duration)
+        {
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.server, fqdn, "name", serverName);
+            X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+
+            int serialnumber = 1;
+            byte[] serialNumber = { Convert.ToByte(serialnumber) };
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportFromPem(intPrivateKey);
+
+                var serverRequest = new CertificateRequest(destName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                serverRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+                serverRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                serverRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, true));
+
+                var intCertificate = new X509Certificate2(intCertPath, intPassword, X509KeyStorageFlags.Exportable);
+                // Ensure the CA certificate has a Basic Constraints extension
+                if (!intCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                {
+                    throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                }
+                var signedCertificate = serverRequest.Create(intCertificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(duration), serialNumber);
+                X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+
+                return signedCertificateWithKey;
+            }
+        }
+
+
+        public static X509Certificate2 CreateServerCertificate(string serverName, string intPrivateKey, string[] fqdn, string certPath, string password, int duration)
+        {
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.server, fqdn, "name", serverName);
             X500DistinguishedName destName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             int serialnumber = 1;
@@ -876,7 +1123,7 @@ public class Utils
                 intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
                 intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
 
-                var caCertificate = new X509Certificate2(caCertPath, caPassword, X509KeyStorageFlags.Exportable);
+                var caCertificate = new X509Certificate2(certPath, password, X509KeyStorageFlags.Exportable);
                 // Ensure the CA certificate has a Basic Constraints extension
                 if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
                 {
@@ -888,7 +1135,7 @@ public class Utils
                 return signedCertificateWithKey;
             }
         }
-        public static X509Certificate2Collection ChainCaIntCerts(X509Certificate2 signedInterCert , X509Certificate2 signedCaCert)
+        public static X509Certificate2Collection ChainCaIntCerts(X509Certificate2 signedInterCert, X509Certificate2 signedCaCert)
         {
             X509Certificate2Collection chain = new X509Certificate2Collection();
             chain.Add(signedInterCert);
@@ -905,14 +1152,14 @@ public class Utils
         /// <param name="privKey">The privatekey as byte[]</param>
         /// <param name="subjects">Distingused name as string</param>
         /// <param name="pubKey">The publickey as byte[]</param>
-        public static Result<X509Certificate2> CreateSSCert(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<X509Certificate2> CreateSSCert(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool critical, int duration, int serialnumber)
         {
             try
             {
                 using (RSA rsa = RSA.Create())
                 {
                     rsa.ImportFromPem(privKey);
-                    
+
                     var request = new CertificateRequest(subject, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                     request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, not_pathlen, depth, true));
                     request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign | X509KeyUsageFlags.DigitalSignature, true)); // Signatur- und CRL rights
@@ -943,7 +1190,7 @@ public class Utils
                 return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
-        public static Result<byte[]> CreateSSCertb(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<byte[]> CreateSSCertb(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool critical, int duration, int serialnumber)
         {
             try
             {
@@ -970,9 +1217,9 @@ public class Utils
                         serialNumber);
 
                     X509Certificate2 certificatex = request.CreateSelfSigned(notBefore, notAfter);
-                    
+
                     //byte[] export = certificate.Export(X509ContentType.Cert);
-                    byte[] export= certificate.Export(X509ContentType.Pfx, "test");
+                    byte[] export = certificate.Export(X509ContentType.Pfx, "test");
 
                     return Result.Ok(export);
 
@@ -984,7 +1231,7 @@ public class Utils
             }
         }
 
-        public static Result<X509Certificate2> CreateSSCert2(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<X509Certificate2> CreateSSCert2(SQLTable table, int keySize, X500DistinguishedName subject, byte[] privKey, byte[] pubKey, bool isCa, bool not_pathlen, int depth, bool critical, int duration, int serialnumber)
         {
             try
             {
@@ -1026,7 +1273,7 @@ public class Utils
                 return Result.Fail($"Fehler test: {ex}").WithError("Test");
             }
         }
-        public static Result<byte[]> CreateSSCert2b(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<byte[]> CreateSSCert2b(SQLTable table, X500DistinguishedName subject, string privKey, string pubKey, bool isCa, bool not_pathlen, int depth, bool critical, int duration, int serialnumber)
         {
             try
             {
@@ -1069,7 +1316,7 @@ public class Utils
             }
         }
 
-        public static Result<byte[]> CreateCaSignCert(SQLTable table, X509Certificate2 caCert, int keySize, X500DistinguishedName subject, bool isCa, bool not_pathlen, int depth, bool canIssue, int duration, int serialnumber)
+        public static Result<byte[]> CreateCaSignCert(SQLTable table, X509Certificate2 caCert, int keySize, X500DistinguishedName subject, bool isCa, bool not_pathlen, int depth, bool critical, int duration, int serialnumber)
         {
             try
             {
@@ -1165,6 +1412,14 @@ public class Utils
     }
     public class Tools
     {
+        public enum certType
+        {
+            ca,
+            intermediate,
+            server,
+            user
+        }
+
         public static List<string> ObjectToString(List<object> obj)
         {
             List<string> list = new List<string>();
