@@ -66,6 +66,9 @@ public partial class Server : Form
         ReadServers(lb_ca_certs, certType.ca);
         lb_ca_certs.Sorted = true;
 
+
+
+
         lbl_int_name.Visible = false;
         tb_int_name.Visible = false;
         lb_int_certs.Items.Clear();
@@ -232,13 +235,13 @@ public partial class Server : Form
     {
         try
         {
-            string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-            string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", serverName);
+            string caName = Convert.ToString(lb_ca_certs.SelectedItem);
+            string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", caName);
 
             string publicKeyPem = Utils.Certs.CreatePubKey3(c_privateKeyPath);
-            int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, serverName, "name");
+            int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, caName, "name");
 
-            File.WriteAllText("ca_" + serverName + "_pub.pem", publicKeyPem);
+            File.WriteAllText("ca_" + caName + "_pub.pem", publicKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
         }
@@ -256,7 +259,7 @@ public partial class Server : Form
         {
             string caName = Convert.ToString(lb_ca_certs.SelectedItem);
             int duration = Convert.ToInt32(tb_ca_dura.Text);
-            
+
             string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", caName);
             int c_privateKeySn = Convert.ToInt32(Utils.Sql.SelectWhereString(certType.ca, "serialNumber", "name", caName));
             c_privateKeySn++;
@@ -269,7 +272,6 @@ public partial class Server : Form
 
             //generate self Signed cert
             //X509Certificate2 selfSignedCert = Utils.Certs.CreateSelfSigned4(c_privateKeyPath, caName, distinguishedName, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx, duration);
-
             if (writeFile)
             {
                 //generate from file
@@ -280,7 +282,7 @@ public partial class Server : Form
             }
             byte[] ssCert = interCertSql.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
             //write signed certificate to sql database
-            Utils.Sql.UpdateSelfSigned(certType.ca, caName, ssCert, duration);
+            Utils.Sql.UpdateSelfSigned(certType.ca, caName, ssCert, duration, c_privateKeySn);
 
             if (certVerify)
             {
@@ -315,6 +317,15 @@ public partial class Server : Form
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString()); }
+    }
+    private void Bt_reCreate_ca_selfSigned_key_Click(object sender, EventArgs e)
+    {
+        string caName = Convert.ToString(lb_ca_certs.SelectedItem);
+        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", caName);
+        var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+
+        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
+        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
     }
     #endregion
 
@@ -486,7 +497,7 @@ public partial class Server : Form
 
             //generate from SQL
             X509Certificate2 serverCertSql = Utils.Certs.CreateInterCertificate2(s_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, s_privateKeySn, certType.server);
-            
+
 
             if (writeFile)
             {
@@ -731,8 +742,9 @@ public partial class Server : Form
                 serverSelect = Convert.ToString(lb_user_certs.SelectedItem);
             }
             else
+            {
                 throw new Exception("Fehler");
-
+            }
 
 
 
@@ -747,6 +759,8 @@ public partial class Server : Form
             tb_sub_ou.Text = list[4];
             tb_sub_cn.Text = list[5];
             tb_sub_email.Text = list[6];
+            tb_ca_sn.Text = Utils.Sql.SelectWhereString(certType.ca, "serialNumber", "name", serverSelect);
+
 
 
         }

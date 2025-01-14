@@ -736,7 +736,7 @@ public class Utils
                 return 0;
             }
         }
-        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration)
+        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
         {
             try
             {
@@ -748,12 +748,13 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert, ss_createDT = @_ss_createDT, ss_duration = @_ss_duration WHERE name = @_searchTerm";
+                string sql = $"UPDATE {table} SET ss_cert = @_ss_cert, ss_createDT = @_ss_createDT, ss_duration = @_ss_duration, serialNumber = @_serialNumber WHERE name = @_searchTerm";
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
                 command.Parameters.AddWithValue("@_ss_createDT", Convert.ToString(DateTime.Now));
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
                 command.Parameters.AddWithValue("@_ss_duration", duration);
+                command.Parameters.AddWithValue("@_serialNumber", serialNumber);
 
                 int rowInserted = command.ExecuteNonQuery();
                 connection.Close();
@@ -784,7 +785,7 @@ public class Utils
                 command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
                 command.Parameters.AddWithValue("@_ss_createDT", Convert.ToString(DateTime.Now));
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
-                command.Parameters.AddWithValue("@_ss_duration", duration); //serialNumber
+                command.Parameters.AddWithValue("@_ss_duration", duration); 
                 command.Parameters.AddWithValue("@_serialNumber", serialNumber);
 
                 int rowInserted = command.ExecuteNonQuery();
