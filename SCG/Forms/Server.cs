@@ -208,7 +208,7 @@ public partial class Server : Form
             int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
             string serverName = tb_ca_name.Text;
             //generate privatekey
-            string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, serverName);
+            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, serverName);
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.ca, serverName, privateKeyPem, keySize);
             //write to file
@@ -238,7 +238,7 @@ public partial class Server : Form
             string caName = Convert.ToString(lb_ca_certs.SelectedItem);
             string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", caName);
 
-            string publicKeyPem = Utils.Certs.CreatePubKey3(c_privateKeyPath);
+            string publicKeyPem = Utils.Certs.GeneratePublicKey(c_privateKeyPath);
             int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, caName, "name");
 
             File.WriteAllText("ca_" + caName + "_pub.pem", publicKeyPem);
@@ -267,15 +267,10 @@ public partial class Server : Form
             //generate destName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, fqdn, "name", caName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca); 
 
-            X509Certificate2 interCertSql = Utils.Certs.CreateInterCertificate2(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca);
-
-            //generate self Signed cert
-            //X509Certificate2 selfSignedCert = Utils.Certs.CreateSelfSigned4(c_privateKeyPath, caName, distinguishedName, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx, duration);
             if (writeFile)
             {
-                //generate from file
-                //X509Certificate2 interCert = Utils.Certs.CreateInterCertificate(interName, i_privateKeyPath, fqdn, caSsCertFile, caPassword, duration);
                 //write signed certificate to file
                 File.WriteAllBytes("ca_" + caName + "_ss.pfx", interCertSql.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("ca_" + caName + "_ss.cer", interCertSql.Export(X509ContentType.Cert));//includes only public
@@ -288,32 +283,12 @@ public partial class Server : Form
             {
                 // load selfsigned certificate from database to verify the content
                 byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", caName);
-                //byte[] ssSertFromSql = Utils.Sql.SelectWhereByte("ss_cert", SQLTable.intermediate, "name", serverName);
                 var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                checkPrivKey(sqlSelfSigned);
+                CheckPrivateKey(sqlSelfSigned);
             }
             //information message
             Console.WriteLine($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
             MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
-
-            //X509Certificate2 selfSignedCert = Utils.Certs.CreateSelfSigned4(c_privateKeyPath, caName, fqdn, c_selfsignedKeyPathPfx, c_selfsignedPasswordPfx, duration);
-            //export to pfx
-            //byte[] ssCert = selfSignedCert.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
-            //write to sql database
-            //Utils.Sql.UpdateSelfSigned(certType.ca, caName, ssCert, duration);
-
-            //if (writeFile)
-            //{
-            //    File.WriteAllBytes("ca_" + caName + "_ss.pfx", ssCert);
-            //}
-            ////verify if private key is present
-            //if (certVerify)
-            //{
-            //    // load selfsigned certificate from database to verify the content
-            //    byte[] ssSertFromSql = Utils.Sql.SelectWhereByte("ss_cert", certType.ca, "name", caName);
-            //    var sqlSelfSigned = new X509Certificate2(ssSertFromSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-            //    checkPrivKey(sqlSelfSigned);
-            //}
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString()); }
@@ -337,7 +312,7 @@ public partial class Server : Form
             int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
             string interName = tb_int_name.Text;
             //generate privatekey
-            string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, interName);
+            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, interName);
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.intermediate, interName, privateKeyPem, keySize);
             //write to file
@@ -363,7 +338,7 @@ public partial class Server : Form
         //read private key
         string i_privateKeyPath = Utils.Sql.SelectWhereString(certType.intermediate, "private_key", "name", interName);
         //generate public key with passed private key
-        string publicKeyPem = Utils.Certs.CreatePubKey3(i_privateKeyPath);
+        string publicKeyPem = Utils.Certs.GeneratePublicKey(i_privateKeyPath);
         //write to sql
         int insertRow = Utils.Sql.Update(certType.intermediate, publicKeyPem, interName, "name");
         //write to file
@@ -402,12 +377,10 @@ public partial class Server : Form
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             //generate from SQL
-            X509Certificate2 interCertSql = Utils.Certs.CreateInterCertificate2(i_privateKeyPath, distinguishedName, caSsCertSql, caPassword, duration, i_privateKeySn, certType.intermediate);
+            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(i_privateKeyPath, distinguishedName, caSsCertSql, caPassword, duration, i_privateKeySn, certType.intermediate);
 
             if (writeFile)
             {
-                //generate from file
-                //X509Certificate2 interCert = Utils.Certs.CreateInterCertificate(interName, i_privateKeyPath, fqdn, caSsCertFile, caPassword, duration);
                 //write signed certificate to file
                 File.WriteAllBytes("ci_" + interName + "_ss.pfx", interCertSql.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("ci_" + interName + "_ss.cer", interCertSql.Export(X509ContentType.Cert));//includes only public
@@ -419,9 +392,8 @@ public partial class Server : Form
             {
                 // load selfsigned certificate from database to verify the content
                 byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.intermediate, "ss_cert", "name", interName);
-                //byte[] ssSertFromSql = Utils.Sql.SelectWhereByte("ss_cert", SQLTable.intermediate, "name", serverName);
                 var sqlSelfSigned = new X509Certificate2(intSsCertSql, i_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                checkPrivKey(sqlSelfSigned);
+                CheckPrivateKey(sqlSelfSigned);
             }
 
             //information message
@@ -441,7 +413,7 @@ public partial class Server : Form
         int keySize = Convert.ToInt32(cb_server_keySize.SelectedItem);
         string serverName = tb_server_name.Text;
         //generate privatekey
-        string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, serverName);
+        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, serverName);
         //write to sql
         int insertRow = Utils.Sql.InsertInto(certType.server, serverName, privateKeyPem, keySize);
         if (writeFile)
@@ -462,7 +434,7 @@ public partial class Server : Form
         //read private key
         string s_privateKeyPath = Utils.Sql.SelectWhereString(certType.server, "private_key", "name", serverName);
         //generate public key with passed private key
-        string publicKeyPem = Utils.Certs.CreatePubKey3(s_privateKeyPath);
+        string publicKeyPem = Utils.Certs.GeneratePublicKey(s_privateKeyPath);
         //write to sql
         int insertRow = Utils.Sql.Update(certType.server, publicKeyPem, serverName, "name");
         //write to file
@@ -496,13 +468,11 @@ public partial class Server : Form
             s_privateKeySn++;
 
             //generate from SQL
-            X509Certificate2 serverCertSql = Utils.Certs.CreateInterCertificate2(s_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, s_privateKeySn, certType.server);
+            X509Certificate2 serverCertSql = Utils.Certs.CreateCertificate(s_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, s_privateKeySn, certType.server);
 
 
             if (writeFile)
             {
-                //generate from file
-                //X509Certificate2 interCert = Utils.Certs.CreateInterCertificate(interName, i_privateKeyPath, fqdn, caSsCertFile, caPassword, duration);
                 //write signed certificate to file
                 File.WriteAllBytes("cs_" + serverName + "_ss.pfx", serverCertSql.Export(X509ContentType.Pfx, s_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("cs_" + serverName + "_ss.cer", serverCertSql.Export(X509ContentType.Cert));//includes only public
@@ -513,9 +483,8 @@ public partial class Server : Form
             {
                 // load selfsigned certificate from database to verify the content
                 byte[] servSsCertSql = Utils.Sql.SelectSsCert(certType.server, "ss_cert", "name", serverName);
-                //byte[] ssSertFromSql = Utils.Sql.SelectWhereByte("ss_cert", SQLTable.intermediate, "name", serverName);
                 var sqlSelfSigned = new X509Certificate2(servSsCertSql, s_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                checkPrivKey(sqlSelfSigned);
+                CheckPrivateKey(sqlSelfSigned);
             }
             //information message
             Console.WriteLine($"Intermediate-Zertifikat in \"cs_\" + serverName + \"_ss.pfx\" gespeichert.");
@@ -534,7 +503,7 @@ public partial class Server : Form
         int keySize = Convert.ToInt32(cb_user_keySize.SelectedItem);
         string userName = tb_user_name.Text;
         //generate privatekey
-        string privateKeyPem = Utils.Certs.CreatePrivateKey3(keySize, userName);
+        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, userName);
         //write to sql
         int insertRow = Utils.Sql.InsertInto(certType.user, userName, privateKeyPem, keySize);
         if (writeFile)
@@ -555,7 +524,7 @@ public partial class Server : Form
         //read private key
         string s_privateKeyPath = Utils.Sql.SelectWhereString(certType.user, "private_key", "name", userName);
         //generate public key with passed private key
-        string publicKeyPem = Utils.Certs.CreatePubKey3(s_privateKeyPath);
+        string publicKeyPem = Utils.Certs.GeneratePublicKey(s_privateKeyPath);
         //write to sql
         int insertRow = Utils.Sql.Update(certType.user, publicKeyPem, userName, "name");
         //write to file
@@ -591,12 +560,10 @@ public partial class Server : Form
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             //generate from SQL
-            X509Certificate2 userCertSql = Utils.Certs.CreateInterCertificate2(u_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, u_privateKeySn, certType.user);
+            X509Certificate2 userCertSql = Utils.Certs.CreateCertificate(u_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, u_privateKeySn, certType.user);
 
             if (writeFile)
             {
-                //generate from file
-                //X509Certificate2 interCert = Utils.Certs.CreateInterCertificate(interName, i_privateKeyPath, fqdn, caSsCertFile, caPassword, duration);
                 //write signed certificate to file
                 File.WriteAllBytes("cu_" + userName + "_ss.pfx", userCertSql.Export(X509ContentType.Pfx, u_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("cu_" + userName + "_ss.cer", userCertSql.Export(X509ContentType.Cert));//includes only public
@@ -607,9 +574,8 @@ public partial class Server : Form
             {
                 // load selfsigned certificate from database to verify the content
                 byte[] userSsCertSql = Utils.Sql.SelectSsCert(certType.user, "ss_cert", "name", userName);
-                //byte[] ssSertFromSql = Utils.Sql.SelectWhereByte("ss_cert", SQLTable.intermediate, "name", userName);
                 var sqlSelfSigned = new X509Certificate2(userSsCertSql, u_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                checkPrivKey(sqlSelfSigned);
+                CheckPrivateKey(sqlSelfSigned);
             }
             //information message
             Console.WriteLine($"Intermediate-Zertifikat in \"cu_\" + userName + \"_ss.pfx\" gespeichert.");
@@ -627,7 +593,6 @@ public partial class Server : Form
     {
         using (RSA rsa = RSA.Create(2048))
         {
-            //string privateKeyPem = ConvertToPem(rsa.ExportRSAPrivateKey(), "RSA PRIVATE KEY");
             string privateKeyPem = rsa.ExportRSAPrivateKeyPem();
             File.WriteAllText(filePath, privateKeyPem);
             Console.WriteLine($"Private Key in {filePath} gespeichert.");
@@ -643,7 +608,6 @@ public partial class Server : Form
             rsa.ImportFromPem(privateKeyPem);
             string publicKeyPem = rsa.ExportRSAPublicKeyPem();
 
-            //string publicKeyPem = ConvertToPem(rsa.ExportRSAPublicKey(), "PUBLIC KEY");
             File.WriteAllText(publicKeyPath, publicKeyPem);
             Console.WriteLine($"Public Key in {publicKeyPath} gespeichert.");
             MessageBox.Show($"Public Key in {publicKeyPath} gespeichert.");

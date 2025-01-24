@@ -939,6 +939,7 @@ partial class Server
         textBox1.Enabled = false;
         textBox1.Location = new Point(312, 423);
         textBox1.Name = "textBox1";
+        textBox1.ReadOnly = true;
         textBox1.Size = new Size(75, 23);
         textBox1.TabIndex = 76;
         // 
@@ -947,6 +948,7 @@ partial class Server
         textBox2.Enabled = false;
         textBox2.Location = new Point(502, 421);
         textBox2.Name = "textBox2";
+        textBox2.ReadOnly = true;
         textBox2.Size = new Size(74, 23);
         textBox2.TabIndex = 77;
         // 
@@ -955,6 +957,7 @@ partial class Server
         textBox3.Enabled = false;
         textBox3.Location = new Point(685, 426);
         textBox3.Name = "textBox3";
+        textBox3.ReadOnly = true;
         textBox3.Size = new Size(75, 23);
         textBox3.TabIndex = 78;
         // 
