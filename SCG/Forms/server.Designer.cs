@@ -115,6 +115,19 @@ partial class Server
         textBox2 = new TextBox();
         textBox3 = new TextBox();
         Bt_reCreate_ca_selfSigned_key = new Button();
+        button1 = new Button();
+        button2 = new Button();
+        button3 = new Button();
+        button4 = new Button();
+        treeView1 = new TreeView();
+        Bt_ca_uploadCert = new Button();
+        Tb_cert_filename = new TextBox();
+        Lbl_ca_filename_cert = new Label();
+        Lbl_ca_fileExtension_Priv = new Label();
+        Cb_file_priv_ext = new ComboBox();
+        Lbl_ca_fileExtension_Pub = new Label();
+        Cb_file_pub_ext = new ComboBox();
+        Tb_cert_remote_path = new TextBox();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -413,7 +426,7 @@ partial class Server
         // 
         // Bt_gen_ca_priv
         // 
-        Bt_gen_ca_priv.Location = new Point(85, 208);
+        Bt_gen_ca_priv.Location = new Point(86, 207);
         Bt_gen_ca_priv.Margin = new Padding(2);
         Bt_gen_ca_priv.Name = "Bt_gen_ca_priv";
         Bt_gen_ca_priv.Size = new Size(76, 47);
@@ -638,9 +651,9 @@ partial class Server
         // 
         Bt_read_ca_subj.AccessibleName = "ca";
         Bt_read_ca_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_ca_subj.Location = new Point(86, 312);
+        Bt_read_ca_subj.Location = new Point(85, 312);
         Bt_read_ca_subj.Name = "Bt_read_ca_subj";
-        Bt_read_ca_subj.Size = new Size(75, 51);
+        Bt_read_ca_subj.Size = new Size(96, 21);
         Bt_read_ca_subj.TabIndex = 45;
         Bt_read_ca_subj.Text = "Read Subjects";
         Bt_read_ca_subj.UseVisualStyleBackColor = true;
@@ -652,7 +665,7 @@ partial class Server
         Bt_read_int_subj.AccessibleRole = AccessibleRole.None;
         Bt_read_int_subj.Location = new Point(312, 312);
         Bt_read_int_subj.Name = "Bt_read_int_subj";
-        Bt_read_int_subj.Size = new Size(75, 51);
+        Bt_read_int_subj.Size = new Size(89, 21);
         Bt_read_int_subj.TabIndex = 46;
         Bt_read_int_subj.Text = "Read Subjects";
         Bt_read_int_subj.UseVisualStyleBackColor = true;
@@ -664,7 +677,7 @@ partial class Server
         Bt_read_server_subj.AccessibleRole = AccessibleRole.None;
         Bt_read_server_subj.Location = new Point(502, 313);
         Bt_read_server_subj.Name = "Bt_read_server_subj";
-        Bt_read_server_subj.Size = new Size(75, 51);
+        Bt_read_server_subj.Size = new Size(90, 20);
         Bt_read_server_subj.TabIndex = 58;
         Bt_read_server_subj.Text = "Read Subjects";
         Bt_read_server_subj.UseVisualStyleBackColor = true;
@@ -779,7 +792,7 @@ partial class Server
         Bt_read_user_subj.AccessibleRole = AccessibleRole.None;
         Bt_read_user_subj.Location = new Point(685, 312);
         Bt_read_user_subj.Name = "Bt_read_user_subj";
-        Bt_read_user_subj.Size = new Size(75, 51);
+        Bt_read_user_subj.Size = new Size(99, 21);
         Bt_read_user_subj.TabIndex = 70;
         Bt_read_user_subj.Text = "Read Subjects";
         Bt_read_user_subj.UseVisualStyleBackColor = true;
@@ -971,11 +984,145 @@ partial class Server
         Bt_reCreate_ca_selfSigned_key.UseVisualStyleBackColor = true;
         Bt_reCreate_ca_selfSigned_key.Click += Bt_reCreate_ca_selfSigned_key_Click;
         // 
+        // button1
+        // 
+        button1.AccessibleName = "ca";
+        button1.AccessibleRole = AccessibleRole.None;
+        button1.Location = new Point(85, 339);
+        button1.Name = "button1";
+        button1.Size = new Size(96, 21);
+        button1.TabIndex = 80;
+        button1.Text = "Read Cert Inf";
+        button1.UseVisualStyleBackColor = true;
+        // 
+        // button2
+        // 
+        button2.AccessibleName = "ca";
+        button2.AccessibleRole = AccessibleRole.None;
+        button2.Location = new Point(313, 339);
+        button2.Name = "button2";
+        button2.Size = new Size(88, 21);
+        button2.TabIndex = 81;
+        button2.Text = "Read Cert Inf";
+        button2.UseVisualStyleBackColor = true;
+        // 
+        // button3
+        // 
+        button3.AccessibleName = "ca";
+        button3.AccessibleRole = AccessibleRole.None;
+        button3.Location = new Point(501, 339);
+        button3.Name = "button3";
+        button3.Size = new Size(91, 21);
+        button3.TabIndex = 82;
+        button3.Text = "Read Cert Inf";
+        button3.UseVisualStyleBackColor = true;
+        // 
+        // button4
+        // 
+        button4.AccessibleName = "ca";
+        button4.AccessibleRole = AccessibleRole.None;
+        button4.Location = new Point(685, 339);
+        button4.Name = "button4";
+        button4.Size = new Size(99, 21);
+        button4.TabIndex = 83;
+        button4.Text = "Read Cert Inf";
+        button4.UseVisualStyleBackColor = true;
+        // 
+        // treeView1
+        // 
+        treeView1.Location = new Point(673, 519);
+        treeView1.Name = "treeView1";
+        treeView1.Size = new Size(121, 97);
+        treeView1.TabIndex = 84;
+        treeView1.AfterSelect += treeView1_AfterSelect;
+        // 
+        // Bt_ca_uploadCert
+        // 
+        Bt_ca_uploadCert.Location = new Point(84, 461);
+        Bt_ca_uploadCert.Name = "Bt_ca_uploadCert";
+        Bt_ca_uploadCert.Size = new Size(75, 23);
+        Bt_ca_uploadCert.TabIndex = 85;
+        Bt_ca_uploadCert.Text = "Upload Cert";
+        Bt_ca_uploadCert.UseVisualStyleBackColor = true;
+        Bt_ca_uploadCert.Click += Bt_ca_uploadCert_Click;
+        // 
+        // Tb_cert_filename
+        // 
+        Tb_cert_filename.Location = new Point(85, 617);
+        Tb_cert_filename.Name = "Tb_cert_filename";
+        Tb_cert_filename.Size = new Size(100, 23);
+        Tb_cert_filename.TabIndex = 86;
+        // 
+        // Lbl_ca_filename_cert
+        // 
+        Lbl_ca_filename_cert.AutoSize = true;
+        Lbl_ca_filename_cert.Location = new Point(28, 622);
+        Lbl_ca_filename_cert.Name = "Lbl_ca_filename_cert";
+        Lbl_ca_filename_cert.Size = new Size(55, 15);
+        Lbl_ca_filename_cert.TabIndex = 87;
+        Lbl_ca_filename_cert.Text = "Filename";
+        // 
+        // Lbl_ca_fileExtension_Priv
+        // 
+        Lbl_ca_fileExtension_Priv.AutoSize = true;
+        Lbl_ca_fileExtension_Priv.Location = new Point(13, 649);
+        Lbl_ca_fileExtension_Priv.Name = "Lbl_ca_fileExtension_Priv";
+        Lbl_ca_fileExtension_Priv.Size = new Size(67, 15);
+        Lbl_ca_fileExtension_Priv.TabIndex = 88;
+        Lbl_ca_fileExtension_Priv.Text = "File Ext Priv";
+        // 
+        // Cb_file_priv_ext
+        // 
+        Cb_file_priv_ext.FormattingEnabled = true;
+        Cb_file_priv_ext.Items.AddRange(new object[] { "pfx", "pem", "crt", "cer", "der", "" });
+        Cb_file_priv_ext.Location = new Point(84, 646);
+        Cb_file_priv_ext.Name = "Cb_file_priv_ext";
+        Cb_file_priv_ext.Size = new Size(101, 23);
+        Cb_file_priv_ext.TabIndex = 89;
+        // 
+        // Lbl_ca_fileExtension_Pub
+        // 
+        Lbl_ca_fileExtension_Pub.AutoSize = true;
+        Lbl_ca_fileExtension_Pub.Location = new Point(0, 673);
+        Lbl_ca_fileExtension_Pub.Name = "Lbl_ca_fileExtension_Pub";
+        Lbl_ca_fileExtension_Pub.Size = new Size(80, 15);
+        Lbl_ca_fileExtension_Pub.TabIndex = 90;
+        Lbl_ca_fileExtension_Pub.Text = "File Ext Public";
+        // 
+        // Cb_file_pub_ext
+        // 
+        Cb_file_pub_ext.FormattingEnabled = true;
+        Cb_file_pub_ext.Items.AddRange(new object[] { "cer", "der", "crt" });
+        Cb_file_pub_ext.Location = new Point(84, 673);
+        Cb_file_pub_ext.Name = "Cb_file_pub_ext";
+        Cb_file_pub_ext.Size = new Size(101, 23);
+        Cb_file_pub_ext.TabIndex = 91;
+        // 
+        // Tb_cert_remote_path
+        // 
+        Tb_cert_remote_path.Location = new Point(210, 658);
+        Tb_cert_remote_path.Name = "Tb_cert_remote_path";
+        Tb_cert_remote_path.Size = new Size(100, 23);
+        Tb_cert_remote_path.TabIndex = 92;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(797, 710);
+        Controls.Add(Tb_cert_remote_path);
+        Controls.Add(Cb_file_pub_ext);
+        Controls.Add(Lbl_ca_fileExtension_Pub);
+        Controls.Add(Cb_file_priv_ext);
+        Controls.Add(Lbl_ca_fileExtension_Priv);
+        Controls.Add(Lbl_ca_filename_cert);
+        Controls.Add(Tb_cert_filename);
+        Controls.Add(Bt_ca_uploadCert);
+        Controls.Add(treeView1);
+        Controls.Add(button4);
+        Controls.Add(button3);
+        Controls.Add(button2);
+        Controls.Add(button1);
         Controls.Add(Bt_reCreate_ca_selfSigned_key);
         Controls.Add(textBox3);
         Controls.Add(textBox2);
@@ -1139,4 +1286,17 @@ partial class Server
     private TextBox textBox2;
     private TextBox textBox3;
     private Button Bt_reCreate_ca_selfSigned_key;
+    private Button button1;
+    private Button button2;
+    private Button button3;
+    private Button button4;
+    private TreeView treeView1;
+    private Button Bt_ca_uploadCert;
+    private TextBox Tb_cert_filename;
+    private Label Lbl_ca_filename_cert;
+    private Label Lbl_ca_fileExtension_Priv;
+    private ComboBox Cb_file_priv_ext;
+    private Label Lbl_ca_fileExtension_Pub;
+    private ComboBox Cb_file_pub_ext;
+    private TextBox Tb_cert_remote_path;
 }

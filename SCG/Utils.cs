@@ -1,7 +1,9 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
 using Microsoft.VisualBasic;
+using Renci.SshNet;
 using System;
+using System.IO;
 using System.Collections;
 using System.Data;
 using System.Linq;
@@ -12,6 +14,8 @@ using System.Text;
 using WinFormsApp1;
 using static PL.Utils.Tools;
 using static SCG.Ssql;
+using static System.Net.WebRequestMethods;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PL;
 
@@ -20,6 +24,68 @@ public class Utils
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
 
+    public class ssh
+    {
+        //string host = "192.168.1.22";
+        //string username = "root";
+        //string password = "Renamizunashi31§!";
+        //string localPath = @"C:\text.txt";
+        //string remotePath = "/root/";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="host">hostname or IP address</param>
+        /// <param name="username">username of the server</param>
+        /// <param name="password">corresponding password to the username</param>
+        /// <param name="localFilePath">specify the certificatefile</param>
+        /// <param name="remoteFilePath">the path of the certificate file, including filename and extension</param>
+        public static void UploadCert(string host, string username, string password, string localFilePath, string remoteFilePath)
+        {
+            try
+            {
+                using (var client = new SftpClient(host, username, password))
+                {
+                    client.Connect();
+                    using (FileStream fs = System.IO.File.OpenRead(localFilePath))
+                    { client.UploadFile(fs, remoteFilePath); }
+                    client.Disconnect();
+                }
+            }
+            catch (Exception ex)
+            { MessageBox.Show(Convert.ToString(ex)); }
+        }
+        public static void UploadCert(string host, string username, string password, byte[] localCertificate, string remoteFilePath)
+        {
+            try
+            {
+                using (var sftp = new SftpClient(host, username, password))
+                {
+                    sftp.Connect();
+                    using (var memoryStream = new MemoryStream(localCertificate))
+                    {
+                        sftp.UploadFile(memoryStream, remoteFilePath);
+                    }
+                    sftp.Disconnect();
+                }
+            }
+            catch (Exception ex)
+            { MessageBox.Show(Convert.ToString(ex)); }
+        }
+
+        public static void DownloadCert(string host, string localFilePath, string remoteFilePath)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+
+            {
+                MessageBox.Show(Convert.ToString(ex));
+            }
+        }
+    }
     public class Sql
     {
         /// <summary>
@@ -82,7 +148,7 @@ public class Utils
                 }
             }
         }
-        
+
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
@@ -189,7 +255,7 @@ public class Utils
             }
 
         }
-        
+
         public static byte[] SelectSsCert(certType table, string column, string searchColumn, string searchValue)
         {
             try
@@ -269,10 +335,12 @@ public class Utils
             }
 
         }
-        public static List<object> SelectWhereObject(certType table, string[] column1, string searchColumn, string searchValue)
+
+        public static List<object> SelectWhereObject(certType table, string[] returnValues, string searchColumn, string searchValue)
         {
             try
             {
+                string sql = string.Empty;
                 List<object> columns = new List<object>();
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
@@ -282,8 +350,16 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string column = string.Join(",", column1); // adds a comma after each element, except the last one for the SQL query
-                string sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue";
+                string column = string.Join(",", returnValues); // adds a comma after each element, except the last one for the SQL query
+                if (searchValue == string.Empty)
+                {
+                    sql = $"SELECT {column} FROM {table}";
+                }
+                else
+                {
+                    sql = $"SELECT {column} FROM {table} WHERE {searchColumn}=@_searchValue";
+                }
+
 
                 using var command = new SqliteCommand(sql, connection);
                 command.Parameters.AddWithValue("@_searchValue", searchValue);
@@ -294,7 +370,7 @@ public class Utils
                     //List<object> columns = new List<object>();
                     while (reader.Read())
                     {
-                        foreach (string row in column1)
+                        foreach (string row in returnValues)
                         {
                             columns.Add(reader[row]);
                         }
@@ -310,6 +386,7 @@ public class Utils
             {
                 return null;
             }
+
 
         }
         public static int Update(certType table, string publicKey, string searchTerm, string searchColumn)
@@ -403,6 +480,35 @@ public class Utils
                 return 0;
             }
         }
+        public static void WriteCertFileInfo(certType table, string fileName, string privExt, string pubExt, string remotePath, string searchTerm)
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                string sql = $"UPDATE {table} SET cert_filename = @_cert_filename, cert_priv_Ext = @_cert_priv_Ext, cert_pub_ext = @_cert_pub_Ext, cert_path = @_remotePath WHERE name = @_searchTerm";
+                using var command = new SqliteCommand(sql, connection);
+                command.Parameters.AddWithValue("@_cert_filename", fileName);
+                command.Parameters.AddWithValue("@_cert_priv_Ext", privExt);
+                command.Parameters.AddWithValue("@_cert_pub_Ext", pubExt);
+                command.Parameters.AddWithValue("@_remotePath", remotePath);
+
+                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
+
+                int rowInserted = command.ExecuteNonQuery();
+                //return rowInserted;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
         public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
         {
             try
@@ -447,12 +553,12 @@ public class Utils
 
                 string sql = $"UPDATE {table} SET ss_cert = @_ss_cert, signed_against = @_signed_against, signed_createDT = @_signed_createDT, ss_createDT = @_ss_createDT, ss_duration = @_ss_duration, serialNumber = @_serialNumber WHERE name = @_searchTerm";
                 using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_signed_against", idSignedCa); 
+                command.Parameters.AddWithValue("@_signed_against", idSignedCa);
                 command.Parameters.AddWithValue("@_signed_createDT", Convert.ToString(DateTime.Now));
                 command.Parameters.AddWithValue("@_ss_cert", selfSignedCert);
                 command.Parameters.AddWithValue("@_ss_createDT", Convert.ToString(DateTime.Now));
                 command.Parameters.AddWithValue("@_searchTerm", searchTerm);
-                command.Parameters.AddWithValue("@_ss_duration", duration); 
+                command.Parameters.AddWithValue("@_ss_duration", duration);
                 command.Parameters.AddWithValue("@_serialNumber", serialNumber);
 
                 int rowInserted = command.ExecuteNonQuery();
@@ -511,13 +617,13 @@ public class Utils
                 rsa.ImportFromPem(requestPrivKey);
 
                 intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                if (certType == certType.ca )
+                if (certType == certType.ca)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
                     intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
                 }
-                else if(certType == certType.intermediate)
+                else if (certType == certType.intermediate)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
@@ -530,7 +636,7 @@ public class Utils
                 }
                 else if (certType == certType.user)
                 {
-                    intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true)); 
+                    intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
                     intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
                 }
@@ -539,7 +645,8 @@ public class Utils
                     signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration));
                     return signedCertificate;
                 }
-                else { 
+                else
+                {
                     caCertificate = new X509Certificate2(issuerCert, issuerPasswd, X509KeyStorageFlags.Exportable);
                     signedCertificate = intermediateRequest.Create(caCertificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
                     if (!caCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())

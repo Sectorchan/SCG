@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using FluentResults;
 using Microsoft.Data.Sqlite;
+using static secrets.Secrets;
 using PL;
 using static PL.Utils.Certs;
 using static PL.Utils.Sql;
@@ -28,21 +29,25 @@ using System.Runtime.ConstrainedExecution;
 using System.Net;
 using static PL.Utils;
 using static PL.Utils.Tools;
+using Renci.SshNet;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace SCG.Forms;
 
 public partial class Server : Form
 {
+    public Server() { InitializeComponent(); }
 
-    public Server()
-    {
-        InitializeComponent();
-    }
     #region Private members
     private readonly bool writeFile = true;
     private readonly bool certVerify = true;
     private readonly string[] fqdn = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
+    private readonly string[] idSql = ["id"];
+    private readonly string[] sshCred = ["host_username", "host_password", "hostname"];
+    private readonly string[] sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
+   
     private readonly string c_privateKeyPath = "c_privateKey.pem";
     private readonly string c_publicKeyPath = "c_publicKey.pem";
     private readonly string c_selfsignedKeyPathCert = "c_selfSignedKey.cer";
@@ -66,9 +71,6 @@ public partial class Server : Form
         ReadServers(lb_ca_certs, certType.ca);
         lb_ca_certs.Sorted = true;
 
-
-
-
         lbl_int_name.Visible = false;
         tb_int_name.Visible = false;
         lb_int_certs.Items.Clear();
@@ -87,6 +89,7 @@ public partial class Server : Form
         ReadServers(lb_user_certs, certType.user);
         lb_user_certs.Sorted = true;
         #endregion
+
         bool b = true;
         string s = string.Empty;
         s = Convert.ToString(b);
@@ -97,7 +100,28 @@ public partial class Server : Form
             cb_isCa.Checked = true;
             cb_critical.Checked = true;
         }
+
+
+        Result<List<object>> result = Utils.Sql.SelectWhereObject(certType.ca, ["name", "id"], "name", string.Empty);
+        if (result.IsSuccess)
+        {
+            if (result.Value != null)
+            {
+                foreach (var item in result.Value)
+                {
+                    TreeNode tree = new TreeNode(Convert.ToString(item));
+                    tree.Tag = "Hey";
+                    treeView1.Nodes.Add(tree);
+
+                }
+            }
+        }
+        string[] ss = ["name", "id"];
+        Utils.Sql.SelectWhereObject(certType.intermediate, idSql, "", "*");
+
+        treeView1.Sort();
     }
+
 
     public Result<List<string>> ReadServers(dynamic control, certType table)
     {
@@ -267,7 +291,7 @@ public partial class Server : Form
             //generate destName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, fqdn, "name", caName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
-            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca); 
+            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca);  // 0 = Serialnumber
 
             if (writeFile)
             {
@@ -286,6 +310,7 @@ public partial class Server : Form
                 var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
                 CheckPrivateKey(sqlSelfSigned);
             }
+
             //information message
             Console.WriteLine($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
             MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
@@ -297,9 +322,16 @@ public partial class Server : Form
     {
         string caName = Convert.ToString(lb_ca_certs.SelectedItem);
         byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", caName);
-        var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
 
-        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
+        
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(sshCred, certType.ca, "name", caName);
+
+        
+        Utils.ssh.UploadCert(Convert.ToString(list.Value[2]), Convert.ToString(list.Value[0]), Convert.ToString(list.Value[1]), certToSend, _remoteFilePath);
+
+        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx)); //includes public and private
         File.WriteAllBytes("ca_" + caName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
     }
     #endregion
@@ -757,6 +789,7 @@ public partial class Server : Form
             { serverSelect = Convert.ToString(lb_user_certs.SelectedItem); }
 
             Utils.Sql.UpdateBasicConstraints(sqlTable.Value, serverSelect, isCa, noPaLen, depth, critical);
+            Utils.Sql.WriteCertFileInfo(sqlTable.Value, Tb_cert_filename.Text, Convert.ToString(Cb_file_priv_ext.SelectedItem), Convert.ToString(Cb_file_pub_ext.SelectedItem), Tb_cert_remote_path.Text, serverSelect);
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
@@ -800,6 +833,18 @@ public partial class Server : Form
         { lbl_user_name.Visible = false; tb_user_name.Visible = false; }
     }
 
+    private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+    {
 
+        MessageBox.Show($"Knoten ausgewählt:\nID: {e.Node.Text}\nBeschreibung: {e.Node.Tag}");
+    }
+
+    private void Bt_ca_uploadCert_Click(object sender, EventArgs e)
+    {
+        string caName = Convert.ToString(lb_ca_certs.SelectedItem);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", caName);
+        //["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
+        Utils.ssh.UploadCert(_host , _username, _password, _localFilePath, Convert.ToString(list.Value[3]) + "." + Convert.ToString(list.Value[2]));
+    }
 }
 
