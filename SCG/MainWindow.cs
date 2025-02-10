@@ -136,7 +136,7 @@ namespace WinFormsApp1
                 }
             }
             #endregion
-
+          
             if (!File.Exists(xml))
             {
                 XDocument doc =
@@ -512,7 +512,9 @@ namespace WinFormsApp1
 
     public static class Global
     {
-        public static readonly string database = @"..\..\..\databasev2.db";
+        public static readonly string database = SCG.Properties.Settings.Default.databasePath;
+        public static readonly bool autoUpload = SCG.Properties.Settings.Default.autoUpload;
+        public static readonly bool certToDisk = SCG.Properties.Settings.Default.CertToDisk;
 
         //public static readonly string[] caBasicConstraint = ["true","",null, "true"];
         public static readonly string[] caKeyUsage = ["critical", "digitalSignature", "cRLSign", "keyCertSign"]; //critical, digitalSignature, cRLSign, keyCertSign

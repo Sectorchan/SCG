@@ -38,12 +38,36 @@ namespace SCG.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Database {
+        public string databasePath {
             get {
-                return ((string)(this["Database"]));
+                return ((string)(this["databasePath"]));
             }
             set {
-                this["Database"] = value;
+                this["databasePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool autoUpload {
+            get {
+                return ((bool)(this["autoUpload"]));
+            }
+            set {
+                this["autoUpload"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CertToDisk {
+            get {
+                return ((bool)(this["CertToDisk"]));
+            }
+            set {
+                this["CertToDisk"] = value;
             }
         }
     }

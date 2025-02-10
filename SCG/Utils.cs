@@ -1,21 +1,16 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
-using Microsoft.VisualBasic;
 using Renci.SshNet;
 using System;
-using System.IO;
-using System.Collections;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
-using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using WinFormsApp1;
 using static PL.Utils.Tools;
-using static SCG.Ssql;
-using static System.Net.WebRequestMethods;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PL;
 
@@ -23,38 +18,59 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
+    //private static readonly string[] sshCred = ["host_username", "host_password", "hostname"];
+    private static Dictionary<string, string> _certDetails = new Dictionary<string, string>
+                {
+                    { "cert_filename", string.Empty },
+                    { "cert_priv_ext", string.Empty },
+                    { "cert_pub_ext", string.Empty },
+                    { "cert_path", string.Empty }
+                };
+    private static Dictionary<string, string> _serverDetails = new Dictionary<string, string>
+                {
+                    { "host_name", string.Empty },
+                    { "host_username", string.Empty },
+                    { "host_password", string.Empty }
+                    
+                };
 
     public class ssh
     {
-        //string host = "192.168.1.22";
-        //string username = "root";
-        //string password = "Renamizunashi31§!";
-        //string localPath = @"C:\text.txt";
-        //string remotePath = "/root/";
+
 
         /// <summary>
-        /// 
+        /// Uploads privateKey in PEM format
         /// </summary>
         /// <param name="host">hostname or IP address</param>
         /// <param name="username">username of the server</param>
         /// <param name="password">corresponding password to the username</param>
-        /// <param name="localFilePath">specify the certificatefile</param>
+        /// <param name="privateKeyInPem">The privateKey in PEM format</param>
         /// <param name="remoteFilePath">the path of the certificate file, including filename and extension</param>
-        public static void UploadCert(string host, string username, string password, string localFilePath, string remoteFilePath)
+        public static void UploadCert(string host, string username, string password, string privateKeyInPem, string remoteFilePath)
         {
             try
             {
-                using (var client = new SftpClient(host, username, password))
+                using (var sftp = new SftpClient(host, username, password))
                 {
-                    client.Connect();
-                    using (FileStream fs = System.IO.File.OpenRead(localFilePath))
-                    { client.UploadFile(fs, remoteFilePath); }
-                    client.Disconnect();
+                    sftp.Connect();
+                    using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyInPem)))
+                    {
+                        sftp.UploadFile(memoryStream, remoteFilePath);
+                    }
+                    sftp.Disconnect();
                 }
             }
             catch (Exception ex)
             { MessageBox.Show(Convert.ToString(ex)); }
         }
+        /// <summary>
+        /// Uploads public key
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="localCertificate"></param>
+        /// <param name="remoteFilePath"></param>
         public static void UploadCert(string host, string username, string password, byte[] localCertificate, string remoteFilePath)
         {
             try
@@ -88,6 +104,134 @@ public class Utils
     }
     public class Sql
     {
+        public static string[] GetServerDetails(certType table, string serverName)
+        {
+            try
+            {
+                string[] str = new string[3];
+
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string column = string.Join(",", _serverDetails.Keys);
+                var sql = $"SELECT {column} FROM {table} WHERE name=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", serverName);
+                using var reader = command.ExecuteReader();
+                int i = 0;
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        foreach (string key in _serverDetails.Keys)
+                        {
+                            str[i] = reader[key]?.ToString();
+                            i++;
+                        }
+                    }
+                }
+                connection.Close();
+                return str;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="serverName"></param>
+        /// <returns>privatekey,publickey, remotePathPrivateKey, remotePathPublicKey</returns>
+        public static string[] GetCertDetails(certType table, string serverName)
+        {
+            try
+            {
+                string[] str = new string[4];
+
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                string column = string.Join(",", _certDetails.Keys);
+                var sql = $"SELECT {column} FROM {table} WHERE name=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", serverName);
+                using var reader = command.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        foreach (string key in _certDetails.Keys)
+                        {
+                            _certDetails[key] = reader[key]?.ToString();
+                        }
+                    }
+                }
+                connection.Close();
+                str[0] = _certDetails["cert_filename"] + "." + _certDetails["cert_priv_ext"];
+                str[1] = _certDetails["cert_filename"] + "." + _certDetails["cert_pub_ext"];
+                str[2] = _certDetails["cert_path"] + str[0];
+                str[3] = _certDetails["cert_path"] + str[1];
+               
+                
+                return str;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public static string GetPrivateKey(certType table, string serverName)
+        {
+            try
+            {
+                string result = string.Empty; 
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                var sql = $"SELECT private_key FROM {table} WHERE name=@_searchValue"; // geht nicht 
+                using var command = new SqliteCommand(sql, connection);
+
+                command.Parameters.AddWithValue("@_searchValue", serverName);
+                using var reader = command.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        result = reader.GetString("private_key");
+                    }
+                }
+
+
+                return result;
+            }
+            catch
+            {
+                return "0";
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -96,8 +240,10 @@ public class Utils
         /// <param name="privKey">The privateKey in PEM format</param>
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
+        ///
         public static int InsertInto(certType table, string name, string privKey, int keySize)
         {
+
             try
             {
                 string _table = string.Empty;
@@ -260,6 +406,7 @@ public class Utils
         {
             try
             {
+
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
                 _connectionString.DataSource = Global.database;

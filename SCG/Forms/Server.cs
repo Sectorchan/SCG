@@ -32,6 +32,7 @@ using static PL.Utils.Tools;
 using Renci.SshNet;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using static System.Net.Mime.MediaTypeNames;
+using SCG.Properties;
 
 
 namespace SCG.Forms;
@@ -47,7 +48,7 @@ public partial class Server : Form
     private readonly string[] idSql = ["id"];
     private readonly string[] sshCred = ["host_username", "host_password", "hostname"];
     private readonly string[] sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
-   
+
     private readonly string c_privateKeyPath = "c_privateKey.pem";
     private readonly string c_publicKeyPath = "c_publicKey.pem";
     private readonly string c_selfsignedKeyPathCert = "c_selfSignedKey.cer";
@@ -90,9 +91,7 @@ public partial class Server : Form
         lb_user_certs.Sorted = true;
         #endregion
 
-        bool b = true;
-        string s = string.Empty;
-        s = Convert.ToString(b);
+
 
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         if (SqlTable == "CA")
@@ -116,9 +115,8 @@ public partial class Server : Form
                 }
             }
         }
-        string[] ss = ["name", "id"];
-        Utils.Sql.SelectWhereObject(certType.intermediate, idSql, "", "*");
 
+        Utils.Sql.SelectWhereObject(certType.intermediate, idSql, "", "*");
         treeView1.Sort();
     }
 
@@ -227,8 +225,6 @@ public partial class Server : Form
     {
         try
         {
-
-
             int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
             string serverName = tb_ca_name.Text;
             //generate privatekey
@@ -239,6 +235,10 @@ public partial class Server : Form
             if (writeFile)
             {
                 File.WriteAllText("ca_" + serverName + "_priv.pem", privateKeyPem);
+            }
+            if (Properties.Settings.Default.autoUpload)
+            {
+
             }
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
@@ -325,14 +325,36 @@ public partial class Server : Form
         X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
 
-        
+
         Result<List<object>> list = Utils.Sql.SelectWhereObject(sshCred, certType.ca, "name", caName);
 
-        
+
         Utils.ssh.UploadCert(Convert.ToString(list.Value[2]), Convert.ToString(list.Value[0]), Convert.ToString(list.Value[1]), certToSend, _remoteFilePath);
 
-        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx)); //includes public and private
+        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", certToSend); //includes public and private
         File.WriteAllBytes("ca_" + caName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
+    }
+
+    private void Bt_ca_uploadCert_Click(object sender, EventArgs e)
+    {
+        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+
+        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", serverName);
+        X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
+        string privCert = GetPrivateKey(certType.ca, serverName);
+
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", serverName);
+
+
+        string[] certDetails = GetCertDetails(certType.ca, serverName);
+        string[] serverDetails = GetServerDetails(certType.ca, serverName);
+
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], certToSend, certDetails[3]);
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], privCert, certDetails[2]);
+
+
+
     }
     #endregion
 
@@ -789,7 +811,27 @@ public partial class Server : Form
             { serverSelect = Convert.ToString(lb_user_certs.SelectedItem); }
 
             Utils.Sql.UpdateBasicConstraints(sqlTable.Value, serverSelect, isCa, noPaLen, depth, critical);
+        }
+        catch (Exception ex)
+        { MessageBox.Show(ex.Message.ToString()); }
+    }
+    private void Bt_wr_cert_path_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            Result<certType> sqlTable = SqlTable();
+            string serverSelect = string.Empty;
+            if (sqlTable.Value == certType.ca)
+            { serverSelect = Convert.ToString(lb_ca_certs.SelectedItem); }
+            else if (sqlTable.Value == certType.intermediate)
+            { serverSelect = Convert.ToString(lb_int_certs.SelectedItem); }
+            else if (sqlTable.Value == certType.server)
+            { serverSelect = Convert.ToString(lb_server_certs.SelectedItem); }
+            else if (sqlTable.Value == certType.user)
+            { serverSelect = Convert.ToString(lb_user_certs.SelectedItem); }
+
             Utils.Sql.WriteCertFileInfo(sqlTable.Value, Tb_cert_filename.Text, Convert.ToString(Cb_file_priv_ext.SelectedItem), Convert.ToString(Cb_file_pub_ext.SelectedItem), Tb_cert_remote_path.Text, serverSelect);
+
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
@@ -839,12 +881,20 @@ public partial class Server : Form
         MessageBox.Show($"Knoten ausgewählt:\nID: {e.Node.Text}\nBeschreibung: {e.Node.Tag}");
     }
 
-    private void Bt_ca_uploadCert_Click(object sender, EventArgs e)
+    private void edit_config_load(object sender, EventArgs e)
     {
-        string caName = Convert.ToString(lb_ca_certs.SelectedItem);
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", caName);
-        //["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
-        Utils.ssh.UploadCert(_host , _username, _password, _localFilePath, Convert.ToString(list.Value[3]) + "." + Convert.ToString(list.Value[2]));
+        edit_config editConfig = new edit_config();
+        editConfig.ShowDialog();
+    }
+
+    private void Bt_read_Dest_names_Click_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void Bt_sign_int_cert_Click(object sender, EventArgs e)
+    {
+
     }
 }
 
