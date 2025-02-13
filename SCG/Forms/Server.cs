@@ -90,16 +90,12 @@ public partial class Server : Form
         ReadServers(lb_user_certs, certType.user);
         lb_user_certs.Sorted = true;
         #endregion
-
-
-
         string SqlTable = panel1.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked).Text;
         if (SqlTable == "CA")
         {
             cb_isCa.Checked = true;
             cb_critical.Checked = true;
         }
-
 
         Result<List<object>> result = Utils.Sql.SelectWhereObject(certType.ca, ["name", "id"], "name", string.Empty);
         if (result.IsSuccess)
@@ -115,7 +111,6 @@ public partial class Server : Form
                 }
             }
         }
-
         Utils.Sql.SelectWhereObject(certType.intermediate, idSql, "", "*");
         treeView1.Sort();
     }
@@ -295,6 +290,7 @@ public partial class Server : Form
 
             if (writeFile)
             {
+
                 //write signed certificate to file
                 File.WriteAllBytes("ca_" + caName + "_ss.pfx", interCertSql.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("ca_" + caName + "_ss.cer", interCertSql.Export(X509ContentType.Cert));//includes only public
@@ -325,13 +321,25 @@ public partial class Server : Form
         X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
 
-
         Result<List<object>> list = Utils.Sql.SelectWhereObject(sshCred, certType.ca, "name", caName);
 
+       
 
-        Utils.ssh.UploadCert(Convert.ToString(list.Value[2]), Convert.ToString(list.Value[0]), Convert.ToString(list.Value[1]), certToSend, _remoteFilePath);
 
-        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", certToSend); //includes public and private
+        //SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+        //saveFileDialog1.InitialDirectory = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        //saveFileDialog1.RestoreDirectory = true;
+        //saveFileDialog1.Title = "Save certificate";
+        
+        //saveFileDialog1.AddExtension = true;
+        //saveFileDialog1.CheckFileExists = true;
+        //saveFileDialog1.FileName = "ca_" + caName + "_reCreate_ss";
+        //saveFileDialog1.ShowDialog();
+
+
+        //Utils.ssh.UploadCert(Convert.ToString(list.Value[2]), Convert.ToString(list.Value[0]), Convert.ToString(list.Value[1]), certToSend, _remoteFilePath);
+
+        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx)); //includes public and private
         File.WriteAllBytes("ca_" + caName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
     }
 

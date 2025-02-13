@@ -18,7 +18,6 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
-    //private static readonly string[] sshCred = ["host_username", "host_password", "hostname"];
     private static Dictionary<string, string> _certDetails = new Dictionary<string, string>
                 {
                     { "cert_filename", string.Empty },
@@ -853,6 +852,28 @@ public class Utils
     }
     public class Tools
     {
+        public void SaveCertToFile(X509Certificate2 cert, X509ContentType type, string fileName)
+        {
+            try
+            {
+                SaveFileDialog file = new SaveFileDialog();
+                file.DefaultExt = "pfx";
+                file.Filter = "PFX files (*.pfx)|*.pfx";
+                file.ShowDialog();
+
+                if (file.FileName != "")
+                {
+
+                    File.WriteAllBytes(file.FileName, certToSend); //includes public and private
+                }
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
         private static byte[] GenerateRandomSerialNumber(int byteLength)
         {
             if (byteLength < 1)
