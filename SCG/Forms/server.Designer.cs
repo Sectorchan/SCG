@@ -30,7 +30,6 @@ partial class Server
     {
         tb_ca_name = new TextBox();
         gb_default_disti_names = new GroupBox();
-        Bt_read_Dest_names = new Button();
         tb_sub_email = new TextBox();
         tb_sub_cn = new TextBox();
         tb_sub_orga = new TextBox();
@@ -79,7 +78,6 @@ partial class Server
         Bt_gen_int_pub = new Button();
         Bt_gen_ca_pub = new Button();
         Bt_gen_int_selfSigned_key = new Button();
-        Bt_sign_int_cert = new Button();
         Bt_read_ca_subj = new Button();
         Bt_read_int_subj = new Button();
         Bt_read_server_subj = new Button();
@@ -115,21 +113,45 @@ partial class Server
         textBox2 = new TextBox();
         textBox3 = new TextBox();
         Bt_reCreate_ca_selfSigned_key = new Button();
+        button1 = new Button();
+        button2 = new Button();
+        button3 = new Button();
+        button4 = new Button();
+        Bt_ca_uploadCert = new Button();
+        Tb_cert_filename = new TextBox();
+        Lbl_ca_filename_cert = new Label();
+        Lbl_ca_fileExtension_Priv = new Label();
+        Cb_file_priv_ext = new ComboBox();
+        Lbl_ca_fileExtension_Pub = new Label();
+        Cb_file_pub_ext = new ComboBox();
+        Tb_cert_remote_path = new TextBox();
+        menuStrip1 = new MenuStrip();
+        editToolStripMenuItem = new ToolStripMenuItem();
+        ms_edit_config = new ToolStripMenuItem();
+        Lb_cert_remotePath = new Label();
+        Bt_wr_cert_path = new Button();
+        treeView1 = new TreeView();
+        Gb_cert_details = new GroupBox();
+        saveFileDialog1 = new SaveFileDialog();
+        Bt_int_uploadCert = new Button();
+        Bt_server_uploadCert = new Button();
+        Bt_user_uploadCert = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
+        menuStrip1.SuspendLayout();
+        Gb_cert_details.SuspendLayout();
         SuspendLayout();
         // 
         // tb_ca_name
         // 
-        tb_ca_name.Location = new Point(86, 117);
+        tb_ca_name.Location = new Point(88, 170);
         tb_ca_name.Name = "tb_ca_name";
         tb_ca_name.Size = new Size(100, 23);
         tb_ca_name.TabIndex = 12;
         // 
         // gb_default_disti_names
         // 
-        gb_default_disti_names.Controls.Add(Bt_read_Dest_names);
         gb_default_disti_names.Controls.Add(tb_sub_email);
         gb_default_disti_names.Controls.Add(tb_sub_cn);
         gb_default_disti_names.Controls.Add(tb_sub_orga);
@@ -145,21 +167,12 @@ partial class Server
         gb_default_disti_names.Controls.Add(lbl_def_location);
         gb_default_disti_names.Controls.Add(lbl_def_state);
         gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(363, 459);
+        gb_default_disti_names.Location = new Point(482, 617);
         gb_default_disti_names.Name = "gb_default_disti_names";
         gb_default_disti_names.Size = new Size(229, 239);
         gb_default_disti_names.TabIndex = 11;
         gb_default_disti_names.TabStop = false;
         gb_default_disti_names.Text = "Default Distinguished Names";
-        // 
-        // Bt_read_Dest_names
-        // 
-        Bt_read_Dest_names.Location = new Point(137, 208);
-        Bt_read_Dest_names.Name = "Bt_read_Dest_names";
-        Bt_read_Dest_names.Size = new Size(76, 26);
-        Bt_read_Dest_names.TabIndex = 26;
-        Bt_read_Dest_names.Text = "Read";
-        Bt_read_Dest_names.UseVisualStyleBackColor = true;
         // 
         // tb_sub_email
         // 
@@ -205,7 +218,7 @@ partial class Server
         // 
         // bt_wrt_dest_names
         // 
-        bt_wrt_dest_names.Location = new Point(14, 208);
+        bt_wrt_dest_names.Location = new Point(74, 200);
         bt_wrt_dest_names.Margin = new Padding(2);
         bt_wrt_dest_names.Name = "bt_wrt_dest_names";
         bt_wrt_dest_names.Size = new Size(76, 26);
@@ -290,7 +303,7 @@ partial class Server
         // lbl_ca_name
         // 
         lbl_ca_name.AutoSize = true;
-        lbl_ca_name.Location = new Point(3, 119);
+        lbl_ca_name.Location = new Point(5, 172);
         lbl_ca_name.Name = "lbl_ca_name";
         lbl_ca_name.Size = new Size(77, 15);
         lbl_ca_name.TabIndex = 10;
@@ -300,7 +313,7 @@ partial class Server
         // 
         lb_ca_certs.FormattingEnabled = true;
         lb_ca_certs.ItemHeight = 15;
-        lb_ca_certs.Location = new Point(62, 5);
+        lb_ca_certs.Location = new Point(64, 58);
         lb_ca_certs.Margin = new Padding(2);
         lb_ca_certs.Name = "lb_ca_certs";
         lb_ca_certs.Size = new Size(124, 79);
@@ -310,7 +323,7 @@ partial class Server
         // 
         cb_ca_keySize.FormattingEnabled = true;
         cb_ca_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_ca_keySize.Location = new Point(86, 145);
+        cb_ca_keySize.Location = new Point(88, 198);
         cb_ca_keySize.Name = "cb_ca_keySize";
         cb_ca_keySize.Size = new Size(100, 23);
         cb_ca_keySize.TabIndex = 24;
@@ -319,7 +332,7 @@ partial class Server
         // lbl_ca_keySize
         // 
         lbl_ca_keySize.AutoSize = true;
-        lbl_ca_keySize.Location = new Point(35, 148);
+        lbl_ca_keySize.Location = new Point(37, 201);
         lbl_ca_keySize.Name = "lbl_ca_keySize";
         lbl_ca_keySize.Size = new Size(45, 15);
         lbl_ca_keySize.TabIndex = 0;
@@ -328,7 +341,7 @@ partial class Server
         // 
         // tb_ca_dura
         // 
-        tb_ca_dura.Location = new Point(86, 175);
+        tb_ca_dura.Location = new Point(88, 228);
         tb_ca_dura.Name = "tb_ca_dura";
         tb_ca_dura.Size = new Size(100, 23);
         tb_ca_dura.TabIndex = 4;
@@ -337,7 +350,7 @@ partial class Server
         // lbl_ca_duration
         // 
         lbl_ca_duration.AutoSize = true;
-        lbl_ca_duration.Location = new Point(27, 179);
+        lbl_ca_duration.Location = new Point(29, 232);
         lbl_ca_duration.Name = "lbl_ca_duration";
         lbl_ca_duration.Size = new Size(53, 15);
         lbl_ca_duration.TabIndex = 0;
@@ -346,7 +359,7 @@ partial class Server
         // cb_new_ca
         // 
         cb_new_ca.AutoSize = true;
-        cb_new_ca.Location = new Point(86, 92);
+        cb_new_ca.Location = new Point(88, 145);
         cb_new_ca.Name = "cb_new_ca";
         cb_new_ca.Size = new Size(85, 19);
         cb_new_ca.TabIndex = 17;
@@ -395,9 +408,9 @@ partial class Server
         panel1.Controls.Add(rb_ca);
         panel1.Controls.Add(rb_server);
         panel1.Controls.Add(rb_intermediate);
-        panel1.Location = new Point(86, 497);
+        panel1.Location = new Point(318, 469);
         panel1.Name = "panel1";
-        panel1.Size = new Size(102, 113);
+        panel1.Size = new Size(102, 101);
         panel1.TabIndex = 21;
         // 
         // rb_user
@@ -413,7 +426,7 @@ partial class Server
         // 
         // Bt_gen_ca_priv
         // 
-        Bt_gen_ca_priv.Location = new Point(85, 208);
+        Bt_gen_ca_priv.Location = new Point(30, 260);
         Bt_gen_ca_priv.Margin = new Padding(2);
         Bt_gen_ca_priv.Name = "Bt_gen_ca_priv";
         Bt_gen_ca_priv.Size = new Size(76, 47);
@@ -424,7 +437,7 @@ partial class Server
         // 
         // Bt_gen_ca_selfSigned_key
         // 
-        Bt_gen_ca_selfSigned_key.Location = new Point(85, 369);
+        Bt_gen_ca_selfSigned_key.Location = new Point(112, 342);
         Bt_gen_ca_selfSigned_key.Name = "Bt_gen_ca_selfSigned_key";
         Bt_gen_ca_selfSigned_key.Size = new Size(76, 47);
         Bt_gen_ca_selfSigned_key.TabIndex = 24;
@@ -490,20 +503,20 @@ partial class Server
         // 
         // panel2
         // 
-        panel2.Controls.Add(Bt_wrt_param);
         panel2.Controls.Add(cb_notPathlen);
         panel2.Controls.Add(cb_isCa);
+        panel2.Controls.Add(Bt_wrt_param);
         panel2.Controls.Add(cb_depth);
         panel2.Controls.Add(lbl_unlimDepth);
         panel2.Controls.Add(cb_critical);
-        panel2.Location = new Point(213, 497);
+        panel2.Location = new Point(844, 542);
         panel2.Name = "panel2";
         panel2.Size = new Size(102, 140);
         panel2.TabIndex = 31;
         // 
         // Bt_wrt_param
         // 
-        Bt_wrt_param.Location = new Point(8, 110);
+        Bt_wrt_param.Location = new Point(8, 111);
         Bt_wrt_param.Name = "Bt_wrt_param";
         Bt_wrt_param.Size = new Size(75, 23);
         Bt_wrt_param.TabIndex = 31;
@@ -515,14 +528,14 @@ partial class Server
         // 
         lb_int_certs.FormattingEnabled = true;
         lb_int_certs.ItemHeight = 15;
-        lb_int_certs.Location = new Point(292, 5);
+        lb_int_certs.Location = new Point(318, 58);
         lb_int_certs.Name = "lb_int_certs";
         lb_int_certs.Size = new Size(120, 79);
         lb_int_certs.TabIndex = 32;
         // 
         // Bt_gen_int_priv
         // 
-        Bt_gen_int_priv.Location = new Point(312, 208);
+        Bt_gen_int_priv.Location = new Point(279, 260);
         Bt_gen_int_priv.Name = "Bt_gen_int_priv";
         Bt_gen_int_priv.Size = new Size(75, 47);
         Bt_gen_int_priv.TabIndex = 33;
@@ -533,7 +546,7 @@ partial class Server
         // lbl_int_keySize
         // 
         lbl_int_keySize.AutoSize = true;
-        lbl_int_keySize.Location = new Point(261, 147);
+        lbl_int_keySize.Location = new Point(287, 200);
         lbl_int_keySize.Name = "lbl_int_keySize";
         lbl_int_keySize.Size = new Size(45, 15);
         lbl_int_keySize.TabIndex = 34;
@@ -543,7 +556,7 @@ partial class Server
         // 
         cb_int_keySize.FormattingEnabled = true;
         cb_int_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_int_keySize.Location = new Point(312, 145);
+        cb_int_keySize.Location = new Point(338, 198);
         cb_int_keySize.Name = "cb_int_keySize";
         cb_int_keySize.Size = new Size(100, 23);
         cb_int_keySize.TabIndex = 37;
@@ -551,7 +564,7 @@ partial class Server
         // 
         // tb_int_dura
         // 
-        tb_int_dura.Location = new Point(312, 174);
+        tb_int_dura.Location = new Point(338, 227);
         tb_int_dura.Name = "tb_int_dura";
         tb_int_dura.Size = new Size(100, 23);
         tb_int_dura.TabIndex = 36;
@@ -560,7 +573,7 @@ partial class Server
         // lbl_int_duration
         // 
         lbl_int_duration.AutoSize = true;
-        lbl_int_duration.Location = new Point(253, 179);
+        lbl_int_duration.Location = new Point(279, 232);
         lbl_int_duration.Name = "lbl_int_duration";
         lbl_int_duration.Size = new Size(53, 15);
         lbl_int_duration.TabIndex = 35;
@@ -568,7 +581,7 @@ partial class Server
         // 
         // tb_int_name
         // 
-        tb_int_name.Location = new Point(312, 117);
+        tb_int_name.Location = new Point(338, 170);
         tb_int_name.Name = "tb_int_name";
         tb_int_name.Size = new Size(100, 23);
         tb_int_name.TabIndex = 39;
@@ -576,7 +589,7 @@ partial class Server
         // lbl_int_name
         // 
         lbl_int_name.AutoSize = true;
-        lbl_int_name.Location = new Point(194, 119);
+        lbl_int_name.Location = new Point(220, 172);
         lbl_int_name.Name = "lbl_int_name";
         lbl_int_name.Size = new Size(112, 15);
         lbl_int_name.TabIndex = 38;
@@ -585,7 +598,7 @@ partial class Server
         // cb_new_int
         // 
         cb_new_int.AutoSize = true;
-        cb_new_int.Location = new Point(292, 92);
+        cb_new_int.Location = new Point(318, 145);
         cb_new_int.Name = "cb_new_int";
         cb_new_int.Size = new Size(120, 19);
         cb_new_int.TabIndex = 40;
@@ -595,7 +608,7 @@ partial class Server
         // 
         // Bt_gen_int_pub
         // 
-        Bt_gen_int_pub.Location = new Point(312, 260);
+        Bt_gen_int_pub.Location = new Point(363, 261);
         Bt_gen_int_pub.Name = "Bt_gen_int_pub";
         Bt_gen_int_pub.Size = new Size(75, 47);
         Bt_gen_int_pub.TabIndex = 41;
@@ -605,7 +618,7 @@ partial class Server
         // 
         // Bt_gen_ca_pub
         // 
-        Bt_gen_ca_pub.Location = new Point(85, 260);
+        Bt_gen_ca_pub.Location = new Point(112, 260);
         Bt_gen_ca_pub.Margin = new Padding(2);
         Bt_gen_ca_pub.Name = "Bt_gen_ca_pub";
         Bt_gen_ca_pub.Size = new Size(76, 47);
@@ -616,7 +629,7 @@ partial class Server
         // 
         // Bt_gen_int_selfSigned_key
         // 
-        Bt_gen_int_selfSigned_key.Location = new Point(312, 369);
+        Bt_gen_int_selfSigned_key.Location = new Point(318, 342);
         Bt_gen_int_selfSigned_key.Name = "Bt_gen_int_selfSigned_key";
         Bt_gen_int_selfSigned_key.Size = new Size(76, 47);
         Bt_gen_int_selfSigned_key.TabIndex = 43;
@@ -624,23 +637,13 @@ partial class Server
         Bt_gen_int_selfSigned_key.UseVisualStyleBackColor = true;
         Bt_gen_int_selfSigned_key.Click += Bt_gen_int_selfSigned_key_Click;
         // 
-        // Bt_sign_int_cert
-        // 
-        Bt_sign_int_cert.Location = new Point(205, 316);
-        Bt_sign_int_cert.Name = "Bt_sign_int_cert";
-        Bt_sign_int_cert.Size = new Size(75, 44);
-        Bt_sign_int_cert.TabIndex = 44;
-        Bt_sign_int_cert.Text = "6. Sign Certificate";
-        Bt_sign_int_cert.UseVisualStyleBackColor = true;
-        Bt_sign_int_cert.Visible = false;
-        // 
         // Bt_read_ca_subj
         // 
         Bt_read_ca_subj.AccessibleName = "ca";
         Bt_read_ca_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_ca_subj.Location = new Point(86, 312);
+        Bt_read_ca_subj.Location = new Point(6, 313);
         Bt_read_ca_subj.Name = "Bt_read_ca_subj";
-        Bt_read_ca_subj.Size = new Size(75, 51);
+        Bt_read_ca_subj.Size = new Size(96, 21);
         Bt_read_ca_subj.TabIndex = 45;
         Bt_read_ca_subj.Text = "Read Subjects";
         Bt_read_ca_subj.UseVisualStyleBackColor = true;
@@ -650,9 +653,9 @@ partial class Server
         // 
         Bt_read_int_subj.AccessibleName = "int";
         Bt_read_int_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_int_subj.Location = new Point(312, 312);
+        Bt_read_int_subj.Location = new Point(265, 313);
         Bt_read_int_subj.Name = "Bt_read_int_subj";
-        Bt_read_int_subj.Size = new Size(75, 51);
+        Bt_read_int_subj.Size = new Size(89, 21);
         Bt_read_int_subj.TabIndex = 46;
         Bt_read_int_subj.Text = "Read Subjects";
         Bt_read_int_subj.UseVisualStyleBackColor = true;
@@ -662,9 +665,9 @@ partial class Server
         // 
         Bt_read_server_subj.AccessibleName = "server";
         Bt_read_server_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_server_subj.Location = new Point(502, 313);
+        Bt_read_server_subj.Location = new Point(502, 315);
         Bt_read_server_subj.Name = "Bt_read_server_subj";
-        Bt_read_server_subj.Size = new Size(75, 51);
+        Bt_read_server_subj.Size = new Size(90, 20);
         Bt_read_server_subj.TabIndex = 58;
         Bt_read_server_subj.Text = "Read Subjects";
         Bt_read_server_subj.UseVisualStyleBackColor = true;
@@ -672,7 +675,7 @@ partial class Server
         // 
         // Bt_gen_server_selfSigned_key
         // 
-        Bt_gen_server_selfSigned_key.Location = new Point(501, 369);
+        Bt_gen_server_selfSigned_key.Location = new Point(562, 342);
         Bt_gen_server_selfSigned_key.Name = "Bt_gen_server_selfSigned_key";
         Bt_gen_server_selfSigned_key.Size = new Size(76, 47);
         Bt_gen_server_selfSigned_key.TabIndex = 57;
@@ -682,7 +685,7 @@ partial class Server
         // 
         // Bt_gen_server_pub
         // 
-        Bt_gen_server_pub.Location = new Point(502, 260);
+        Bt_gen_server_pub.Location = new Point(594, 262);
         Bt_gen_server_pub.Name = "Bt_gen_server_pub";
         Bt_gen_server_pub.Size = new Size(75, 47);
         Bt_gen_server_pub.TabIndex = 56;
@@ -693,7 +696,7 @@ partial class Server
         // cb_new_server
         // 
         cb_new_server.AutoSize = true;
-        cb_new_server.Location = new Point(482, 92);
+        cb_new_server.Location = new Point(548, 145);
         cb_new_server.Name = "cb_new_server";
         cb_new_server.Size = new Size(85, 19);
         cb_new_server.TabIndex = 55;
@@ -704,7 +707,7 @@ partial class Server
         // 
         // tb_server_name
         // 
-        tb_server_name.Location = new Point(502, 117);
+        tb_server_name.Location = new Point(568, 170);
         tb_server_name.Name = "tb_server_name";
         tb_server_name.Size = new Size(100, 23);
         tb_server_name.TabIndex = 54;
@@ -712,7 +715,7 @@ partial class Server
         // lbl_server_name
         // 
         lbl_server_name.AutoSize = true;
-        lbl_server_name.Location = new Point(419, 120);
+        lbl_server_name.Location = new Point(485, 173);
         lbl_server_name.Name = "lbl_server_name";
         lbl_server_name.Size = new Size(77, 15);
         lbl_server_name.TabIndex = 53;
@@ -721,7 +724,7 @@ partial class Server
         // lbl_server_keySize
         // 
         lbl_server_keySize.AutoSize = true;
-        lbl_server_keySize.Location = new Point(451, 148);
+        lbl_server_keySize.Location = new Point(517, 201);
         lbl_server_keySize.Name = "lbl_server_keySize";
         lbl_server_keySize.Size = new Size(45, 15);
         lbl_server_keySize.TabIndex = 49;
@@ -731,7 +734,7 @@ partial class Server
         // 
         cb_server_keySize.FormattingEnabled = true;
         cb_server_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_server_keySize.Location = new Point(502, 145);
+        cb_server_keySize.Location = new Point(568, 198);
         cb_server_keySize.Name = "cb_server_keySize";
         cb_server_keySize.Size = new Size(100, 23);
         cb_server_keySize.TabIndex = 52;
@@ -739,7 +742,7 @@ partial class Server
         // 
         // tb_server_dura
         // 
-        tb_server_dura.Location = new Point(502, 174);
+        tb_server_dura.Location = new Point(568, 227);
         tb_server_dura.Name = "tb_server_dura";
         tb_server_dura.Size = new Size(100, 23);
         tb_server_dura.TabIndex = 51;
@@ -748,7 +751,7 @@ partial class Server
         // lbl_server_duration
         // 
         lbl_server_duration.AutoSize = true;
-        lbl_server_duration.Location = new Point(443, 179);
+        lbl_server_duration.Location = new Point(509, 232);
         lbl_server_duration.Name = "lbl_server_duration";
         lbl_server_duration.Size = new Size(53, 15);
         lbl_server_duration.TabIndex = 50;
@@ -756,7 +759,7 @@ partial class Server
         // 
         // Bt_gen_server_priv
         // 
-        Bt_gen_server_priv.Location = new Point(502, 208);
+        Bt_gen_server_priv.Location = new Point(517, 261);
         Bt_gen_server_priv.Name = "Bt_gen_server_priv";
         Bt_gen_server_priv.Size = new Size(75, 47);
         Bt_gen_server_priv.TabIndex = 48;
@@ -768,7 +771,7 @@ partial class Server
         // 
         lb_server_certs.FormattingEnabled = true;
         lb_server_certs.ItemHeight = 15;
-        lb_server_certs.Location = new Point(482, 5);
+        lb_server_certs.Location = new Point(548, 58);
         lb_server_certs.Name = "lb_server_certs";
         lb_server_certs.Size = new Size(120, 79);
         lb_server_certs.TabIndex = 47;
@@ -777,9 +780,9 @@ partial class Server
         // 
         Bt_read_user_subj.AccessibleName = "user";
         Bt_read_user_subj.AccessibleRole = AccessibleRole.None;
-        Bt_read_user_subj.Location = new Point(685, 312);
+        Bt_read_user_subj.Location = new Point(723, 315);
         Bt_read_user_subj.Name = "Bt_read_user_subj";
-        Bt_read_user_subj.Size = new Size(75, 51);
+        Bt_read_user_subj.Size = new Size(99, 21);
         Bt_read_user_subj.TabIndex = 70;
         Bt_read_user_subj.Text = "Read Subjects";
         Bt_read_user_subj.UseVisualStyleBackColor = true;
@@ -787,7 +790,7 @@ partial class Server
         // 
         // Bt_gen_user_selfSigned_key
         // 
-        Bt_gen_user_selfSigned_key.Location = new Point(685, 369);
+        Bt_gen_user_selfSigned_key.Location = new Point(781, 342);
         Bt_gen_user_selfSigned_key.Name = "Bt_gen_user_selfSigned_key";
         Bt_gen_user_selfSigned_key.Size = new Size(76, 47);
         Bt_gen_user_selfSigned_key.TabIndex = 69;
@@ -797,7 +800,7 @@ partial class Server
         // 
         // Bt_gen_user_pub
         // 
-        Bt_gen_user_pub.Location = new Point(685, 260);
+        Bt_gen_user_pub.Location = new Point(814, 260);
         Bt_gen_user_pub.Name = "Bt_gen_user_pub";
         Bt_gen_user_pub.Size = new Size(75, 47);
         Bt_gen_user_pub.TabIndex = 68;
@@ -808,7 +811,7 @@ partial class Server
         // cb_new_user
         // 
         cb_new_user.AutoSize = true;
-        cb_new_user.Location = new Point(665, 92);
+        cb_new_user.Location = new Point(762, 145);
         cb_new_user.Name = "cb_new_user";
         cb_new_user.Size = new Size(76, 19);
         cb_new_user.TabIndex = 67;
@@ -819,7 +822,7 @@ partial class Server
         // 
         // tb_user_name
         // 
-        tb_user_name.Location = new Point(685, 117);
+        tb_user_name.Location = new Point(782, 170);
         tb_user_name.Name = "tb_user_name";
         tb_user_name.Size = new Size(100, 23);
         tb_user_name.TabIndex = 66;
@@ -827,7 +830,7 @@ partial class Server
         // lbl_user_name
         // 
         lbl_user_name.AutoSize = true;
-        lbl_user_name.Location = new Point(611, 120);
+        lbl_user_name.Location = new Point(708, 173);
         lbl_user_name.Name = "lbl_user_name";
         lbl_user_name.Size = new Size(68, 15);
         lbl_user_name.TabIndex = 65;
@@ -837,7 +840,7 @@ partial class Server
         // lbl_user_keySize
         // 
         lbl_user_keySize.AutoSize = true;
-        lbl_user_keySize.Location = new Point(634, 148);
+        lbl_user_keySize.Location = new Point(731, 201);
         lbl_user_keySize.Name = "lbl_user_keySize";
         lbl_user_keySize.Size = new Size(45, 15);
         lbl_user_keySize.TabIndex = 61;
@@ -847,7 +850,7 @@ partial class Server
         // 
         cb_user_keySize.FormattingEnabled = true;
         cb_user_keySize.Items.AddRange(new object[] { "2048", "4096", "8192" });
-        cb_user_keySize.Location = new Point(685, 145);
+        cb_user_keySize.Location = new Point(782, 198);
         cb_user_keySize.Name = "cb_user_keySize";
         cb_user_keySize.Size = new Size(100, 23);
         cb_user_keySize.TabIndex = 64;
@@ -855,7 +858,7 @@ partial class Server
         // 
         // tb_user_dura
         // 
-        tb_user_dura.Location = new Point(685, 174);
+        tb_user_dura.Location = new Point(782, 227);
         tb_user_dura.Name = "tb_user_dura";
         tb_user_dura.Size = new Size(100, 23);
         tb_user_dura.TabIndex = 63;
@@ -864,7 +867,7 @@ partial class Server
         // lbl_user_duration
         // 
         lbl_user_duration.AutoSize = true;
-        lbl_user_duration.Location = new Point(626, 179);
+        lbl_user_duration.Location = new Point(723, 232);
         lbl_user_duration.Name = "lbl_user_duration";
         lbl_user_duration.Size = new Size(53, 15);
         lbl_user_duration.TabIndex = 62;
@@ -872,7 +875,7 @@ partial class Server
         // 
         // Bt_gen_user_priv
         // 
-        Bt_gen_user_priv.Location = new Point(685, 207);
+        Bt_gen_user_priv.Location = new Point(733, 261);
         Bt_gen_user_priv.Name = "Bt_gen_user_priv";
         Bt_gen_user_priv.Size = new Size(75, 47);
         Bt_gen_user_priv.TabIndex = 60;
@@ -884,7 +887,7 @@ partial class Server
         // 
         lb_user_certs.FormattingEnabled = true;
         lb_user_certs.ItemHeight = 15;
-        lb_user_certs.Location = new Point(665, 5);
+        lb_user_certs.Location = new Point(762, 58);
         lb_user_certs.Name = "lb_user_certs";
         lb_user_certs.Size = new Size(120, 79);
         lb_user_certs.TabIndex = 59;
@@ -892,7 +895,7 @@ partial class Server
         // lb_ca_sn
         // 
         lb_ca_sn.AutoSize = true;
-        lb_ca_sn.Location = new Point(3, 429);
+        lb_ca_sn.Location = new Point(22, 403);
         lb_ca_sn.Name = "lb_ca_sn";
         lb_ca_sn.Size = new Size(80, 15);
         lb_ca_sn.TabIndex = 71;
@@ -901,7 +904,7 @@ partial class Server
         // lb_int_sn
         // 
         lb_int_sn.AutoSize = true;
-        lb_int_sn.Location = new Point(226, 429);
+        lb_int_sn.Location = new Point(274, 401);
         lb_int_sn.Name = "lb_int_sn";
         lb_int_sn.Size = new Size(80, 15);
         lb_int_sn.TabIndex = 72;
@@ -910,7 +913,7 @@ partial class Server
         // lb_serv_sn
         // 
         lb_serv_sn.AutoSize = true;
-        lb_serv_sn.Location = new Point(416, 429);
+        lb_serv_sn.Location = new Point(508, 411);
         lb_serv_sn.Name = "lb_serv_sn";
         lb_serv_sn.Size = new Size(80, 15);
         lb_serv_sn.TabIndex = 73;
@@ -919,7 +922,7 @@ partial class Server
         // lb_user_sn
         // 
         lb_user_sn.AutoSize = true;
-        lb_user_sn.Location = new Point(599, 429);
+        lb_user_sn.Location = new Point(728, 411);
         lb_user_sn.Name = "lb_user_sn";
         lb_user_sn.Size = new Size(80, 15);
         lb_user_sn.TabIndex = 74;
@@ -928,7 +931,7 @@ partial class Server
         // tb_ca_sn
         // 
         tb_ca_sn.ImeMode = ImeMode.NoControl;
-        tb_ca_sn.Location = new Point(86, 426);
+        tb_ca_sn.Location = new Point(112, 395);
         tb_ca_sn.Name = "tb_ca_sn";
         tb_ca_sn.ReadOnly = true;
         tb_ca_sn.Size = new Size(75, 23);
@@ -937,7 +940,7 @@ partial class Server
         // textBox1
         // 
         textBox1.Enabled = false;
-        textBox1.Location = new Point(312, 423);
+        textBox1.Location = new Point(360, 395);
         textBox1.Name = "textBox1";
         textBox1.ReadOnly = true;
         textBox1.Size = new Size(75, 23);
@@ -946,7 +949,7 @@ partial class Server
         // textBox2
         // 
         textBox2.Enabled = false;
-        textBox2.Location = new Point(502, 421);
+        textBox2.Location = new Point(594, 403);
         textBox2.Name = "textBox2";
         textBox2.ReadOnly = true;
         textBox2.Size = new Size(74, 23);
@@ -955,7 +958,7 @@ partial class Server
         // textBox3
         // 
         textBox3.Enabled = false;
-        textBox3.Location = new Point(685, 426);
+        textBox3.Location = new Point(814, 408);
         textBox3.Name = "textBox3";
         textBox3.ReadOnly = true;
         textBox3.Size = new Size(75, 23);
@@ -963,7 +966,7 @@ partial class Server
         // 
         // Bt_reCreate_ca_selfSigned_key
         // 
-        Bt_reCreate_ca_selfSigned_key.Location = new Point(3, 369);
+        Bt_reCreate_ca_selfSigned_key.Location = new Point(31, 342);
         Bt_reCreate_ca_selfSigned_key.Name = "Bt_reCreate_ca_selfSigned_key";
         Bt_reCreate_ca_selfSigned_key.Size = new Size(75, 47);
         Bt_reCreate_ca_selfSigned_key.TabIndex = 79;
@@ -971,11 +974,233 @@ partial class Server
         Bt_reCreate_ca_selfSigned_key.UseVisualStyleBackColor = true;
         Bt_reCreate_ca_selfSigned_key.Click += Bt_reCreate_ca_selfSigned_key_Click;
         // 
+        // button1
+        // 
+        button1.AccessibleName = "ca";
+        button1.AccessibleRole = AccessibleRole.None;
+        button1.Location = new Point(108, 313);
+        button1.Name = "button1";
+        button1.Size = new Size(96, 21);
+        button1.TabIndex = 80;
+        button1.Text = "Read Cert Inf";
+        button1.UseVisualStyleBackColor = true;
+        // 
+        // button2
+        // 
+        button2.AccessibleName = "ca";
+        button2.AccessibleRole = AccessibleRole.None;
+        button2.Location = new Point(360, 314);
+        button2.Name = "button2";
+        button2.Size = new Size(88, 21);
+        button2.TabIndex = 81;
+        button2.Text = "Read Cert Inf";
+        button2.UseVisualStyleBackColor = true;
+        // 
+        // button3
+        // 
+        button3.AccessibleName = "ca";
+        button3.AccessibleRole = AccessibleRole.None;
+        button3.Location = new Point(602, 315);
+        button3.Name = "button3";
+        button3.Size = new Size(91, 21);
+        button3.TabIndex = 82;
+        button3.Text = "Read Cert Inf";
+        button3.UseVisualStyleBackColor = true;
+        // 
+        // button4
+        // 
+        button4.AccessibleName = "ca";
+        button4.AccessibleRole = AccessibleRole.None;
+        button4.Location = new Point(828, 315);
+        button4.Name = "button4";
+        button4.Size = new Size(99, 21);
+        button4.TabIndex = 83;
+        button4.Text = "Read Cert Inf";
+        button4.UseVisualStyleBackColor = true;
+        // 
+        // Bt_ca_uploadCert
+        // 
+        Bt_ca_uploadCert.Location = new Point(64, 424);
+        Bt_ca_uploadCert.Name = "Bt_ca_uploadCert";
+        Bt_ca_uploadCert.Size = new Size(75, 23);
+        Bt_ca_uploadCert.TabIndex = 85;
+        Bt_ca_uploadCert.Text = "Upload Cert";
+        Bt_ca_uploadCert.UseVisualStyleBackColor = true;
+        Bt_ca_uploadCert.Click += Bt_ca_uploadCert_Click;
+        // 
+        // Tb_cert_filename
+        // 
+        Tb_cert_filename.Location = new Point(78, 22);
+        Tb_cert_filename.Name = "Tb_cert_filename";
+        Tb_cert_filename.Size = new Size(100, 23);
+        Tb_cert_filename.TabIndex = 86;
+        // 
+        // Lbl_ca_filename_cert
+        // 
+        Lbl_ca_filename_cert.AutoSize = true;
+        Lbl_ca_filename_cert.Location = new Point(21, 27);
+        Lbl_ca_filename_cert.Name = "Lbl_ca_filename_cert";
+        Lbl_ca_filename_cert.Size = new Size(55, 15);
+        Lbl_ca_filename_cert.TabIndex = 87;
+        Lbl_ca_filename_cert.Text = "Filename";
+        // 
+        // Lbl_ca_fileExtension_Priv
+        // 
+        Lbl_ca_fileExtension_Priv.AutoSize = true;
+        Lbl_ca_fileExtension_Priv.Location = new Point(6, 54);
+        Lbl_ca_fileExtension_Priv.Name = "Lbl_ca_fileExtension_Priv";
+        Lbl_ca_fileExtension_Priv.Size = new Size(67, 15);
+        Lbl_ca_fileExtension_Priv.TabIndex = 88;
+        Lbl_ca_fileExtension_Priv.Text = "File Ext Priv";
+        // 
+        // Cb_file_priv_ext
+        // 
+        Cb_file_priv_ext.FormattingEnabled = true;
+        Cb_file_priv_ext.Items.AddRange(new object[] { "pfx", "pem", "crt", "cer", "der", "" });
+        Cb_file_priv_ext.Location = new Point(77, 51);
+        Cb_file_priv_ext.Name = "Cb_file_priv_ext";
+        Cb_file_priv_ext.Size = new Size(101, 23);
+        Cb_file_priv_ext.TabIndex = 89;
+        // 
+        // Lbl_ca_fileExtension_Pub
+        // 
+        Lbl_ca_fileExtension_Pub.AutoSize = true;
+        Lbl_ca_fileExtension_Pub.Location = new Point(-4, 81);
+        Lbl_ca_fileExtension_Pub.Name = "Lbl_ca_fileExtension_Pub";
+        Lbl_ca_fileExtension_Pub.Size = new Size(80, 15);
+        Lbl_ca_fileExtension_Pub.TabIndex = 90;
+        Lbl_ca_fileExtension_Pub.Text = "File Ext Public";
+        // 
+        // Cb_file_pub_ext
+        // 
+        Cb_file_pub_ext.FormattingEnabled = true;
+        Cb_file_pub_ext.Items.AddRange(new object[] { "cer", "der", "crt" });
+        Cb_file_pub_ext.Location = new Point(77, 78);
+        Cb_file_pub_ext.Name = "Cb_file_pub_ext";
+        Cb_file_pub_ext.Size = new Size(101, 23);
+        Cb_file_pub_ext.TabIndex = 91;
+        // 
+        // Tb_cert_remote_path
+        // 
+        Tb_cert_remote_path.Location = new Point(76, 107);
+        Tb_cert_remote_path.Name = "Tb_cert_remote_path";
+        Tb_cert_remote_path.Size = new Size(102, 23);
+        Tb_cert_remote_path.TabIndex = 92;
+        // 
+        // menuStrip1
+        // 
+        menuStrip1.Items.AddRange(new ToolStripItem[] { editToolStripMenuItem });
+        menuStrip1.Location = new Point(0, 0);
+        menuStrip1.Name = "menuStrip1";
+        menuStrip1.Size = new Size(1043, 24);
+        menuStrip1.TabIndex = 94;
+        menuStrip1.Text = "menuStrip1";
+        // 
+        // editToolStripMenuItem
+        // 
+        editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { ms_edit_config });
+        editToolStripMenuItem.Name = "editToolStripMenuItem";
+        editToolStripMenuItem.Size = new Size(39, 20);
+        editToolStripMenuItem.Text = "Edit";
+        // 
+        // ms_edit_config
+        // 
+        ms_edit_config.Name = "ms_edit_config";
+        ms_edit_config.Size = new Size(110, 22);
+        ms_edit_config.Text = "Config";
+        ms_edit_config.Click += edit_config_load;
+        // 
+        // Lb_cert_remotePath
+        // 
+        Lb_cert_remotePath.AutoSize = true;
+        Lb_cert_remotePath.Location = new Point(-2, 110);
+        Lb_cert_remotePath.Name = "Lb_cert_remotePath";
+        Lb_cert_remotePath.Size = new Size(75, 15);
+        Lb_cert_remotePath.TabIndex = 95;
+        Lb_cert_remotePath.Text = "Remote Path";
+        // 
+        // Bt_wr_cert_path
+        // 
+        Bt_wr_cert_path.Location = new Point(83, 152);
+        Bt_wr_cert_path.Name = "Bt_wr_cert_path";
+        Bt_wr_cert_path.Size = new Size(75, 23);
+        Bt_wr_cert_path.TabIndex = 96;
+        Bt_wr_cert_path.Text = "Write";
+        Bt_wr_cert_path.UseVisualStyleBackColor = true;
+        Bt_wr_cert_path.Click += Bt_wr_cert_path_Click;
+        // 
+        // treeView1
+        // 
+        treeView1.Location = new Point(825, 711);
+        treeView1.Name = "treeView1";
+        treeView1.Size = new Size(121, 97);
+        treeView1.TabIndex = 97;
+        // 
+        // Gb_cert_details
+        // 
+        Gb_cert_details.Controls.Add(Tb_cert_filename);
+        Gb_cert_details.Controls.Add(Lbl_ca_filename_cert);
+        Gb_cert_details.Controls.Add(Bt_wr_cert_path);
+        Gb_cert_details.Controls.Add(Lbl_ca_fileExtension_Priv);
+        Gb_cert_details.Controls.Add(Lb_cert_remotePath);
+        Gb_cert_details.Controls.Add(Cb_file_priv_ext);
+        Gb_cert_details.Controls.Add(Lbl_ca_fileExtension_Pub);
+        Gb_cert_details.Controls.Add(Tb_cert_remote_path);
+        Gb_cert_details.Controls.Add(Cb_file_pub_ext);
+        Gb_cert_details.ImeMode = ImeMode.KatakanaHalf;
+        Gb_cert_details.Location = new Point(86, 617);
+        Gb_cert_details.Name = "Gb_cert_details";
+        Gb_cert_details.Size = new Size(200, 252);
+        Gb_cert_details.TabIndex = 98;
+        Gb_cert_details.TabStop = false;
+        Gb_cert_details.Text = "Certificate information";
+        // 
+        // Bt_int_uploadCert
+        // 
+        Bt_int_uploadCert.Location = new Point(338, 424);
+        Bt_int_uploadCert.Name = "Bt_int_uploadCert";
+        Bt_int_uploadCert.Size = new Size(75, 23);
+        Bt_int_uploadCert.TabIndex = 99;
+        Bt_int_uploadCert.Text = "Upload Cert";
+        Bt_int_uploadCert.UseVisualStyleBackColor = true;
+        Bt_int_uploadCert.Click += Bt_int_uploadCert_Click;
+        // 
+        // Bt_server_uploadCert
+        // 
+        Bt_server_uploadCert.Location = new Point(563, 432);
+        Bt_server_uploadCert.Name = "Bt_server_uploadCert";
+        Bt_server_uploadCert.Size = new Size(75, 23);
+        Bt_server_uploadCert.TabIndex = 100;
+        Bt_server_uploadCert.Text = "Upload Cert";
+        Bt_server_uploadCert.UseVisualStyleBackColor = true;
+        Bt_server_uploadCert.Click += Bt_server_uploadCert_Click;
+        // 
+        // Bt_user_uploadCert
+        // 
+        Bt_user_uploadCert.Location = new Point(781, 437);
+        Bt_user_uploadCert.Name = "Bt_user_uploadCert";
+        Bt_user_uploadCert.Size = new Size(75, 23);
+        Bt_user_uploadCert.TabIndex = 101;
+        Bt_user_uploadCert.Text = "Upload Cert";
+        Bt_user_uploadCert.UseVisualStyleBackColor = true;
+        Bt_user_uploadCert.Click += Bt_user_uploadCert_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(797, 710);
+        ClientSize = new Size(1043, 958);
+        Controls.Add(Bt_user_uploadCert);
+        Controls.Add(Bt_server_uploadCert);
+        Controls.Add(Bt_int_uploadCert);
+        Controls.Add(Gb_cert_details);
+        Controls.Add(treeView1);
+        Controls.Add(menuStrip1);
+        Controls.Add(Bt_ca_uploadCert);
+        Controls.Add(button4);
+        Controls.Add(button3);
+        Controls.Add(button2);
+        Controls.Add(button1);
         Controls.Add(Bt_reCreate_ca_selfSigned_key);
         Controls.Add(textBox3);
         Controls.Add(textBox2);
@@ -1011,7 +1236,6 @@ partial class Server
         Controls.Add(lb_server_certs);
         Controls.Add(Bt_read_int_subj);
         Controls.Add(Bt_read_ca_subj);
-        Controls.Add(Bt_sign_int_cert);
         Controls.Add(Bt_gen_int_selfSigned_key);
         Controls.Add(Bt_gen_ca_pub);
         Controls.Add(Bt_gen_int_pub);
@@ -1037,6 +1261,7 @@ partial class Server
         Controls.Add(tb_ca_name);
         Controls.Add(gb_default_disti_names);
         Controls.Add(lbl_ca_name);
+        MainMenuStrip = menuStrip1;
         Margin = new Padding(2);
         Name = "Server";
         Text = "server";
@@ -1047,6 +1272,10 @@ partial class Server
         panel1.PerformLayout();
         panel2.ResumeLayout(false);
         panel2.PerformLayout();
+        menuStrip1.ResumeLayout(false);
+        menuStrip1.PerformLayout();
+        Gb_cert_details.ResumeLayout(false);
+        Gb_cert_details.PerformLayout();
         ResumeLayout(false);
         PerformLayout();
     }
@@ -1069,7 +1298,6 @@ partial class Server
     private Label lbl_def_state;
     private Label lbl_def_country;
     private Label lbl_ca_name;
-    private ListBox lb_ca_certs;
     private Label lbl_ca_keySize;
     private TextBox tb_ca_dura;
     private Label lbl_ca_duration;
@@ -1099,11 +1327,9 @@ partial class Server
     private Label lbl_int_name;
     private CheckBox cb_new_int;
     private Button Bt_gen_int_pub;
-    private Button Bt_read_Dest_names;
     private Button Bt_gen_ca_pub;
     private Button Bt_wrt_param;
     private Button Bt_gen_int_selfSigned_key;
-    private Button Bt_sign_int_cert;
     private Button Bt_read_ca_subj;
     private Button Bt_read_int_subj;
     private Button Bt_read_server_subj;
@@ -1139,4 +1365,28 @@ partial class Server
     private TextBox textBox2;
     private TextBox textBox3;
     private Button Bt_reCreate_ca_selfSigned_key;
+    private Button button1;
+    private Button button2;
+    private Button button3;
+    private Button button4;
+    private Button Bt_ca_uploadCert;
+    private TextBox Tb_cert_filename;
+    private Label Lbl_ca_filename_cert;
+    private Label Lbl_ca_fileExtension_Priv;
+    private ComboBox Cb_file_priv_ext;
+    private Label Lbl_ca_fileExtension_Pub;
+    private ComboBox Cb_file_pub_ext;
+    private TextBox Tb_cert_remote_path;
+    public ListBox lb_ca_certs;
+    private MenuStrip menuStrip1;
+    private ToolStripMenuItem editToolStripMenuItem;
+    private ToolStripMenuItem ms_edit_config;
+    private Label Lb_cert_remotePath;
+    private Button Bt_wr_cert_path;
+    private TreeView treeView1;
+    private GroupBox Gb_cert_details;
+    private SaveFileDialog saveFileDialog1;
+    private Button Bt_int_uploadCert;
+    private Button Bt_server_uploadCert;
+    private Button Bt_user_uploadCert;
 }
