@@ -323,14 +323,14 @@ public partial class Server : Form
 
         Result<List<object>> list = Utils.Sql.SelectWhereObject(sshCred, certType.ca, "name", caName);
 
-       
+
 
 
         //SaveFileDialog saveFileDialog1 = new SaveFileDialog();
         //saveFileDialog1.InitialDirectory = System.Reflection.Assembly.GetExecutingAssembly().Location;
         //saveFileDialog1.RestoreDirectory = true;
         //saveFileDialog1.Title = "Save certificate";
-        
+
         //saveFileDialog1.AddExtension = true;
         //saveFileDialog1.CheckFileExists = true;
         //saveFileDialog1.FileName = "ca_" + caName + "_reCreate_ss";
@@ -360,8 +360,6 @@ public partial class Server : Form
 
         Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], certToSend, certDetails[3]);
         Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], privCert, certDetails[2]);
-
-
 
     }
     #endregion
@@ -467,6 +465,26 @@ public partial class Server : Form
             throw;
         }
     }
+
+    private void Bt_int_uploadCert_Click(object sender, EventArgs e)
+    {
+        string serverName = Convert.ToString(lb_int_certs.SelectedItem);
+
+        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.intermediate, "ss_cert", "name", serverName);
+        X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
+        string privCert = GetPrivateKey(certType.intermediate, serverName);
+
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.intermediate, sshlocs, "name", serverName);
+
+
+        string[] certDetails = GetCertDetails(certType.intermediate, serverName);
+        string[] serverDetails = GetServerDetails(certType.intermediate, serverName);
+
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], certToSend, certDetails[3]);
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], privCert, certDetails[2]);
+    }
+
     #endregion
 
     #region server
@@ -556,6 +574,24 @@ public partial class Server : Form
         {
             throw;
         }
+    }
+    private void Bt_server_uploadCert_Click(object sender, EventArgs e)
+    {
+        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+
+        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", serverName);
+        X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
+        string privCert = GetPrivateKey(certType.ca, serverName);
+
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", serverName);
+
+
+        string[] certDetails = GetCertDetails(certType.ca, serverName);
+        string[] serverDetails = GetServerDetails(certType.ca, serverName);
+
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], certToSend, certDetails[3]);
+        Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], privCert, certDetails[2]);
     }
     #endregion
 
@@ -647,6 +683,10 @@ public partial class Server : Form
         {
             throw;
         }
+    }
+    private void Bt_user_uploadCert_Click(object sender, EventArgs e)
+    {
+
     }
     #endregion
 
@@ -904,5 +944,7 @@ public partial class Server : Form
     {
 
     }
+
+
 }
 

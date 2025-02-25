@@ -863,8 +863,7 @@ public class Utils
 
                 if (file.FileName != "")
                 {
-
-                    File.WriteAllBytes(file.FileName, certToSend); //includes public and private
+                    //File.WriteAllBytes(file.FileName, certToSend); //includes public and private
                 }
 
             }

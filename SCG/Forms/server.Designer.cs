@@ -133,6 +133,9 @@ partial class Server
         treeView1 = new TreeView();
         Gb_cert_details = new GroupBox();
         saveFileDialog1 = new SaveFileDialog();
+        Bt_int_uploadCert = new Button();
+        Bt_server_uploadCert = new Button();
+        Bt_user_uploadCert = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -1152,11 +1155,44 @@ partial class Server
         Gb_cert_details.TabStop = false;
         Gb_cert_details.Text = "Certificate information";
         // 
+        // Bt_int_uploadCert
+        // 
+        Bt_int_uploadCert.Location = new Point(338, 424);
+        Bt_int_uploadCert.Name = "Bt_int_uploadCert";
+        Bt_int_uploadCert.Size = new Size(75, 23);
+        Bt_int_uploadCert.TabIndex = 99;
+        Bt_int_uploadCert.Text = "Upload Cert";
+        Bt_int_uploadCert.UseVisualStyleBackColor = true;
+        Bt_int_uploadCert.Click += Bt_int_uploadCert_Click;
+        // 
+        // Bt_server_uploadCert
+        // 
+        Bt_server_uploadCert.Location = new Point(563, 432);
+        Bt_server_uploadCert.Name = "Bt_server_uploadCert";
+        Bt_server_uploadCert.Size = new Size(75, 23);
+        Bt_server_uploadCert.TabIndex = 100;
+        Bt_server_uploadCert.Text = "Upload Cert";
+        Bt_server_uploadCert.UseVisualStyleBackColor = true;
+        Bt_server_uploadCert.Click += Bt_server_uploadCert_Click;
+        // 
+        // Bt_user_uploadCert
+        // 
+        Bt_user_uploadCert.Location = new Point(781, 437);
+        Bt_user_uploadCert.Name = "Bt_user_uploadCert";
+        Bt_user_uploadCert.Size = new Size(75, 23);
+        Bt_user_uploadCert.TabIndex = 101;
+        Bt_user_uploadCert.Text = "Upload Cert";
+        Bt_user_uploadCert.UseVisualStyleBackColor = true;
+        Bt_user_uploadCert.Click += Bt_user_uploadCert_Click;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1043, 958);
+        Controls.Add(Bt_user_uploadCert);
+        Controls.Add(Bt_server_uploadCert);
+        Controls.Add(Bt_int_uploadCert);
         Controls.Add(Gb_cert_details);
         Controls.Add(treeView1);
         Controls.Add(menuStrip1);
@@ -1350,4 +1386,7 @@ partial class Server
     private TreeView treeView1;
     private GroupBox Gb_cert_details;
     private SaveFileDialog saveFileDialog1;
+    private Button Bt_int_uploadCert;
+    private Button Bt_server_uploadCert;
+    private Button Bt_user_uploadCert;
 }
