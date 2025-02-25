@@ -577,18 +577,18 @@ public partial class Server : Form
     }
     private void Bt_server_uploadCert_Click(object sender, EventArgs e)
     {
-        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+        string serverName = Convert.ToString(lb_server_certs.SelectedItem);
 
-        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", serverName);
+        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.server, "ss_cert", "name", serverName);
         X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
-        string privCert = GetPrivateKey(certType.ca, serverName);
+        string privCert = GetPrivateKey(certType.server, serverName);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", serverName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.server, sshlocs, "name", serverName);
 
 
-        string[] certDetails = GetCertDetails(certType.ca, serverName);
-        string[] serverDetails = GetServerDetails(certType.ca, serverName);
+        string[] certDetails = GetCertDetails(certType.server, serverName);
+        string[] serverDetails = GetServerDetails(certType.server, serverName);
 
         Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], certToSend, certDetails[3]);
         Utils.ssh.UploadCert(serverDetails[0], serverDetails[1], serverDetails[2], privCert, certDetails[2]);
