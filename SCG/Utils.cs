@@ -33,6 +33,120 @@ public class Utils
                     
                 };
 
+    public static Dictionary<string, string> CaDetails = new Dictionary<string, string>
+                {
+                    { "id", string.Empty },
+                    { "name", string.Empty },
+                    { "keySize", string.Empty },
+                    { "private_key", string.Empty },
+                    { "private_createDT", string.Empty },
+                    { "public_cert", string.Empty },
+                    { "public_createDT", string.Empty },
+                    { "ss_cert", string.Empty },
+                    { "ss_createDT", string.Empty },
+                    { "ss_duration", string.Empty },
+                    { "subj_country", string.Empty },
+                    { "subj_state", string.Empty },
+                    { "subj_location", string.Empty },
+                    { "subj_organisation", string.Empty },
+                    { "subj_orgaunit", string.Empty },
+                    { "subj_commonname", string.Empty },
+                    { "subj_email", string.Empty },
+                    { "serialNumber", string.Empty },
+                    { "host_name", string.Empty },
+                    { "host_username", string.Empty },
+                    { "host_password", string.Empty },
+                    { "cert_filename", string.Empty },
+                    { "cert_priv_ext", string.Empty },
+                    { "cert_pub_ext", string.Empty },
+                    { "cert_path", string.Empty }
+
+
+                };
+    public static Dictionary<string, string> dictInterDetails = new Dictionary<string, string>
+                {
+                    { "id", string.Empty },
+                    { "name", string.Empty },
+                    { "keySize", string.Empty },
+                    { "private_key", string.Empty },
+                    { "private_createDT", string.Empty },
+                    { "public_cert", string.Empty },
+                    { "public_createDT", string.Empty },
+                    { "ss_cert", string.Empty },
+                    { "ss_createDT", string.Empty },
+                    { "ss_duration", string.Empty },
+                    { "subj_country", string.Empty },
+                    { "subj_state", string.Empty },
+                    { "subj_location", string.Empty },
+                    { "subj_organisation", string.Empty },
+                    { "subj_orgaunit", string.Empty },
+                    { "subj_commonname", string.Empty },
+                    { "subj_email", string.Empty },
+                    { "serialNumber", string.Empty },
+                    { "host_name", string.Empty },
+                    { "host_username", string.Empty },
+                    { "host_password", string.Empty },
+                    { "cert_filename", string.Empty },
+                    { "cert_priv_ext", string.Empty },
+                    { "cert_pub_ext", string.Empty },
+                    { "cert_path", string.Empty }
+                };
+    public static Dictionary<string, string> dictServerDetails = new Dictionary<string, string>
+                {
+                    { "id", string.Empty },
+                    { "name", string.Empty },
+                    { "keySize", string.Empty },
+                    { "private_key", string.Empty },
+                    { "private_createDT", string.Empty },
+                    { "public_cert", string.Empty },
+                    { "public_createDT", string.Empty },
+                    { "ss_cert", string.Empty },
+                    { "ss_createDT", string.Empty },
+                    { "ss_duration", string.Empty },
+                    { "subj_country", string.Empty },
+                    { "subj_state", string.Empty },
+                    { "subj_location", string.Empty },
+                    { "subj_organisation", string.Empty },
+                    { "subj_orgaunit", string.Empty },
+                    { "subj_commonname", string.Empty },
+                    { "subj_email", string.Empty },
+                    { "serialNumber", string.Empty },
+                    { "host_name", string.Empty },
+                    { "host_username", string.Empty },
+                    { "host_password", string.Empty },
+                    { "cert_filename", string.Empty },
+                    { "cert_priv_ext", string.Empty },
+                    { "cert_pub_ext", string.Empty },
+                    { "cert_path", string.Empty }
+                };
+    public static Dictionary<string, string> dictUserDetails = new Dictionary<string, string>
+                {
+                    { "id", string.Empty },
+                    { "name", string.Empty },
+                    { "keySize", string.Empty },
+                    { "private_key", string.Empty },
+                    { "private_createDT", string.Empty },
+                    { "public_cert", string.Empty },
+                    { "public_createDT", string.Empty },
+                    { "ss_cert", string.Empty },
+                    { "ss_createDT", string.Empty },
+                    { "ss_duration", string.Empty },
+                    { "subj_country", string.Empty },
+                    { "subj_state", string.Empty },
+                    { "subj_location", string.Empty },
+                    { "subj_organisation", string.Empty },
+                    { "subj_orgaunit", string.Empty },
+                    { "subj_commonname", string.Empty },
+                    { "subj_email", string.Empty },
+                    { "serialNumber", string.Empty },
+                    { "host_name", string.Empty },
+                    { "host_username", string.Empty },
+                    { "host_password", string.Empty },
+                    { "cert_filename", string.Empty },
+                    { "cert_priv_ext", string.Empty },
+                    { "cert_pub_ext", string.Empty },
+                    { "cert_path", string.Empty }
+                };
     public class ssh
     {
 
@@ -103,6 +217,25 @@ public class Utils
     }
     public class Sql
     {
+        public static SqliteConnection openConnection()
+        {
+            try
+            {
+                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+                _connectionString.DataSource = Global.database;
+                _connectionString.Password = null;
+                string connectionString = _connectionString.ToString();
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                return connection;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return null;
+            }
+        }
         public static string[] GetServerDetails(certType table, string serverName)
         {
             try
@@ -136,6 +269,40 @@ public class Utils
                     }
                 }
                 connection.Close();
+                return str;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public static string[] GetCaServerDetails(string serverName)
+        {
+            try
+            {
+ int i = 0;
+                string[] str = new string[3];
+
+                string column = string.Join(",", _serverDetails.Keys);
+                var sql = $"SELECT {column} FROM ca WHERE name=@_searchValue";
+
+                using var command = new SqliteCommand(sql, DatabaseConnection.GetInstance().GetConnection());
+
+                command.Parameters.AddWithValue("@_searchValue", serverName);
+                using var reader = command.ExecuteReader();
+               
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        foreach (string key in _serverDetails.Keys)
+                        {
+                            str[i] = reader[key]?.ToString();
+                            i++;
+                        }
+                    }
+                }
+                //connection.Close();
                 return str;
             }
             catch (Exception)
@@ -488,6 +655,7 @@ public class Utils
             {
                 string sql = string.Empty;
                 List<object> columns = new List<object>();
+
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
                 _connectionString.DataSource = Global.database;

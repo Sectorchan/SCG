@@ -135,7 +135,7 @@ partial class Server
         saveFileDialog1 = new SaveFileDialog();
         Bt_int_uploadCert = new Button();
         Bt_server_uploadCert = new Button();
-        Bt_user_uploadCert = new Button();
+        button5 = new Button();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -1175,22 +1175,22 @@ partial class Server
         Bt_server_uploadCert.UseVisualStyleBackColor = true;
         Bt_server_uploadCert.Click += Bt_server_uploadCert_Click;
         // 
-        // Bt_user_uploadCert
+        // button5
         // 
-        Bt_user_uploadCert.Location = new Point(781, 437);
-        Bt_user_uploadCert.Name = "Bt_user_uploadCert";
-        Bt_user_uploadCert.Size = new Size(75, 23);
-        Bt_user_uploadCert.TabIndex = 101;
-        Bt_user_uploadCert.Text = "Upload Cert";
-        Bt_user_uploadCert.UseVisualStyleBackColor = true;
-        Bt_user_uploadCert.Click += Bt_user_uploadCert_Click;
+        button5.Location = new Point(653, 537);
+        button5.Name = "button5";
+        button5.Size = new Size(75, 23);
+        button5.TabIndex = 101;
+        button5.Text = "button5";
+        button5.UseVisualStyleBackColor = true;
+        button5.Click += button5_Click;
         // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1043, 958);
-        Controls.Add(Bt_user_uploadCert);
+        Controls.Add(button5);
         Controls.Add(Bt_server_uploadCert);
         Controls.Add(Bt_int_uploadCert);
         Controls.Add(Gb_cert_details);
@@ -1388,5 +1388,5 @@ partial class Server
     private SaveFileDialog saveFileDialog1;
     private Button Bt_int_uploadCert;
     private Button Bt_server_uploadCert;
-    private Button Bt_user_uploadCert;
+    private Button button5;
 }

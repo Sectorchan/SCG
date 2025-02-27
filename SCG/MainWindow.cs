@@ -512,6 +512,7 @@ namespace WinFormsApp1
 
     public static class Global
     {
+        //public static readonly string database = "blubb";
         public static readonly string database = SCG.Properties.Settings.Default.databasePath;
         public static readonly bool autoUpload = SCG.Properties.Settings.Default.autoUpload;
         public static readonly bool certToDisk = SCG.Properties.Settings.Default.CertToDisk;

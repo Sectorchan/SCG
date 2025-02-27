@@ -49,22 +49,21 @@ public partial class Server : Form
     private readonly string[] sshCred = ["host_username", "host_password", "hostname"];
     private readonly string[] sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
 
-    private readonly string c_privateKeyPath = "c_privateKey.pem";
-    private readonly string c_publicKeyPath = "c_publicKey.pem";
-    private readonly string c_selfsignedKeyPathCert = "c_selfSignedKey.cer";
-    private readonly string c_selfsignedKeyPathPfx = "c_selfSignedKey.pfx";
+
     private readonly string c_selfsignedPasswordPfx = "";
 
-    private readonly string i_privateKeyPath = "i_privateKey.pem";
-    private readonly string i_publicKeyPath = "i_publicKey.pem";
-    private readonly string i_signedKeyPath = "i_selfSignedKey";
     private readonly string i_selfsignedPasswordPfx = "";
     private readonly string s_selfsignedPasswordPfx = "";
     private readonly string u_selfsignedPasswordPfx = "";
+    SqliteConnection sqlconnection;
     #endregion
 
     private void server_onLoad(object sender, EventArgs e)
     {
+        //open SQL connection
+        var db = DatabaseConnection.GetInstance();
+        sqlconnection = db.GetConnection();
+
         #region !Visible Boxes
         lbl_ca_name.Visible = false;
         tb_ca_name.Visible = false;
@@ -945,6 +944,18 @@ public partial class Server : Form
 
     }
 
+    private void button5_Click(object sender, EventArgs e)
+    {
+        try
+        {
+                string[] serverDetails = GetCaServerDetails("LangCa");
+                MessageBox.Show(serverDetails[0]);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.ToString());
+        }
 
+    }
 }
 

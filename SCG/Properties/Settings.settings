@@ -6,7 +6,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="databasePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">komisch</Value>
     </Setting>
     <Setting Name="autoUpload" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
