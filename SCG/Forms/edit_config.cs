@@ -29,7 +29,6 @@ public partial class edit_config : Form
     private void cb_autoUpload_checkedChanged(object sender, EventArgs e)
     {
         Properties.Settings.Default.autoUpload = Cb_cert_auto_upload.Checked;
-
     }
 
     private void edit_config_FormClosing(object sender, FormClosingEventArgs e)
@@ -44,7 +43,7 @@ public partial class edit_config : Form
             try
             {
                 Properties.Settings.Default.databasePath = Diag_Database.FileName;
-
+                Tb_db_path.Text = Properties.Settings.Default.databasePath;
             }
             catch (SecurityException ex)
             {
@@ -57,6 +56,5 @@ public partial class edit_config : Form
     private void Cb_save_to_disk_CheckedChanged(object sender, EventArgs e)
     {
         Properties.Settings.Default.CertToDisk = Cb_cert_auto_upload.Checked;
-
     }
 }

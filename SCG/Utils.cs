@@ -35,7 +35,7 @@ public class Utils
 
                 };
     static SqliteConnection _connection = Server.sqlconnection;
-    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT","ss_duration","subj_country","subj_state","subj_location","subj_organisation","subj_orgaunit","subj_commonname","subj_email","serialNumber","host_name","host_username","host_password","cert_filename","cert_priv_ext","cert_pub_ext","cert_path"];
+    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
     public static Dictionary<string, string> dictCaDetails = new Dictionary<string, string>
                 {
                     { "id", string.Empty },
@@ -152,8 +152,6 @@ public class Utils
                 };
     public class ssh
     {
-
-
         /// <summary>
         /// Uploads privateKey in PEM format
         /// </summary>
@@ -445,15 +443,6 @@ public class Utils
         /// <returns>Result<List<string>></returns>
         public static List<string> SqlSelect(string column, certType table)
         {
-
-            //SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-            //_connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-            //_connectionString.DataSource = Global.database;
-            //_connectionString.Password = null;
-            //string connectionString = _connectionString.ToString();
-            //using var connection = new SqliteConnection(connectionString);
-            //connection.Open();
-
             var sql = $"SELECT {column} FROM {table}";
 
             using var command = new SqliteCommand(sql, _connection);
@@ -508,17 +497,8 @@ public class Utils
                 return null;
             }
         }
-        public static List<string> Select(certType table, string serverName)
+        public static void Select(certType table, string serverName)
         {
-
-            //SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-            //_connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-            //_connectionString.DataSource = Global.database;
-            //_connectionString.Password = null;
-            //string connectionString = _connectionString.ToString();
-            //using var connection = new SqliteConnection(connectionString);
-            //connection.Open();
-
             var sql = $"SELECT * FROM {table} WHERE name=@serverName";
 
             using var command = new SqliteCommand(sql, _connection);
@@ -533,40 +513,11 @@ public class Utils
                     {
                         dictCaDetails[item] = reader.GetString(item);
                     }
-
-                    
-                    //columns.Add(reader.GetString("name"));
-                    //columns.Add(reader.GetString("keySize"));
-                    //columns.Add(reader.GetString("private_key"));
-                    //columns.Add(reader.GetString("private_createDT"));
-                    //columns.Add(reader.GetString("public_cert"));
-                    //columns.Add(reader.GetString("public_createDT"));
-                    //columns.Add(reader.GetString("ss_cert"));
-                    //columns.Add(reader.GetString("ss_createDT"));
-                    //columns.Add(reader.GetString("ss_duration"));
-                    //columns.Add(reader.GetString("subj_country"));
-                    //columns.Add(reader.GetString("subj_state"));
-                    //columns.Add(reader.GetString("subj_location"));
-                    //columns.Add(reader.GetString("subj_organisation"));
-                    //columns.Add(reader.GetString("subj_orgaunit"));
-                    //columns.Add(reader.GetString("subj_commonname"));
-                    //columns.Add(reader.GetString("subj_email"));
-                    //columns.Add(reader.GetString("serialNumber"));
-                    //columns.Add(reader.GetString("host_name"));
-                    //columns.Add(reader.GetString("host_username"));
-                    //columns.Add(reader.GetString("host_password"));
-                    //columns.Add(reader.GetString("cert_filename"));
-                    //columns.Add(reader.GetString("cert_priv_ext"));
-                    //columns.Add(reader.GetString("cert_pub_ext"));
-                    //columns.Add(reader.GetString("cert_path"));
                 }
-
-                return columns;
             }
             else
             {
                 MessageBox.Show("No Server found", string.Empty, MessageBoxButtons.OK);
-                return null;
             }
         }
 
@@ -807,6 +758,30 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
+        public static void Update(certType table, string serverName, string column)
+        {
+            try
+            {
+                using (var command = _connection.CreateCommand())
+                {
+
+                    command.Parameters.Clear(); // Important: Clear parameters for next use. "INSERT INTO MyTable (Name, Value) VALUES (@name, @value)";
+                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
+
+                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                    command.Parameters.AddWithValue("@_searchTerm", serverName);
+
+                    int rowInserted = command.ExecuteNonQuery();
+                }
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
         public static int UpdateBasicConstraints(certType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
         {
             try
@@ -951,9 +926,9 @@ public class Utils
             {
                 using (RSA rsa = RSA.Create())
                 {
-                    rsa.ImportFromPem(privateKey);
-                    string publicKeyPem = rsa.ExportRSAPublicKeyPem();
-                    return publicKeyPem;
+                    rsa.ImportFromPem(dictCaDetails["private_key"]);
+                    dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
+                    return rsa.ExportRSAPublicKeyPem();
                 }
             }
             catch

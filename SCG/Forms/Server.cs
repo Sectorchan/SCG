@@ -254,18 +254,16 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-
             Utils.Sql.Select(certType.ca, serverName);
-
-            MessageBox.Show(dictCaDetails["name"]);
-
 
 
             string publicKeyPem = Utils.Certs.GeneratePublicKey(serverName);
-            int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, serverName, "name");
+            //int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, serverName, "name");
+            Utils.Sql.Update(certType.ca, serverName, "public_cert");
+
 
             File.WriteAllText("ca_" + serverName + "_pub.pem", publicKeyPem);
-            MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
+            MessageBox.Show($"Successfully inserted insertRow row(s) into the database");
 
         }
         catch (Exception ex)
