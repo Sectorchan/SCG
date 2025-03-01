@@ -627,7 +627,7 @@ public class Utils
                         foreach (string row in column1)
                         {
                             columns.Add(reader[row]);
-                        }
+                        } 
                     }
                     return Result.Ok(columns);
                 }
@@ -758,26 +758,34 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static void Update(certType table, string serverName, string column)
+        public static Result<int> Update(certType table, string serverName, string[] columns)
         {
+            int rowIns = 0;
             try
             {
                 using (var command = _connection.CreateCommand())
                 {
+                    foreach (var column in columns)
+                    {
+                        if (column == "public_createDT" || column == "private_createDT")
+                        {
+                            dictCaDetails[column] = DateTime.Now.ToString();
+                        }
+                        command.Parameters.Clear(); 
+                        command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                    command.Parameters.Clear(); // Important: Clear parameters for next use. "INSERT INTO MyTable (Name, Value) VALUES (@name, @value)";
-                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
+                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                        command.Parameters.AddWithValue("@_searchTerm", serverName);
 
-                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
-                    command.Parameters.AddWithValue("@_searchTerm", serverName);
-
-                    int rowInserted = command.ExecuteNonQuery();
+                        int rowInserted = command.ExecuteNonQuery();
+                        rowIns += rowInserted;
+                    }
                 }
-
+                return Result.Ok(rowIns);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                Result.Fail(ex.Message);
             }
         }
 

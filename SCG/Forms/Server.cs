@@ -255,16 +255,21 @@ public partial class Server : Form
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
             Utils.Sql.Select(certType.ca, serverName);
-
-
             string publicKeyPem = Utils.Certs.GeneratePublicKey(serverName);
-            //int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, serverName, "name");
-            Utils.Sql.Update(certType.ca, serverName, "public_cert");
+            Result<int> columnsUpdated = Utils.Sql.Update(certType.ca, serverName, ["public_cert", "public_createDT"]);
 
+            if (columnsUpdated.IsSuccess)
+            {
+                MessageBox.Show($"Successfully inserted {columnsUpdated.Value} row(s) into the database");
+            }
+            else
+            {
+                MessageBox.Show($"Failed with: {columnsUpdated.Value}");
+            }
+            if (writeFile)
+            {
 
-            File.WriteAllText("ca_" + serverName + "_pub.pem", publicKeyPem);
-            MessageBox.Show($"Successfully inserted insertRow row(s) into the database");
-
+            }
         }
         catch (Exception ex)
         { MessageBox.Show(ex.Message.ToString()); }
