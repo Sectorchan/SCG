@@ -1,7 +1,9 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
 using Renci.SshNet;
+using SCG.Forms;
 using System;
+using System.Buffers;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -18,7 +20,7 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
-    private static Dictionary<string, string> _certDetails = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> s_certDetails = new Dictionary<string, string>
                 {
                     { "cert_filename", string.Empty },
                     { "cert_priv_ext", string.Empty },
@@ -30,10 +32,11 @@ public class Utils
                     { "host_name", string.Empty },
                     { "host_username", string.Empty },
                     { "host_password", string.Empty }
-                    
-                };
 
-    public static Dictionary<string, string> CaDetails = new Dictionary<string, string>
+                };
+    static SqliteConnection _connection = Server.sqlconnection;
+    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT","ss_duration","subj_country","subj_state","subj_location","subj_organisation","subj_orgaunit","subj_commonname","subj_email","serialNumber","host_name","host_username","host_password","cert_filename","cert_priv_ext","cert_pub_ext","cert_path"];
+    public static Dictionary<string, string> dictCaDetails = new Dictionary<string, string>
                 {
                     { "id", string.Empty },
                     { "name", string.Empty },
@@ -280,7 +283,7 @@ public class Utils
         {
             try
             {
- int i = 0;
+                int i = 0;
                 string[] str = new string[3];
 
                 string column = string.Join(",", _serverDetails.Keys);
@@ -290,7 +293,7 @@ public class Utils
 
                 command.Parameters.AddWithValue("@_searchValue", serverName);
                 using var reader = command.ExecuteReader();
-               
+
                 if (reader.HasRows)
                 {
                     while (reader.Read())
@@ -330,7 +333,7 @@ public class Utils
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                string column = string.Join(",", _certDetails.Keys);
+                string column = string.Join(",", s_certDetails.Keys);
                 var sql = $"SELECT {column} FROM {table} WHERE name=@_searchValue"; // geht nicht 
                 using var command = new SqliteCommand(sql, connection);
 
@@ -341,19 +344,19 @@ public class Utils
                 {
                     while (reader.Read())
                     {
-                        foreach (string key in _certDetails.Keys)
+                        foreach (string key in s_certDetails.Keys)
                         {
-                            _certDetails[key] = reader[key]?.ToString();
+                            s_certDetails[key] = reader[key]?.ToString();
                         }
                     }
                 }
                 connection.Close();
-                str[0] = _certDetails["cert_filename"] + "." + _certDetails["cert_priv_ext"];
-                str[1] = _certDetails["cert_filename"] + "." + _certDetails["cert_pub_ext"];
-                str[2] = _certDetails["cert_path"] + str[0];
-                str[3] = _certDetails["cert_path"] + str[1];
-               
-                
+                str[0] = s_certDetails["cert_filename"] + "." + s_certDetails["cert_priv_ext"];
+                str[1] = s_certDetails["cert_filename"] + "." + s_certDetails["cert_pub_ext"];
+                str[2] = s_certDetails["cert_path"] + str[0];
+                str[3] = s_certDetails["cert_path"] + str[1];
+
+
                 return str;
             }
             catch (Exception)
@@ -367,7 +370,7 @@ public class Utils
         {
             try
             {
-                string result = string.Empty; 
+                string result = string.Empty;
                 SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
                 _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
                 _connectionString.DataSource = Global.database;
@@ -409,44 +412,17 @@ public class Utils
         ///
         public static int InsertInto(certType table, string name, string privKey, int keySize)
         {
-
             try
             {
-                string _table = string.Empty;
-                var _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
+                string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
-                switch (table)
-                {
-                    case (certType.ca):
-                        _table = "ca";
-                        break;
-                    case (certType.intermediate):
-                        _table = "intermediate";
-                        break;
-                    case (certType.server):
-                        _table = "server";
-                        break;
-                    case (certType.user):
-                        _table = "user";
-                        break;
-                }
-
-                string sql = $"INSERT INTO {_table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
-
-                using var command = new SqliteCommand(sql, connection);
+                using var command = new SqliteCommand(sql, _connection);
                 command.Parameters.AddWithValue("@_name", name);
                 command.Parameters.AddWithValue("@_keySize", keySize);
                 command.Parameters.AddWithValue("@_private_key", privKey);
                 command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-                int rowInserted = command.ExecuteNonQuery();
 
-                return rowInserted;
+                return command.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -470,17 +446,17 @@ public class Utils
         public static List<string> SqlSelect(string column, certType table)
         {
 
-            SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-            _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-            _connectionString.DataSource = Global.database;
-            _connectionString.Password = null;
-            string connectionString = _connectionString.ToString();
-            using var connection = new SqliteConnection(connectionString);
-            connection.Open();
+            //SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+            //_connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+            //_connectionString.DataSource = Global.database;
+            //_connectionString.Password = null;
+            //string connectionString = _connectionString.ToString();
+            //using var connection = new SqliteConnection(connectionString);
+            //connection.Open();
 
             var sql = $"SELECT {column} FROM {table}";
 
-            using var command = new SqliteCommand(sql, connection);
+            using var command = new SqliteCommand(sql, _connection);
             using var reader = command.ExecuteReader();
 
             if (reader.HasRows)
@@ -499,13 +475,14 @@ public class Utils
                     {
                         columns.Add(reader.GetString("id"));
                         columns.Add(reader.GetString("name"));
-                        columns.Add(reader.GetString("private_bits"));
+                        columns.Add(reader.GetString("keySize"));
                         columns.Add(reader.GetString("private_key"));
                         columns.Add(reader.GetString("private_createDT"));
-                        columns.Add(reader.GetString("ss_duration"));
-                        columns.Add(reader.GetString("csr_cert"));
                         columns.Add(reader.GetString("public_cert"));
                         columns.Add(reader.GetString("public_createDT"));
+                        columns.Add(reader.GetString("ss_cert"));
+                        columns.Add(reader.GetString("ss_createDT"));
+                        columns.Add(reader.GetString("ss_duration"));
                         columns.Add(reader.GetString("subj_country"));
                         columns.Add(reader.GetString("subj_state"));
                         columns.Add(reader.GetString("subj_location"));
@@ -513,10 +490,14 @@ public class Utils
                         columns.Add(reader.GetString("subj_orgaunit"));
                         columns.Add(reader.GetString("subj_commonname"));
                         columns.Add(reader.GetString("subj_email"));
-                        columns.Add(reader.GetString("isCa"));
-                        columns.Add(reader.GetString("not_pathlen"));
-                        columns.Add(reader.GetString("depth"));
-                        columns.Add(reader.GetString("critical"));
+                        columns.Add(reader.GetString("serialNumber"));
+                        columns.Add(reader.GetString("host_name"));
+                        columns.Add(reader.GetString("host_username"));
+                        columns.Add(reader.GetString("host_password"));
+                        columns.Add(reader.GetString("cert_filename"));
+                        columns.Add(reader.GetString("cert_priv_ext"));
+                        columns.Add(reader.GetString("cert_pub_ext"));
+                        columns.Add(reader.GetString("cert_path"));
                     }
                 }
                 return columns;
@@ -527,6 +508,68 @@ public class Utils
                 return null;
             }
         }
+        public static List<string> Select(certType table, string serverName)
+        {
+
+            //SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+            //_connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+            //_connectionString.DataSource = Global.database;
+            //_connectionString.Password = null;
+            //string connectionString = _connectionString.ToString();
+            //using var connection = new SqliteConnection(connectionString);
+            //connection.Open();
+
+            var sql = $"SELECT * FROM {table} WHERE name=@serverName";
+
+            using var command = new SqliteCommand(sql, _connection);
+            command.Parameters.AddWithValue("@serverName", serverName);
+            using var reader = command.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    foreach (string item in s_sqlColumns)
+                    {
+                        dictCaDetails[item] = reader.GetString(item);
+                    }
+
+                    
+                    //columns.Add(reader.GetString("name"));
+                    //columns.Add(reader.GetString("keySize"));
+                    //columns.Add(reader.GetString("private_key"));
+                    //columns.Add(reader.GetString("private_createDT"));
+                    //columns.Add(reader.GetString("public_cert"));
+                    //columns.Add(reader.GetString("public_createDT"));
+                    //columns.Add(reader.GetString("ss_cert"));
+                    //columns.Add(reader.GetString("ss_createDT"));
+                    //columns.Add(reader.GetString("ss_duration"));
+                    //columns.Add(reader.GetString("subj_country"));
+                    //columns.Add(reader.GetString("subj_state"));
+                    //columns.Add(reader.GetString("subj_location"));
+                    //columns.Add(reader.GetString("subj_organisation"));
+                    //columns.Add(reader.GetString("subj_orgaunit"));
+                    //columns.Add(reader.GetString("subj_commonname"));
+                    //columns.Add(reader.GetString("subj_email"));
+                    //columns.Add(reader.GetString("serialNumber"));
+                    //columns.Add(reader.GetString("host_name"));
+                    //columns.Add(reader.GetString("host_username"));
+                    //columns.Add(reader.GetString("host_password"));
+                    //columns.Add(reader.GetString("cert_filename"));
+                    //columns.Add(reader.GetString("cert_priv_ext"));
+                    //columns.Add(reader.GetString("cert_pub_ext"));
+                    //columns.Add(reader.GetString("cert_path"));
+                }
+
+                return columns;
+            }
+            else
+            {
+                MessageBox.Show("No Server found", string.Empty, MessageBoxButtons.OK);
+                return null;
+            }
+        }
+
         public static string SelectWhereString(certType table, string resultColumn, string searchColumn, string searchValue)
         {
             try
@@ -895,12 +938,11 @@ public class Utils
         private readonly string[] basicConstraint = []; //bool certificateAuthority, bool hasPathLengthConstraint, int pathLengthConstraint, bool critical);
 
 
-        public static string GeneratePrivateKey(int keySize, string filePath)
+        public static string GeneratePrivateKey(int keySize)
         {
             using (RSA rsa = RSA.Create(keySize))
             {
-                string privateKey = rsa.ExportRSAPrivateKeyPem();
-                return privateKey;
+                return rsa.ExportRSAPrivateKeyPem();
             }
         }
         public static string GeneratePublicKey(string privateKey)

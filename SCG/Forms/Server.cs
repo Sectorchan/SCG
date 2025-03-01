@@ -55,7 +55,7 @@ public partial class Server : Form
     private readonly string i_selfsignedPasswordPfx = "";
     private readonly string s_selfsignedPasswordPfx = "";
     private readonly string u_selfsignedPasswordPfx = "";
-    SqliteConnection sqlconnection;
+    public static SqliteConnection sqlconnection;
     #endregion
 
     private void server_onLoad(object sender, EventArgs e)
@@ -222,7 +222,7 @@ public partial class Server : Form
             int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
             string serverName = tb_ca_name.Text;
             //generate privatekey
-            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, serverName);
+            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.ca, serverName, privateKeyPem, keySize);
             //write to file
@@ -253,13 +253,18 @@ public partial class Server : Form
     {
         try
         {
-            string caName = Convert.ToString(lb_ca_certs.SelectedItem);
-            string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", caName);
+            string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
 
-            string publicKeyPem = Utils.Certs.GeneratePublicKey(c_privateKeyPath);
-            int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, caName, "name");
+            Utils.Sql.Select(certType.ca, serverName);
 
-            File.WriteAllText("ca_" + caName + "_pub.pem", publicKeyPem);
+            MessageBox.Show(dictCaDetails["name"]);
+
+
+
+            string publicKeyPem = Utils.Certs.GeneratePublicKey(serverName);
+            int insertRow = Utils.Sql.Update(certType.ca, publicKeyPem, serverName, "name");
+
+            File.WriteAllText("ca_" + serverName + "_pub.pem", publicKeyPem);
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
         }
@@ -371,7 +376,7 @@ public partial class Server : Form
             int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
             string interName = tb_int_name.Text;
             //generate privatekey
-            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, interName);
+            string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.intermediate, interName, privateKeyPem, keySize);
             //write to file
@@ -492,7 +497,7 @@ public partial class Server : Form
         int keySize = Convert.ToInt32(cb_server_keySize.SelectedItem);
         string serverName = tb_server_name.Text;
         //generate privatekey
-        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, serverName);
+        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
         //write to sql
         int insertRow = Utils.Sql.InsertInto(certType.server, serverName, privateKeyPem, keySize);
         if (writeFile)
@@ -600,7 +605,7 @@ public partial class Server : Form
         int keySize = Convert.ToInt32(cb_user_keySize.SelectedItem);
         string userName = tb_user_name.Text;
         //generate privatekey
-        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize, userName);
+        string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
         //write to sql
         int insertRow = Utils.Sql.InsertInto(certType.user, userName, privateKeyPem, keySize);
         if (writeFile)
@@ -948,8 +953,8 @@ public partial class Server : Form
     {
         try
         {
-                string[] serverDetails = GetCaServerDetails("LangCa");
-                MessageBox.Show(serverDetails[0]);
+            string[] serverDetails = GetCaServerDetails("LangCa");
+            MessageBox.Show(serverDetails[0]);
         }
         catch (Exception ex)
         {
