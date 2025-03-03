@@ -226,14 +226,7 @@ public partial class Server : Form
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.ca, serverName, privateKeyPem, keySize);
             //write to file
-            if (writeFile)
-            {
-                File.WriteAllText("ca_" + serverName + "_priv.pem", privateKeyPem);
-            }
-            if (Properties.Settings.Default.autoUpload)
-            {
 
-            }
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
             lb_ca_certs.Items.Clear();
@@ -954,16 +947,32 @@ public partial class Server : Form
 
     private void button5_Click(object sender, EventArgs e)
     {
-        try
+        // When user clicks button, show the dialog.
+        saveFileDialog1.ShowDialog();
+
+
+        //SaveFileDialog file = new SaveFileDialog();
+        saveFileDialog1.DefaultExt = "pfx";
+        saveFileDialog1.Filter = "PFX files (*.pfx)|*.pfx";
+        //file.ShowDialog();
+
+        if (file.FileName != "")
         {
-            string[] serverDetails = GetCaServerDetails("LangCa");
-            MessageBox.Show(serverDetails[0]);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString());
+string name = saveFileDialog1.FileName;
+            File.WriteAllText(name, "tes2t");
+            //File.WriteAllBytes(file.FileName, certToSend); //includes public and private
         }
 
+
     }
+    private void saveFileDialog1_FileOk_1(object sender, CancelEventArgs e)
+    {
+        // Get file name.
+        
+        // Write to the file name selected.
+        // ... You can write the text from a TextBox instead of a string literal.
+        //File.WriteAllText(name, "test");
+    }
+
 }
 

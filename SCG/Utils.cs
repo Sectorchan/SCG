@@ -627,7 +627,7 @@ public class Utils
                         foreach (string row in column1)
                         {
                             columns.Add(reader[row]);
-                        } 
+                        }
                     }
                     return Result.Ok(columns);
                 }
@@ -760,9 +760,9 @@ public class Utils
         }
         public static Result<int> Update(certType table, string serverName, string[] columns)
         {
-            int rowIns = 0;
             try
             {
+                int rowIns = 0;
                 using (var command = _connection.CreateCommand())
                 {
                     foreach (var column in columns)
@@ -771,7 +771,7 @@ public class Utils
                         {
                             dictCaDetails[column] = DateTime.Now.ToString();
                         }
-                        command.Parameters.Clear(); 
+                        command.Parameters.Clear();
                         command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
                         command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
@@ -779,13 +779,14 @@ public class Utils
 
                         int rowInserted = command.ExecuteNonQuery();
                         rowIns += rowInserted;
+                        return Result.Ok(rowIns);
                     }
                 }
                 return Result.Ok(rowIns);
             }
             catch (Exception ex)
             {
-                Result.Fail(ex.Message);
+                return Result.Fail(ex.ToString());
             }
         }
 
