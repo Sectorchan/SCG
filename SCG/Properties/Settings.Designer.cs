@@ -25,18 +25,6 @@ namespace SCG.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int CaIndex {
-            get {
-                return ((int)(this["CaIndex"]));
-            }
-            set {
-                this["CaIndex"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("komisch")]
         public string databasePath {
             get {
@@ -62,12 +50,12 @@ namespace SCG.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool CertToDisk {
+        public bool saveToDisk {
             get {
-                return ((bool)(this["CertToDisk"]));
+                return ((bool)(this["saveToDisk"]));
             }
             set {
-                this["CertToDisk"] = value;
+                this["saveToDisk"] = value;
             }
         }
     }

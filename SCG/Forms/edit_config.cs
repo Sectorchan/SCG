@@ -24,6 +24,7 @@ public partial class edit_config : Form
     {
         Cb_cert_auto_upload.Checked = Global.autoUpload;
         Tb_db_path.Text = Global.database;
+        Cb_save_to_disk.Checked = Global.saveToDisk;
     }
 
     private void cb_autoUpload_checkedChanged(object sender, EventArgs e)
@@ -31,10 +32,7 @@ public partial class edit_config : Form
         Properties.Settings.Default.autoUpload = Cb_cert_auto_upload.Checked;
     }
 
-    private void edit_config_FormClosing(object sender, FormClosingEventArgs e)
-    {
-        Properties.Settings.Default.Save();
-    }
+
 
     private void Bt_db_path_select_onClick(object sender, EventArgs e)
     {
@@ -55,6 +53,10 @@ public partial class edit_config : Form
 
     private void Cb_save_to_disk_CheckedChanged(object sender, EventArgs e)
     {
-        Properties.Settings.Default.CertToDisk = Cb_cert_auto_upload.Checked;
+        Properties.Settings.Default.saveToDisk = Cb_cert_auto_upload.Checked;
+    }
+    private void edit_config_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        Properties.Settings.Default.Save();
     }
 }

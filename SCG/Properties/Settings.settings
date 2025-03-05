@@ -2,16 +2,13 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SCG.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="CaIndex" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
     <Setting Name="databasePath" Type="System.String" Scope="User">
       <Value Profile="(Default)">komisch</Value>
     </Setting>
     <Setting Name="autoUpload" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="CertToDisk" Type="System.Boolean" Scope="User">
+    <Setting Name="saveToDisk" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>

@@ -1,12 +1,15 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Renci.SshNet;
 using SCG.Forms;
 using System;
 using System.Buffers;
 using System.Data;
 using System.Data.Common;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -20,6 +23,11 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
+
+
+
+
+
     private static readonly Dictionary<string, string> s_certDetails = new Dictionary<string, string>
                 {
                     { "cert_filename", string.Empty },
@@ -1046,25 +1054,68 @@ public class Utils
     }
     public class Tools
     {
-        public void SaveCertToFile(X509Certificate2 cert, X509ContentType type, string fileName)
+        public static Result SaveFile(string defaultFileName, string filter, string content)
         {
             try
             {
-                SaveFileDialog file = new SaveFileDialog();
-                file.DefaultExt = "pfx";
-                file.Filter = "PFX files (*.pfx)|*.pfx";
-                file.ShowDialog();
+                using (SaveFileDialog SaveFile = new SaveFileDialog())
+                {                   
+                    SaveFile.FileName = defaultFileName;
+                    SaveFile.Filter = filter;
+                    SaveFile.AddExtension = true;
+                    SaveFile.RestoreDirectory = true;
 
-                if (file.FileName != "")
-                {
-                    //File.WriteAllBytes(file.FileName, certToSend); //includes public and private
+                    if (SaveFile.ShowDialog() == DialogResult.OK)
+                    {
+                        string filePath = SaveFile.FileName;
+                        if (!string.IsNullOrEmpty(filePath))
+                        {
+                            File.WriteAllText(filePath, content);
+                        }
+                        else
+                        {
+                            return Result.Fail("No Filename given");
+                        }                       
+                        
+                        return Result.Fail("DialogResult is not DialogResult.OK");
+                    }
+                    return Result.Ok();
                 }
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                return Result.Fail(Convert.ToString(ex));
+            }
+        }
+        public static Result SaveFile(string defaultFileName, string filter, byte[] content)
+        {
+            try
+            {
+                using (SaveFileDialog SaveFile = new SaveFileDialog())
+                {                   
+                    SaveFile.FileName = defaultFileName;
+                    SaveFile.Filter = filter;
+                    SaveFile.AddExtension = true;
+                    SaveFile.RestoreDirectory = true;
+                    if (SaveFile.ShowDialog() == DialogResult.OK)
+                    {
+                        string filePath = SaveFile.FileName;
+                        if (!string.IsNullOrEmpty(filePath))
+                        {
+                            File.WriteAllBytes(filePath, content);
+                        }
+                        else
+                        {
+                            return Result.Fail("No Filename given");
+                        }
+                        return Result.Fail("DialogResult is not DialogResult.OK");
+                    }
+                    return Result.Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(Convert.ToString(ex));
             }
         }
         private static byte[] GenerateRandomSerialNumber(int byteLength)
@@ -1090,7 +1141,6 @@ public class Utils
             server,
             user
         }
-
         public static List<string> ObjectToString(List<object> obj)
         {
             List<string> list = new List<string>();

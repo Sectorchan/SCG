@@ -1,38 +1,16 @@
-﻿//#define writeFile
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using FluentResults;
+﻿using FluentResults;
 using Microsoft.Data.Sqlite;
 using static secrets.Secrets;
 using PL;
 using static PL.Utils.Certs;
 using static PL.Utils.Sql;
-using WinFormsApp1;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
-//using static SCG.Ssql;
 using RadioButton = System.Windows.Forms.RadioButton;
-using System.Threading.Tasks.Dataflow;
-using System.Runtime.InteropServices.JavaScript;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Runtime.ConstrainedExecution;
-using System.Net;
 using static PL.Utils;
 using static PL.Utils.Tools;
-using Renci.SshNet;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using static System.Net.Mime.MediaTypeNames;
-using SCG.Properties;
+using System.Text;
+using WinFormsApp1;
 
 
 namespace SCG.Forms;
@@ -42,19 +20,25 @@ public partial class Server : Form
     public Server() { InitializeComponent(); }
 
     #region Private members
-    private readonly bool writeFile = true;
+    private readonly bool writeFile = Global.saveToDisk;
     private readonly bool certVerify = true;
-    private readonly string[] fqdn = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
-    private readonly string[] idSql = ["id"];
-    private readonly string[] sshCred = ["host_username", "host_password", "hostname"];
-    private readonly string[] sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
+    private readonly string[] _fqdn = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
+    private readonly string[] _idSql = ["id"];
+    private readonly string[] _sshCred = ["host_username", "host_password", "hostname"];
+    private readonly string[] _sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
 
 
     private readonly string c_selfsignedPasswordPfx = "";
-
     private readonly string i_selfsignedPasswordPfx = "";
     private readonly string s_selfsignedPasswordPfx = "";
-    private readonly string u_selfsignedPasswordPfx = "";
+    private readonly string _u_selfsignedPasswordPfx = "";
+
+    private const string CertPFX = "PFX files(*.pfx)|*.pfx";
+    private const string CertPEM = "PEM files(*.pem)|*.pem";
+    private const string CertDER = "DER files(*.der)|*.der";
+    private const string CertCRT = "CRT files(*.crt)|*.crt";
+    private const string CertCER = "CER files(*.cer)|*.cer";
+
     public static SqliteConnection sqlconnection;
     #endregion
 
@@ -110,7 +94,7 @@ public partial class Server : Form
                 }
             }
         }
-        Utils.Sql.SelectWhereObject(certType.intermediate, idSql, "", "*");
+        Utils.Sql.SelectWhereObject(certType.intermediate, _idSql, "", "*");
         treeView1.Sort();
     }
 
@@ -223,9 +207,17 @@ public partial class Server : Form
             string serverName = tb_ca_name.Text;
             //generate privatekey
             string privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+
+            string privExt = Convert.ToString(Cb_ca_priv_ext.SelectedItem);
             //write to sql
             int insertRow = Utils.Sql.InsertInto(certType.ca, serverName, privateKeyPem, keySize);
             //write to file
+
+            if (writeFile)
+            {
+                Form writeFileForm = new WriteFile(serverName,privateKeyPem);
+                writeFileForm.ShowDialog();
+            }
 
             MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
 
@@ -284,7 +276,7 @@ public partial class Server : Form
             c_privateKeySn++;
 
             //generate destName
-            List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, fqdn, "name", caName);
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, _fqdn, "name", caName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
             X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca);  // 0 = Serialnumber
 
@@ -321,7 +313,7 @@ public partial class Server : Form
         X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(sshCred, certType.ca, "name", caName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(_sshCred, certType.ca, "name", caName);
 
 
 
@@ -352,7 +344,7 @@ public partial class Server : Form
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
         string privCert = GetPrivateKey(certType.ca, serverName);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, sshlocs, "name", serverName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.ca, _sshlocs, "name", serverName);
 
 
         string[] certDetails = GetCertDetails(certType.ca, serverName);
@@ -433,7 +425,7 @@ public partial class Server : Form
             i_privateKeySn++;
 
             //generate destName
-            List<object> fqdnRes = Sql.SelectWhereObject(certType.intermediate, fqdn, "name", interName);
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.intermediate, _fqdn, "name", interName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             //generate from SQL
@@ -475,7 +467,7 @@ public partial class Server : Form
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
         string privCert = GetPrivateKey(certType.intermediate, serverName);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.intermediate, sshlocs, "name", serverName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.intermediate, _sshlocs, "name", serverName);
 
 
         string[] certDetails = GetCertDetails(certType.intermediate, serverName);
@@ -498,6 +490,7 @@ public partial class Server : Form
         int insertRow = Utils.Sql.InsertInto(certType.server, serverName, privateKeyPem, keySize);
         if (writeFile)
         {
+            SaveFile(serverName, privateKeyPem, CertPEM);
             //write to file
             File.WriteAllText("cs_" + serverName + "_priv.pem", privateKeyPem);
         }
@@ -543,7 +536,7 @@ public partial class Server : Form
             int s_privateKeySn = Convert.ToInt32(Utils.Sql.SelectWhereString(certType.server, "serialNumber", "name", serverName));
 
             // generate DistinguishedName
-            List<object> fqdnRes = Sql.SelectWhereObject(certType.server, fqdn, "name", serverName);
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.server, _fqdn, "name", serverName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
             s_privateKeySn++;
 
@@ -584,7 +577,7 @@ public partial class Server : Form
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Cert);
         string privCert = GetPrivateKey(certType.server, serverName);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.server, sshlocs, "name", serverName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(certType.server, _sshlocs, "name", serverName);
 
 
         string[] certDetails = GetCertDetails(certType.server, serverName);
@@ -654,7 +647,7 @@ public partial class Server : Form
             u_privateKeySn++;
 
             // generate DistinguishedName
-            List<object> fqdnRes = Sql.SelectWhereObject(certType.user, fqdn, "name", userName);
+            List<object> fqdnRes = Sql.SelectWhereObject(certType.user, _fqdn, "name", userName);
             X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
 
             //generate from SQL
@@ -663,16 +656,16 @@ public partial class Server : Form
             if (writeFile)
             {
                 //write signed certificate to file
-                File.WriteAllBytes("cu_" + userName + "_ss.pfx", userCertSql.Export(X509ContentType.Pfx, u_selfsignedPasswordPfx)); //includes public and private
+                File.WriteAllBytes("cu_" + userName + "_ss.pfx", userCertSql.Export(X509ContentType.Pfx, _u_selfsignedPasswordPfx)); //includes public and private
                 File.WriteAllBytes("cu_" + userName + "_ss.cer", userCertSql.Export(X509ContentType.Cert));//includes only public
             }
             //write signed certificate to sql database
-            Utils.Sql.UpdateSelfSigned(certType.user, userName, userCertSql.Export(X509ContentType.Pfx, u_selfsignedPasswordPfx), Convert.ToInt32(intIndex), duration, u_privateKeySn);
+            Utils.Sql.UpdateSelfSigned(certType.user, userName, userCertSql.Export(X509ContentType.Pfx, _u_selfsignedPasswordPfx), Convert.ToInt32(intIndex), duration, u_privateKeySn);
             if (certVerify)
             {
                 // load selfsigned certificate from database to verify the content
                 byte[] userSsCertSql = Utils.Sql.SelectSsCert(certType.user, "ss_cert", "name", userName);
-                var sqlSelfSigned = new X509Certificate2(userSsCertSql, u_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+                var sqlSelfSigned = new X509Certificate2(userSsCertSql, _u_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
                 CheckPrivateKey(sqlSelfSigned);
             }
             //information message
@@ -947,32 +940,16 @@ public partial class Server : Form
 
     private void button5_Click(object sender, EventArgs e)
     {
-        // When user clicks button, show the dialog.
-        saveFileDialog1.ShowDialog();
+        string pem = "232";
+        byte[] bytes = Encoding.UTF8.GetBytes(pem);
 
-
-        //SaveFileDialog file = new SaveFileDialog();
-        saveFileDialog1.DefaultExt = "pfx";
-        saveFileDialog1.Filter = "PFX files (*.pfx)|*.pfx";
-        //file.ShowDialog();
-
-        if (file.FileName != "")
-        {
-string name = saveFileDialog1.FileName;
-            File.WriteAllText(name, "tes2t");
-            //File.WriteAllBytes(file.FileName, certToSend); //includes public and private
-        }
-
-
-    }
-    private void saveFileDialog1_FileOk_1(object sender, CancelEventArgs e)
-    {
-        // Get file name.
+        Form writeFileForm = new WriteFile("serverName",bytes);
+        //writeFileForm.Text = "Exporting Private Key";
         
-        // Write to the file name selected.
-        // ... You can write the text from a TextBox instead of a string literal.
-        //File.WriteAllText(name, "test");
+        writeFileForm.ShowDialog();
+        
     }
+
 
 }
 
