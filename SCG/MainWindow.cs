@@ -37,7 +37,7 @@ namespace WinFormsApp1
         string openSSLcnf_ca = "openssl-ca.cnf";
         string openSSLcnf_inter = "openssl-inter.cnf";
         string[] _error = [];
-        int _caIndex = Settings.Default.CaIndex;
+
         public string _exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
         public string ExePath { get { return _exePath; } }

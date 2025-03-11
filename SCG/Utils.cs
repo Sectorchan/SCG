@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -23,7 +24,8 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
-
+    private static readonly string[] _pubCert = ["public_cert", "public_createDT"];
+    private static readonly string[] _destNames = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
 
 
 
@@ -43,7 +45,7 @@ public class Utils
 
                 };
     static SqliteConnection _connection = Server.sqlconnection;
-    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
+    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
     public static Dictionary<string, string> dictCaDetails = new Dictionary<string, string>
                 {
                     { "id", string.Empty },
@@ -70,9 +72,8 @@ public class Utils
                     { "cert_filename", string.Empty },
                     { "cert_priv_ext", string.Empty },
                     { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty }
-
-
+                    { "cert_path", string.Empty },
+        { "cert_autoupload", string.Empty }
                 };
     public static Dictionary<string, string> dictInterDetails = new Dictionary<string, string>
                 {
@@ -100,7 +101,8 @@ public class Utils
                     { "cert_filename", string.Empty },
                     { "cert_priv_ext", string.Empty },
                     { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty }
+                    { "cert_path", string.Empty },
+                    { "cert_autoupload", string.Empty }
                 };
     public static Dictionary<string, string> dictServerDetails = new Dictionary<string, string>
                 {
@@ -128,7 +130,8 @@ public class Utils
                     { "cert_filename", string.Empty },
                     { "cert_priv_ext", string.Empty },
                     { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty }
+                    { "cert_path", string.Empty },
+                    { "cert_autoupload", string.Empty }
                 };
     public static Dictionary<string, string> dictUserDetails = new Dictionary<string, string>
                 {
@@ -156,7 +159,8 @@ public class Utils
                     { "cert_filename", string.Empty },
                     { "cert_priv_ext", string.Empty },
                     { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty }
+                    { "cert_path", string.Empty },
+                    { "cert_autoupload", string.Empty }
                 };
     public class ssh
     {
@@ -416,16 +420,19 @@ public class Utils
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
         ///
-        public static int InsertInto(certType table, string name, string privKey, int keySize)
+        public static Result<int> InsertInto(certType table, string _name, string privKey, int _keySize)
         {
             try
             {
+                string name = dictCaDetails["name"];
+                string keySize = dictCaDetails["keySize"];
+                string private_key = dictCaDetails["private_key"];
                 string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                 using var command = new SqliteCommand(sql, _connection);
                 command.Parameters.AddWithValue("@_name", name);
                 command.Parameters.AddWithValue("@_keySize", keySize);
-                command.Parameters.AddWithValue("@_private_key", privKey);
+                command.Parameters.AddWithValue("@_private_key", private_key);
                 command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
 
                 return command.ExecuteNonQuery();
@@ -434,11 +441,54 @@ public class Utils
             {
                 if (ex == null)
                 {
-                    return 0; // Result.Fail("Possible wrong SQL credentials");
+                    //return 0; //
+                    return Result.Fail("Possible wrong SQL credentials");
                 }
                 else
                 {
-                    return 0; // Result.Fail(ex.Message);
+                    //return 0; //
+                    return Result.Fail(ex.Message);
+                }
+            }
+        }
+        /// <summary>
+        /// Create and insert first row of this server to the SQL table
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="_name"></param>
+        /// <returns></returns>
+        public static Result<int> InsertInto(certType table, string _name)
+        {
+            try
+            {
+                if (_name == dictCaDetails["name"])
+                {
+                    string name = dictCaDetails["name"];
+                    string keySize = dictCaDetails["keySize"];
+                    string private_key = dictCaDetails["private_key"];
+                    string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
+
+                    using var command = new SqliteCommand(sql, _connection);
+                    command.Parameters.AddWithValue("@_name", name);
+                    command.Parameters.AddWithValue("@_keySize", keySize);
+                    command.Parameters.AddWithValue("@_private_key", private_key);
+                    command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
+
+                    return Result.Ok(command.ExecuteNonQuery());
+                }
+                return Result.Fail("Servername is different");
+            }
+            catch (Exception ex)
+            {
+                if (ex == null)
+                {
+                    //return 0; //
+                    return Result.Fail("Possible wrong SQL credentials");
+                }
+                else
+                {
+                    //return 0; //
+                    return Result.Fail(ex.Message);
                 }
             }
         }
@@ -505,7 +555,13 @@ public class Utils
                 return null;
             }
         }
-        public static void Select(certType table, string serverName)
+        /// <summary>
+        /// Reads the whole SQL Line and stores it in the "dict<certType>Details" dictionary.
+        /// </summary>
+        /// <param name="table">Select the table which should be read</param>
+        /// <param name="serverName">Specify the servername which parameter you want to read.</param>
+        /// <returns></returns>
+        public static Result<bool> Select(certType table, string serverName)
         {
             var sql = $"SELECT * FROM {table} WHERE name=@serverName";
 
@@ -515,17 +571,24 @@ public class Utils
 
             if (reader.HasRows)
             {
+                //reader.IsDBNull(0);
+
                 while (reader.Read())
                 {
                     foreach (string item in s_sqlColumns)
                     {
-                        dictCaDetails[item] = reader.GetString(item);
+                        if (!reader.IsDBNull(0))
+                        {
+                            dictCaDetails[item] = reader.GetString(item);
+                        }
                     }
                 }
+                return true;
             }
             else
             {
                 MessageBox.Show("No Server found", string.Empty, MessageBoxButtons.OK);
+                return false;
             }
         }
 
@@ -797,7 +860,64 @@ public class Utils
                 return Result.Fail(ex.ToString());
             }
         }
+        public static Result<int>
+            Update(certType table, string serverName, string[] columns, int type)
+        {
+            try
+            {
+                int rowIns = 0;
+                using (var command = _connection.CreateCommand())
+                {
+                    switch (type)
+                    {
+                        case 0:
+                            {
+                                break;
+                            }
+                        case 1: //Public Cert
+                            {
+                                foreach (var column in _pubCert)
+                                {
+                                    if (column == "public_createDT")
+                                    {
+                                        dictCaDetails[column] = DateTime.Now.ToString();
+                                    }
+                                    command.Parameters.Clear();
+                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
+                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
+
+                                    int rowInserted = command.ExecuteNonQuery();
+                                    rowIns += rowInserted;
+                                }
+                                return Result.Ok(rowIns);
+                            }
+                        case 2: // Dest Names
+                            {
+                                foreach(var column in _destNames)
+                                {
+                                    command.Parameters.Clear();
+                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
+
+                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
+
+                                    int rowInserted = command.ExecuteNonQuery();
+                                    rowIns += rowInserted;
+
+                                }
+                                return Result.Ok(rowIns);
+                            }
+                    }
+                }
+                return Result.Ok(rowIns);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(ex.ToString());
+            }
+        }
 
         public static int UpdateBasicConstraints(certType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
         {
@@ -930,27 +1050,55 @@ public class Utils
         private readonly string[] basicConstraint = []; //bool certificateAuthority, bool hasPathLengthConstraint, int pathLengthConstraint, bool critical);
 
 
-        public static string GeneratePrivateKey(int keySize)
-        {
-            using (RSA rsa = RSA.Create(keySize))
-            {
-                return rsa.ExportRSAPrivateKeyPem();
-            }
-        }
-        public static string GeneratePublicKey(string privateKey)
+        public static Result<string> GeneratePrivateKey(int keySize)
         {
             try
             {
-                using (RSA rsa = RSA.Create())
+                //int KeySize = Convert.ToInt32(keySize);
+                if (keySize != 0)
                 {
-                    rsa.ImportFromPem(dictCaDetails["private_key"]);
-                    dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
-                    return rsa.ExportRSAPublicKeyPem();
+                    using (RSA rsa = RSA.Create(keySize))
+                    {
+                        dictCaDetails["keySize"] = Convert.ToString(keySize);
+                        dictCaDetails["private_key"] = rsa.ExportRSAPrivateKeyPem();
+
+                        return Result.Ok(rsa.ExportRSAPrivateKeyPem());
+                    }
+                }
+                else
+                {
+                    return Result.Fail("Keysize is 0");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return "failed";
+                return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
+            }
+        }
+        public static Result<string> GeneratePublicKey(string serverName)
+        {
+            try
+            {
+            Pos1:
+                if (serverName.Equals(dictCaDetails["name"]))
+                {
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.ImportFromPem(dictCaDetails["private_key"]);
+                        dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
+
+                        return Result.Ok(rsa.ExportRSAPublicKeyPem());
+                    }
+                }
+                else
+                {
+                    Utils.Sql.Select(certType.ca, serverName);
+                    goto Pos1;
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
         public static X509Certificate2 CreateCertificate(string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, int requesterSerialNumber, certType certType)
@@ -1018,15 +1166,22 @@ public class Utils
         {
             try
             {
-                X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
 
-                DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
-                DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
-                DNs.AddLocalityName(Convert.ToString(localityName));
-                DNs.AddOrganizationName(Convert.ToString(organizationName));
-                DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
-                DNs.AddCommonName(Convert.ToString(commonName));
-                DNs.AddEmailAddress(Convert.ToString(emailAddress));
+                X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
+    //DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
+                //DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
+                //DNs.AddLocalityName(Convert.ToString(localityName));
+                //DNs.AddOrganizationName(Convert.ToString(organizationName));
+                //DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
+                //DNs.AddCommonName(Convert.ToString(commonName));
+                //DNs.AddEmailAddress(Convert.ToString(emailAddress));
+                DNs.AddCountryOrRegion(_destNames[0]);
+                DNs.AddStateOrProvinceName(_destNames[1]);
+                DNs.AddLocalityName(_destNames[2]);
+                DNs.AddOrganizationName(_destNames[3]);
+                DNs.AddOrganizationalUnitName(_destNames[4]);
+                DNs.AddCommonName(_destNames[5]);
+                DNs.AddEmailAddress(_destNames[6]);
                 var build = DNs.Build();
 
                 return build;
@@ -1059,7 +1214,7 @@ public class Utils
             try
             {
                 using (SaveFileDialog SaveFile = new SaveFileDialog())
-                {                   
+                {
                     SaveFile.FileName = defaultFileName;
                     SaveFile.Filter = filter;
                     SaveFile.AddExtension = true;
@@ -1071,12 +1226,13 @@ public class Utils
                         if (!string.IsNullOrEmpty(filePath))
                         {
                             File.WriteAllText(filePath, content);
+                            return Result.Ok();
                         }
                         else
                         {
                             return Result.Fail("No Filename given");
-                        }                       
-                        
+                        }
+
                         return Result.Fail("DialogResult is not DialogResult.OK");
                     }
                     return Result.Ok();
@@ -1092,11 +1248,12 @@ public class Utils
             try
             {
                 using (SaveFileDialog SaveFile = new SaveFileDialog())
-                {                   
+                {
                     SaveFile.FileName = defaultFileName;
                     SaveFile.Filter = filter;
                     SaveFile.AddExtension = true;
                     SaveFile.RestoreDirectory = true;
+
                     if (SaveFile.ShowDialog() == DialogResult.OK)
                     {
                         string filePath = SaveFile.FileName;

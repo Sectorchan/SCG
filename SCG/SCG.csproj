@@ -13,6 +13,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Forms\edit_config-Surface-Patrick.cs" />
+    <Compile Remove="Forms\Server-Surface-Patrick.cs" />
+    <Compile Remove="Forms\server.Designer-Surface-Patrick.cs" />
+    <Compile Remove="MainWindow-Surface-Patrick.cs" />
+    <Compile Remove="Properties\Settings.Designer-Surface-Patrick.cs" />
+    <Compile Remove="Utils-Surface-Patrick.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="App-Surface-Patrick.config" />
+    <None Remove="databasev2-Surface-Patrick.db" />
+    <None Remove="Properties\Settings-Surface-Patrick.settings" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentResults" Version="3.16.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>

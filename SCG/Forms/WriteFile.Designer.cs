@@ -41,10 +41,11 @@ partial class WriteFile
         Cb_cert_ext.Name = "Cb_cert_ext";
         Cb_cert_ext.Size = new Size(157, 23);
         Cb_cert_ext.TabIndex = 0;
+        Cb_cert_ext.SelectionChangeCommitted += Cb_cert_ext_SelectionChangeCommitted;
         // 
         // Bt_write_cert
         // 
-        Bt_write_cert.Location = new Point(175, 27);
+        Bt_write_cert.Location = new Point(12, 56);
         Bt_write_cert.Name = "Bt_write_cert";
         Bt_write_cert.Size = new Size(75, 23);
         Bt_write_cert.TabIndex = 1;
@@ -65,7 +66,7 @@ partial class WriteFile
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(262, 143);
+        ClientSize = new Size(236, 110);
         Controls.Add(Lb_cert_ext);
         Controls.Add(Bt_write_cert);
         Controls.Add(Cb_cert_ext);

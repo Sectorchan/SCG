@@ -11,6 +11,7 @@
 *.bak
 *.sln.docstates
 secrets.cs
+*-Surface-Patrick*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
