@@ -290,7 +290,7 @@ public partial class Server : Form
             //generate destName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, _fqdn, "name", serverName);
             //X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
-            X500DistinguishedName distinguishedName = DNBuilder(
+            X500DistinguishedName distinguishedName = DNBuilder();
                 ;
             X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca);  // 0 = Serialnumber
 
