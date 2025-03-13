@@ -16,7 +16,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using WinFormsApp1;
 using static PL.Utils.Tools;
-using static System.Net.Mime.MediaTypeNames;
+
+
 
 namespace PL;
 
@@ -24,8 +25,8 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
-    private static readonly string[] _pubCert = ["public_cert", "public_createDT"];
-    private static readonly string[] _destNames = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
+    private static readonly string[] s_pubCert = ["public_cert", "public_createDT"];
+    private static readonly string[] s_destNames = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
 
 
 
@@ -45,7 +46,7 @@ public class Utils
 
                 };
     static SqliteConnection _connection = Server.sqlconnection;
-    public readonly static string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
+    private static readonly string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
     public static Dictionary<string, string> dictCaDetails = new Dictionary<string, string>
                 {
                     { "id", string.Empty },
@@ -876,7 +877,7 @@ public class Utils
                             }
                         case 1: //Public Cert
                             {
-                                foreach (var column in _pubCert)
+                                foreach (var column in s_pubCert)
                                 {
                                     if (column == "public_createDT")
                                     {
@@ -895,7 +896,7 @@ public class Utils
                             }
                         case 2: // Dest Names
                             {
-                                foreach(var column in _destNames)
+                                foreach (var column in s_destNames)
                                 {
                                     command.Parameters.Clear();
                                     command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
@@ -1101,7 +1102,100 @@ public class Utils
                 return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
-        public static X509Certificate2 CreateCertificate(string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, int requesterSerialNumber, certType certType)
+
+        public static X509Certificate2 CreateSelfSignedCertificate(certType table, string serverName)
+        {
+            try
+            {
+                byte[] sN;
+                X509Certificate2 Certificate;
+                X500DistinguishedName distinguishedName = DNBuilder(table, serverName).Value;
+                CertificateRequest intermediateRequest;
+                X509Certificate2 signedCertificate;
+
+                #region test
+                //using (RSA rsa = RSA.Create())
+                //{
+                //    rsa.ImportFromPem(dictCaDetails["private_key"]);
+                //    CertificateRequest request = new CertificateRequest(new X500DistinguishedName(dictCaDetails["subj_country"], dictCaDetails["subj_state"], dictCaDetails["subj_location"], dictCaDetails["subj_organisation"], dictCaDetails["subj_orgaunit"], dictCaDetails["subj_commonname"], dictCaDetails["subj_email"]), rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                //    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+                //    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+                //    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                //    Certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(12));
+                //    sN = Certificate.GetSerialNumber();
+                //    dictCaDetails["serialNumber"] = sN.ToString();
+                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_duration"] = "12";
+                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_duration"] = "12";
+                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_duration"] = "12";
+                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
+                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
+                //    dictCaDetails["ss_duration"] = "
+                #endregion
+                using (RSA rsa = RSA.Create())
+                {
+                    intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+                    switch (table)
+                    {
+                        case certType.ca:
+                            rsa.ImportFromPem(dictCaDetails["private_key"]);
+                            intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                            intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
+                            intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+                            ,
+                            signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(Convert.ToInt32(dictCaDetails["ss_duration"])));
+                            return signedCertificate;
+                            break;
+                        case certType.intermediate:
+                            rsa.ImportFromPem(dictInterDetails["private_key"]);
+                            intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+                            break;
+                        case certType.server:
+                            rsa.ImportFromPem(dictServerDetails["private_key"]);
+                            intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                            intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
+                            break;
+                        case certType.user:
+                            rsa.ImportFromPem(dictUserDetails["private_key"]);
+                            intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                            intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
+                            break;
+                    }
+
+                    Certificate = new X509Certificate2(issuerCert, issuerPasswd, X509KeyStorageFlags.Exportable);
+                    signedCertificate = intermediateRequest.Create(Certificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
+                    if (!Certificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                    {
+                        throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                    }
+                    X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+                    return signedCertificateWithKey;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return null;
+            }
+            return null;
+        }
+        public static X509Certificate2 CreateCertificate(certType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, int requesterSerialNumber)
         {
             byte[] sN = { Convert.ToByte(requesterSerialNumber) };
             X509Certificate2 caCertificate;
@@ -1113,32 +1207,33 @@ public class Utils
                 rsa.ImportFromPem(requestPrivKey);
 
                 intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                if (certType == certType.ca)
+                if (table == certType.ca)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
                     intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
                 }
-                else if (certType == certType.intermediate)
+                else if (table == certType.intermediate)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
                 }
-                else if (certType == certType.server)
+                else if (table == certType.server)
                 {
                     intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
                     intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
                 }
-                else if (certType == certType.user)
+                else if (table == certType.user)
                 {
                     intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
                     intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
                 }
-                if (certType == certType.ca)
+                if (table == certType.ca)
                 {
                     signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration));
+
                     return signedCertificate;
                 }
                 else
@@ -1162,26 +1257,118 @@ public class Utils
 
             return chain;
         }
-        public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
+        //public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
+        public static Result<X500DistinguishedName> DNBuilder(certType table, string serverName)
         {
             try
             {
-
                 X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
-    //DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
-                //DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
-                //DNs.AddLocalityName(Convert.ToString(localityName));
-                //DNs.AddOrganizationName(Convert.ToString(organizationName));
-                //DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
-                //DNs.AddCommonName(Convert.ToString(commonName));
-                //DNs.AddEmailAddress(Convert.ToString(emailAddress));
-                DNs.AddCountryOrRegion(_destNames[0]);
-                DNs.AddStateOrProvinceName(_destNames[1]);
-                DNs.AddLocalityName(_destNames[2]);
-                DNs.AddOrganizationName(_destNames[3]);
-                DNs.AddOrganizationalUnitName(_destNames[4]);
-                DNs.AddCommonName(_destNames[5]);
-                DNs.AddEmailAddress(_destNames[6]);
+
+                switch (table)
+                {
+                    case certType.ca:
+                    Pos1:
+                        if (serverName.Equals(dictCaDetails["name"]))
+                        {
+                            DNs.AddCountryOrRegion(dictCaDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName(dictCaDetails["subj_state"]);
+                            DNs.AddLocalityName(dictCaDetails["subj_location"]);
+                            DNs.AddOrganizationName(dictCaDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName(dictCaDetails["subj_orgaunit"]);
+                            DNs.AddCommonName(dictCaDetails["subj_commonname"]);
+                            DNs.AddEmailAddress(dictCaDetails["subj_email"]);
+
+                            X500DistinguishedName dn = DNs.Build();
+
+                            return Result.Ok(DNs.Build());
+                        }
+                        else
+                        {
+                            Utils.Sql.Select(certType.ca, serverName);
+                            goto Pos1;
+                        }
+                        break;
+                    case certType.intermediate:
+                    Pos2:
+                        if (serverName.Equals(dictInterDetails["name"]))
+                        {
+                            DNs.AddCountryOrRegion(dictInterDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName(dictInterDetails["subj_state"]);
+                            DNs.AddLocalityName(dictInterDetails["subj_location"]);
+                            DNs.AddOrganizationName(dictInterDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName(dictInterDetails["subj_orgaunit"]);
+                            DNs.AddCommonName(dictInterDetails["subj_commonname"]);
+                            DNs.AddEmailAddress(dictInterDetails["subj_email"]);
+                        }
+                        else
+                        {
+                            Utils.Sql.Select(certType.intermediate, serverName);
+                            goto Pos2;
+                        }
+                        break;
+                    case certType.server:
+                    Pos3:
+                        if (serverName.Equals(dictServerDetails["name"]))
+                        {
+                            DNs.AddCountryOrRegion(dictServerDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName(dictServerDetails["subj_state"]);
+                            DNs.AddLocalityName(dictServerDetails["subj_location"]);
+                            DNs.AddOrganizationName(dictServerDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName(dictServerDetails["subj_orgaunit"]);
+                            DNs.AddCommonName(dictServerDetails["subj_commonname"]);
+                            DNs.AddEmailAddress(dictServerDetails["subj_email"]);
+                        }
+                        else
+                        {
+                            Utils.Sql.Select(certType.server, serverName);
+                            goto Pos3;
+                        }
+                        break;
+                    case certType.user:
+                    Pos4:
+                        if (serverName.Equals(dictUserDetails["name"]))
+                        {
+                            DNs.AddCountryOrRegion(dictUserDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName(dictUserDetails["subj_state"]);
+                            DNs.AddLocalityName(dictUserDetails["subj_location"]);
+                            DNs.AddOrganizationName(dictUserDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName(dictUserDetails["subj_orgaunit"]);
+                            DNs.AddCommonName(dictUserDetails["subj_commonname"]);
+                            DNs.AddEmailAddress(dictUserDetails["subj_email"]);
+                        }
+                        else
+                        {
+                            Utils.Sql.Select(certType.user, serverName);
+                            goto Pos4;
+                        }
+                        break;
+
+                }
+
+                if (serverName.Equals(dictCaDetails["name"]))
+                {
+
+                    //DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
+                    //DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
+                    //DNs.AddLocalityName(Convert.ToString(localityName));
+                    //DNs.AddOrganizationName(Convert.ToString(organizationName));
+                    //DNs.AddOrganizationalUnitName(Convert.ToString(organizationalUnitName));
+                    //DNs.AddCommonName(Convert.ToString(commonName));
+                    //DNs.AddEmailAddress(Convert.ToString(emailAddress));
+                    DNs.AddCountryOrRegion(s_destNames[0]);
+                    DNs.AddStateOrProvinceName(s_destNames[1]);
+                    DNs.AddLocalityName(s_destNames[2]);
+                    DNs.AddOrganizationName(s_destNames[3]);
+                    DNs.AddOrganizationalUnitName(s_destNames[4]);
+                    DNs.AddCommonName(s_destNames[5]);
+                    DNs.AddEmailAddress(s_destNames[6]);
+                }
+
+                else
+                {
+                    Utils.Sql.Select(certType.ca, serverName);
+
+                }
                 var build = DNs.Build();
 
                 return build;

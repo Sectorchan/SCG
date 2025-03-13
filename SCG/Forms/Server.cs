@@ -209,7 +209,7 @@ public partial class Server : Form
             Utils.dictCaDetails.Clear();
             Utils.dictCaDetails["name"] = tb_ca_name.Text;
             Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
-            
+
             if (privateKeyPem.IsSuccess)
             {
                 Result<int> insertRow = Utils.Sql.InsertInto(certType.ca, Utils.dictCaDetails["name"]);
@@ -277,45 +277,58 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-            Result<bool> result = Utils.Sql.Select(certType.ca, serverName);
             dictCaDetails["ss_duration"] = tb_ca_dura.Text;
+            Result<bool> result = Utils.Sql.Select(certType.ca, serverName);
+
+            
 
             int duration = Convert.ToInt32(tb_ca_dura.Text);
             string privateKeyPem = dictCaDetails["private_key"];
-            string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", serverName);
+
+            //string c_privateKeyPath = Utils.Sql.SelectWhereString(certType.ca, "private_key", "name", serverName);
             //int c_privateKeySn = Convert.ToInt32(Utils.Sql.SelectWhereString(certType.ca, "serialNumber", "name", serverName));
             int c_privateKeySn = Convert.ToInt32(dictCaDetails["serialNumber"]);
+
+            //only increment if successful
             c_privateKeySn++;
 
             //generate destName
-            List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, _fqdn, "name", serverName);
+            //List<object> fqdnRes = Sql.SelectWhereObject(certType.ca, _fqdn, "name", serverName);
             //X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
-            X500DistinguishedName distinguishedName = DNBuilder();
-                ;
-            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(c_privateKeyPath, distinguishedName, null, null, duration, 0, certType.ca);  // 0 = Serialnumber
-
-            //if (_writeFile)
-            //{
-
-            //    //write signed certificate to file
-            //    File.WriteAllBytes("ca_" + serverName + "_ss.pfx", interCertSql.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
-            //    File.WriteAllBytes("ca_" + serverName + "_ss.cer", interCertSql.Export(X509ContentType.Cert));//includes only public
-            //}
-            byte[] ssCert = interCertSql.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
-            //write signed certificate to sql database
-            Utils.Sql.UpdateSelfSigned(certType.ca, serverName, ssCert, duration, c_privateKeySn);
-
-            if (_certVerify)
+            //X500DistinguishedName distinguishedName = DNBuilder(certType.ca, serverName);
+            if (result.IsSuccess)
             {
-                // load selfsigned certificate from database to verify the content
-                byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", serverName);
-                var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                CheckPrivateKey(sqlSelfSigned);
-            }
+                Result<X500DistinguishedName> distinguishedName = DNBuilder(certType.ca, serverName);
+                if (distinguishedName.IsSuccess)
+                {
+                    //generate from SQL
 
-            //information message
-            Console.WriteLine($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
-            MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
+                    X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(certType.ca, privateKeyPem, distinguishedName.Value, null, null, duration, 0);  // 0 = Serialnumber
+
+                    //if (_writeFile)
+                    //{
+
+                    //    //write signed certificate to file
+                    //    File.WriteAllBytes("ca_" + serverName + "_ss.pfx", interCertSql.Export(X509ContentType.Pfx, i_selfsignedPasswordPfx)); //includes public and private
+                    //    File.WriteAllBytes("ca_" + serverName + "_ss.cer", interCertSql.Export(X509ContentType.Cert));//includes only public
+                    //}
+                    byte[] ssCert = interCertSql.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
+                    //write signed certificate to sql database
+                    Utils.Sql.UpdateSelfSigned(certType.ca, serverName, ssCert, duration, c_privateKeySn);
+
+                    if (_certVerify)
+                    {
+                        // load selfsigned certificate from database to verify the content
+                        byte[] intSsCertSql = Utils.Sql.SelectSsCert(certType.ca, "ss_cert", "name", serverName);
+                        var sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+                        CheckPrivateKey(sqlSelfSigned);
+                    }
+
+                    //information message
+                    Console.WriteLine($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
+                    MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
+                }
+            }
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString()); }
@@ -440,10 +453,12 @@ public partial class Server : Form
 
             //generate destName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.intermediate, _fqdn, "name", interName);
-            X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+            //X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+            //X500DistinguishedName distinguishedName = DNBuilder(certType.intermediate, interName);
+            Result<X500DistinguishedName> distinguishedName  = DNBuilder(certType.intermediate, interName);
 
             //generate from SQL
-            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(i_privateKeyPath, distinguishedName, caSsCertSql, caPassword, duration, i_privateKeySn, certType.intermediate);
+            X509Certificate2 interCertSql = Utils.Certs.CreateCertificate(i_privateKeyPath, distinguishedName.Value, caSsCertSql, caPassword, duration, i_privateKeySn, certType.intermediate);
 
             if (_writeFile)
             {
@@ -551,11 +566,12 @@ public partial class Server : Form
 
             // generate DistinguishedName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.server, _fqdn, "name", serverName);
-            X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+            //X500DistinguishedName distinguishedName = DNBuilder(certType.server, serverName);
+            Result<X500DistinguishedName> distinguishedName = DNBuilder(certType.server, serverName);
             s_privateKeySn++;
 
             //generate from SQL
-            X509Certificate2 serverCertSql = Utils.Certs.CreateCertificate(s_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, s_privateKeySn, certType.server);
+            X509Certificate2 serverCertSql = Utils.Certs.CreateCertificate(s_privateKeyPath, distinguishedName.Value, intSsCertSql, intPassword, duration, s_privateKeySn, certType.server);
 
 
             if (_writeFile)
@@ -662,10 +678,11 @@ public partial class Server : Form
 
             // generate DistinguishedName
             List<object> fqdnRes = Sql.SelectWhereObject(certType.user, _fqdn, "name", userName);
-            X500DistinguishedName distinguishedName = DNBuilder(Convert.ToString(fqdnRes[0]), Convert.ToString(fqdnRes[1]), Convert.ToString(fqdnRes[2]), Convert.ToString(fqdnRes[3]), Convert.ToString(fqdnRes[4]), Convert.ToString(fqdnRes[5]), Convert.ToString(fqdnRes[6]));
+            //X500DistinguishedName distinguishedName = DNBuilder(certType.user, userName);
+            Result<X500DistinguishedName> distinguishedName = DNBuilder(certType.user, userName);
 
             //generate from SQL
-            X509Certificate2 userCertSql = Utils.Certs.CreateCertificate(u_privateKeyPath, distinguishedName, intSsCertSql, intPassword, duration, u_privateKeySn, certType.user);
+            X509Certificate2 userCertSql = Utils.Certs.CreateCertificate(u_privateKeyPath, distinguishedName.Value, intSsCertSql, intPassword, duration, u_privateKeySn, certType.user);
 
             if (_writeFile)
             {
@@ -723,7 +740,7 @@ public partial class Server : Form
         }
     }
 
-    static void CreateSelfSignedCertificate(string privateKeyPath, string publicKeyPath, string pfxPath, string password)
+    static void CreateSelfSignedCertificate2(string privateKeyPath, string publicKeyPath, string pfxPath, string password)
     {
         string privateKeyPem = File.ReadAllText(privateKeyPath);
         string publicKeyPem = File.ReadAllText(publicKeyPath);
@@ -765,16 +782,16 @@ public partial class Server : Form
                 if (sqlTable.Value == certType.ca)
                 {
                     serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-                    Pos1:
+                Pos1:
                     if (dictCaDetails["name"].Equals(serverName))
                     {
                         dictCaDetails["subj_country"] = tb_sub_c.Text;
-                        dictCaDetails["subj_state"]  = tb_sub_st.Text;
-                        dictCaDetails["subj_location"]  = tb_sub_loc.Text;
-                        dictCaDetails["subj_organisation"]  = tb_sub_orga.Text;
-                        dictCaDetails["subj_orgaunit"]  = tb_sub_ou.Text;
-                        dictCaDetails["subj_commonname"]  = tb_sub_cn.Text;
-                        dictCaDetails["subj_email"]  = tb_sub_email.Text;
+                        dictCaDetails["subj_state"] = tb_sub_st.Text;
+                        dictCaDetails["subj_location"] = tb_sub_loc.Text;
+                        dictCaDetails["subj_organisation"] = tb_sub_orga.Text;
+                        dictCaDetails["subj_orgaunit"] = tb_sub_ou.Text;
+                        dictCaDetails["subj_commonname"] = tb_sub_cn.Text;
+                        dictCaDetails["subj_email"] = tb_sub_email.Text;
 
                     }
                     else
@@ -786,7 +803,7 @@ public partial class Server : Form
                 else if (sqlTable.Value == certType.intermediate)
                 {
                     serverName = Convert.ToString(lb_int_certs.SelectedItem);
-                Pos1:
+                Pos2:
                     if (dictInterDetails["name"].Equals(serverName))
                     {
                         dictInterDetails["subj_country"] = tb_sub_c.Text;
@@ -800,14 +817,14 @@ public partial class Server : Form
                     }
                     else
                     {
-                        Utils.Sql.Select(certType.ca, serverName);
-                        goto Pos1;
+                        Utils.Sql.Select(certType.intermediate, serverName);
+                        goto Pos2;
                     }
                 }
                 else if (sqlTable.Value == certType.server)
                 {
                     serverName = Convert.ToString(lb_server_certs.SelectedItem);
-                Pos1:
+                Pos3:
                     if (dictServerDetails["name"].Equals(serverName))
                     {
                         dictServerDetails["subj_country"] = tb_sub_c.Text;
@@ -821,14 +838,14 @@ public partial class Server : Form
                     }
                     else
                     {
-                        Utils.Sql.Select(certType.ca, serverName);
-                        goto Pos1;
+                        Utils.Sql.Select(certType.server, serverName);
+                        goto Pos3;
                     }
                 }
                 else if (sqlTable.Value == certType.user)
                 {
                     serverName = Convert.ToString(lb_user_certs.SelectedItem);
-                Pos1:
+                Pos4:
                     if (dictUserDetails["name"].Equals(serverName))
                     {
                         dictUserDetails["subj_country"] = tb_sub_c.Text;
@@ -842,8 +859,8 @@ public partial class Server : Form
                     }
                     else
                     {
-                        Utils.Sql.Select(certType.ca, serverName);
-                        goto Pos1;
+                        Utils.Sql.Select(certType.user, serverName);
+                        goto Pos4;
                     }
                 }
 
