@@ -23,7 +23,7 @@ namespace SCG.Forms
     public partial class WriteFile : Form
     {
         #region Members
-        private string _serverName { get; set; }
+        private string _ServerName { get; set; }
         public string PrivateKeyPem { get; set; }
         public string _privateKey { get; set; }
         public byte[] PublicKey { get; set; }
@@ -35,7 +35,7 @@ namespace SCG.Forms
         {
             _ServerType = serverType;
             _Certificate = certificate;
-            _serverName = serverName;
+            _ServerName = serverName;
 
             if (_Certificate == certType.priv)
             {
@@ -44,13 +44,13 @@ namespace SCG.Forms
                 InitializeComponent();
                 Cb_cert_ext.Items.AddRange(["Select extension", "PFX files(*.pfx)|*.pfx", "PEM files(*.pem)|*.pem"]);
                 Cb_cert_ext.SelectedIndex = 0;
-                Text = "Export Privatekey";
+                //Text = "Export Privatekey";
                 Bt_write_cert.AccessibleName = "ca";
             }
             else if (_Certificate == certType.pub)
             {
                 //PublicKey = Convert.ToByte(Utils.dictCaDetails["public_cert"]);
-                _serverName = serverName;
+                _ServerName = serverName;
                 //PublicKey = publicKey;
 
                 InitializeComponent();
@@ -76,7 +76,7 @@ namespace SCG.Forms
 
             if (_Certificate == certType.priv)
             {
-                Result res = SaveFile(_serverName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
+                Result<string> res = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res.IsSuccess)
                 {
                     Close();
@@ -101,7 +101,7 @@ namespace SCG.Forms
 
         }
 
-        public Result SaveFile(string defaultFileName, string defaultFileExtension, string filter)
+        public Result<string> SaveFile(string defaultFileName, string defaultFileExtension, string filter)
         {
             try
             {
@@ -111,42 +111,42 @@ namespace SCG.Forms
                     SaveFile.Filter = filter;
                     SaveFile.AddExtension = true;
                     SaveFile.RestoreDirectory = true;
-                    SaveFile.Title = "Save File";
+                    SaveFile.Title = "Save Privatekey File";
 
                     if (SaveFile.ShowDialog() == DialogResult.OK)
                     {
                         switch (_ServerType)
                         {
                             case serverType.ca:
-                                if (!string.IsNullOrEmpty(SaveFile.FileName))
-                                {
+                                
                                     if (_Certificate == certType.priv)
                                     {
-
+                                        File.WriteAllText(SaveFile.FileName, Utils.dictCaDetails["private_key"]);
                                     }
                                     else if (_Certificate == certType.pub)
                                     {
                                         File.WriteAllBytes(SaveFile.FileName, new byte[] { 33, 33 });
                                     }
-
-
-                                }
-                                else
-                                {
-                                    return Result.Fail("No Filename given");
-                                }
-                                break;
+                                    return Result.Ok("Private Key sucessfully written");
+                                
                             case serverType.intermediate:
+                                return Result.Fail("Fail");
                                 break;
                             case serverType.server:
+                                return Result.Fail("Fail");
                                 break;
                             case serverType.user:
+                                return Result.Fail("Fail");
                                 break;
                             default:
+                                return Result.Fail("Fail");
                                 break;
                         }
+
+
+
                     }
-                    return Result.Fail("DialogResult is not DialogResult.OK");
+                    return Result.Fail("Fail");
                 }
             }
             catch (Exception ex)
