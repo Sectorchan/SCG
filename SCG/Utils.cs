@@ -979,7 +979,7 @@ public class Utils
                 throw;
             }
         }
-        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
+        public static Result<int> UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
         {
             try
             {
@@ -1001,12 +1001,12 @@ public class Utils
 
                 int rowInserted = command.ExecuteNonQuery();
                 connection.Close();
-                return rowInserted;
+                return Result.Ok(rowInserted);
 
             }
             catch (Exception ex)
             {
-                return 0;
+                return Result.Fail("failed");
             }
         }
         public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int idSignedCa, int duration, int serialNumber)
@@ -1153,8 +1153,7 @@ public class Utils
                             rsa.ImportFromPem(dictCaDetails["private_key"]);
                             intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                             intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
-                            intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
-                            ,
+                            intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));                            
                             signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(Convert.ToInt32(dictCaDetails["ss_duration"])));
                             return signedCertificate;
                             break;
@@ -1177,14 +1176,14 @@ public class Utils
                             break;
                     }
 
-                    Certificate = new X509Certificate2(issuerCert, issuerPasswd, X509KeyStorageFlags.Exportable);
-                    signedCertificate = intermediateRequest.Create(Certificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
-                    if (!Certificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
-                    {
-                        throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
-                    }
-                    X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
-                    return signedCertificateWithKey;
+                    //Certificate = new X509Certificate2(serverName, (string?)null, X509KeyStorageFlags.Exportable);
+                    //signedCertificate = intermediateRequest.Create(Certificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
+                    //if (!Certificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                    //{
+                    //    throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                    //}
+                    //X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
+                    //return signedCertificateWithKey;
                 }
 
             }
@@ -1195,7 +1194,7 @@ public class Utils
             }
             return null;
         }
-        public static X509Certificate2 CreateCertificate(certType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, int requesterSerialNumber)
+        public static Result<X509Certificate2> CreateCertificate(certType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
         {
             byte[] sN = { Convert.ToByte(requesterSerialNumber) };
             X509Certificate2 caCertificate;
@@ -1234,7 +1233,7 @@ public class Utils
                 {
                     signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration));
 
-                    return signedCertificate;
+                    return Result.Ok(signedCertificate);
                 }
                 else
                 {
