@@ -26,6 +26,7 @@ public class Utils
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
     private static readonly string[] s_pubCert = ["public_cert", "public_createDT"];
+    private static readonly string[] s_ssCert = ["ss_cert", "ss_createDT", "ss_duration"];
     private static readonly string[] s_destNames = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
 
 
@@ -250,7 +251,7 @@ public class Utils
                 return null;
             }
         }
-        public static string[] GetServerDetails(certType table, string serverName)
+        public static string[] GetServerDetails(serverType table, string serverName)
         {
             try
             {
@@ -330,7 +331,7 @@ public class Utils
         /// <param name="table"></param>
         /// <param name="serverName"></param>
         /// <returns>privatekey,publickey, remotePathPrivateKey, remotePathPublicKey</returns>
-        public static string[] GetCertDetails(certType table, string serverName)
+        public static string[] GetCertDetails(serverType table, string serverName)
         {
             try
             {
@@ -377,7 +378,7 @@ public class Utils
             }
         }
 
-        public static string GetPrivateKey(certType table, string serverName)
+        public static string GetPrivateKey(serverType table, string serverName)
         {
             try
             {
@@ -421,7 +422,7 @@ public class Utils
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
         ///
-        public static Result<int> InsertInto(certType table, string _name, string privKey, int _keySize)
+        public static Result<int> InsertInto(serverType table, string _name, string privKey, int _keySize)
         {
             try
             {
@@ -458,7 +459,7 @@ public class Utils
         /// <param name="table"></param>
         /// <param name="_name"></param>
         /// <returns></returns>
-        public static Result<int> InsertInto(certType table, string _name)
+        public static Result<int> InsertInto(serverType table, string _name)
         {
             try
             {
@@ -500,7 +501,7 @@ public class Utils
         /// <param name="column">Which column should be searched for</param>
         /// <param name="table">Defines the table inside the database</param>
         /// <returns>Result<List<string>></returns>
-        public static List<string> SqlSelect(string column, certType table)
+        public static List<string> SqlSelect(string column, serverType table)
         {
             var sql = $"SELECT {column} FROM {table}";
 
@@ -562,7 +563,7 @@ public class Utils
         /// <param name="table">Select the table which should be read</param>
         /// <param name="serverName">Specify the servername which parameter you want to read.</param>
         /// <returns></returns>
-        public static Result<bool> Select(certType table, string serverName)
+        public static Result<bool> Select(serverType table, string serverName)
         {
             var sql = $"SELECT * FROM {table} WHERE name=@serverName";
 
@@ -593,7 +594,7 @@ public class Utils
             }
         }
 
-        public static string SelectWhereString(certType table, string resultColumn, string searchColumn, string searchValue)
+        public static string SelectWhereString(serverType table, string resultColumn, string searchColumn, string searchValue)
         {
             try
             {
@@ -634,7 +635,7 @@ public class Utils
 
         }
 
-        public static byte[] SelectSsCert(certType table, string column, string searchColumn, string searchValue)
+        public static byte[] SelectSsCert(serverType table, string column, string searchColumn, string searchValue)
         {
             try
             {
@@ -671,7 +672,7 @@ public class Utils
             }
 
         }
-        public static Result<List<object>> SelectWhereObject(string[] column1, certType table, string searchColumn, string searchValue)
+        public static Result<List<object>> SelectWhereObject(string[] column1, serverType table, string searchColumn, string searchValue)
         {
             try
             {
@@ -715,7 +716,7 @@ public class Utils
 
         }
 
-        public static List<object> SelectWhereObject(certType table, string[] returnValues, string searchColumn, string searchValue)
+        public static List<object> SelectWhereObject(serverType table, string[] returnValues, string searchColumn, string searchValue)
         {
             try
             {
@@ -769,7 +770,7 @@ public class Utils
 
 
         }
-        public static int Update(certType table, string publicKey, string searchTerm, string searchColumn)
+        public static int Update(serverType table, string publicKey, string searchTerm, string searchColumn)
         {
             try
             {
@@ -797,7 +798,7 @@ public class Utils
                 return 0;
             }
         }
-        public static Result<int> Update(certType table, string searchTerm, string subj_country, string subj_state, string subj_location,
+        public static Result<int> Update(serverType table, string searchTerm, string subj_country, string subj_state, string subj_location,
                                          string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email)
         {
             try
@@ -830,7 +831,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(certType table, string serverName, string[] columns)
+        public static Result<int> Update(serverType table, string serverName, string[] columns)
         {
             try
             {
@@ -862,7 +863,7 @@ public class Utils
             }
         }
         public static Result<int>
-            Update(certType table, string serverName, string[] columns, int type)
+            Update(serverType table, string serverName, string[] columns, int type)
         {
             try
             {
@@ -910,6 +911,25 @@ public class Utils
                                 }
                                 return Result.Ok(rowIns);
                             }
+                        case 3: // selfSigned Update
+                            {
+                                foreach (var column in s_ssCert)
+                                {
+                                    if (column == "ss_createDT")
+                                    {
+                                        dictCaDetails[column] = DateTime.Now.ToString();
+                                    }
+                                    command.Parameters.Clear();
+                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
+
+                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
+
+                                    int rowInserted = command.ExecuteNonQuery();
+                                    rowIns += rowInserted;
+                                }
+                                return Result.Ok(rowIns);
+                            }
                     }
                 }
                 return Result.Ok(rowIns);
@@ -920,7 +940,7 @@ public class Utils
             }
         }
 
-        public static int UpdateBasicConstraints(certType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
+        public static int UpdateBasicConstraints(serverType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
         {
             try
             {
@@ -950,7 +970,7 @@ public class Utils
                 return 0;
             }
         }
-        public static void WriteCertFileInfo(certType table, string fileName, string privExt, string pubExt, string remotePath, string searchTerm)
+        public static void WriteCertFileInfo(serverType table, string fileName, string privExt, string pubExt, string remotePath, string searchTerm)
         {
             try
             {
@@ -979,7 +999,7 @@ public class Utils
                 throw;
             }
         }
-        public static Result<int> UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
+        public static Result<int> UpdateSelfSigned(serverType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
         {
             try
             {
@@ -1009,7 +1029,7 @@ public class Utils
                 return Result.Fail("failed");
             }
         }
-        public static int UpdateSelfSigned(certType table, string searchTerm, byte[] selfSignedCert, int idSignedCa, int duration, int serialNumber)
+        public static int UpdateSelfSigned(serverType table, string searchTerm, byte[] selfSignedCert, int idSignedCa, int duration, int serialNumber)
         {
             try
             {
@@ -1093,7 +1113,7 @@ public class Utils
                 }
                 else
                 {
-                    Utils.Sql.Select(certType.ca, serverName);
+                    Utils.Sql.Select(serverType.ca, serverName);
                     goto Pos1;
                 }
             }
@@ -1103,15 +1123,17 @@ public class Utils
             }
         }
 
-        public static X509Certificate2 CreateSelfSignedCertificate(certType table, string serverName)
+        public static Result<X509Certificate2> CreateSelfSignedCertificate(serverType table, string serverName)
         {
             try
             {
                 byte[] sN;
                 X509Certificate2 Certificate;
-                X500DistinguishedName distinguishedName = DNBuilder(table, serverName).Value;
+                //X500DistinguishedName distinguishedName = DNBuilder(table, serverName).Value;
+                Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
                 CertificateRequest intermediateRequest;
                 X509Certificate2 signedCertificate;
+                string issuerPassword = "string.Empty";
 
                 #region test
                 //using (RSA rsa = RSA.Create())
@@ -1143,39 +1165,54 @@ public class Utils
                 //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
                 //    dictCaDetails["ss_duration"] = "
                 #endregion
-                using (RSA rsa = RSA.Create())
+                if (DNresult.IsSuccess)
                 {
-                    intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                    switch (table)
+                    using (RSA rsa = RSA.Create())
                     {
-                        case certType.ca:
-                            rsa.ImportFromPem(dictCaDetails["private_key"]);
-                            intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
-                            intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
-                            intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));                            
-                            signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(Convert.ToInt32(dictCaDetails["ss_duration"])));
-                            return signedCertificate;
-                            break;
-                        case certType.intermediate:
-                            rsa.ImportFromPem(dictInterDetails["private_key"]);
-                            intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
-                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
-                            break;
-                        case certType.server:
-                            rsa.ImportFromPem(dictServerDetails["private_key"]);
-                            intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-                            intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
-                            break;
-                        case certType.user:
-                            rsa.ImportFromPem(dictUserDetails["private_key"]);
-                            intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                            intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-                            intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
-                            break;
-                    }
+                        intermediateRequest = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
+                        switch (table)
+                        {
+                            case serverType.ca:
+                                rsa.ImportFromPem(dictCaDetails["private_key"]);
+                                intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                                intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
+                                signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now
+                                    .AddMonths(Convert.ToInt32(dictCaDetails["ss_duration"])));
+                                return signedCertificate;
+                            case serverType.intermediate:
+                                rsa.ImportFromPem(dictInterDetails["private_key"]);
+                                intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign |
+                                        X509KeyUsageFlags.CrlSign, true));
+                                break;
+                            case serverType.server:
+                                rsa.ImportFromPem(dictServerDetails["private_key"]);
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature |
+                                        X509KeyUsageFlags.KeyEncipherment, true));
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
+                                break;
+                            case serverType.user:
+                                rsa.ImportFromPem(dictUserDetails["private_key"]);
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment |
+                                        X509KeyUsageFlags.NonRepudiation |
+                                        X509KeyUsageFlags.DigitalSignature |
+                                        X509KeyUsageFlags.KeyEncipherment, true));
+                                intermediateRequest.CertificateExtensions
+                                    .Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
+                                break;
+                        }
+                    }
                     //Certificate = new X509Certificate2(serverName, (string?)null, X509KeyStorageFlags.Exportable);
                     //signedCertificate = intermediateRequest.Create(Certificate, DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration), sN);
                     //if (!Certificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
@@ -1185,7 +1222,6 @@ public class Utils
                     //X509Certificate2 signedCertificateWithKey = signedCertificate.CopyWithPrivateKey(rsa);
                     //return signedCertificateWithKey;
                 }
-
             }
             catch (Exception ex)
             {
@@ -1194,7 +1230,7 @@ public class Utils
             }
             return null;
         }
-        public static Result<X509Certificate2> CreateCertificate(certType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
+        public static Result<X509Certificate2> CreateCertificate(serverType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
         {
             byte[] sN = { Convert.ToByte(requesterSerialNumber) };
             X509Certificate2 caCertificate;
@@ -1206,30 +1242,30 @@ public class Utils
                 rsa.ImportFromPem(requestPrivKey);
 
                 intermediateRequest = new CertificateRequest(distinguishedName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                if (table == certType.ca)
+                if (table == serverType.ca)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
                     intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
                 }
-                else if (table == certType.intermediate)
+                else if (table == serverType.intermediate)
                 {
                     intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
                 }
-                else if (table == certType.server)
+                else if (table == serverType.server)
                 {
                     intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
                     intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
                 }
-                else if (table == certType.user)
+                else if (table == serverType.user)
                 {
                     intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
                     intermediateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
                     intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
                 }
-                if (table == certType.ca)
+                if (table == serverType.ca)
                 {
                     signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(requesterDuration));
 
@@ -1257,7 +1293,7 @@ public class Utils
             return chain;
         }
         //public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
-        public static Result<X500DistinguishedName> DNBuilder(certType table, string serverName)
+        public static Result<X500DistinguishedName> DNBuilder(serverType table, string serverName)
         {
             try
             {
@@ -1265,7 +1301,7 @@ public class Utils
 
                 switch (table)
                 {
-                    case certType.ca:
+                    case serverType.ca:
                     Pos1:
                         if (serverName.Equals(dictCaDetails["name"]))
                         {
@@ -1283,11 +1319,10 @@ public class Utils
                         }
                         else
                         {
-                            Utils.Sql.Select(certType.ca, serverName);
+                            Utils.Sql.Select(serverType.ca, serverName);
                             goto Pos1;
                         }
-                        break;
-                    case certType.intermediate:
+                    case serverType.intermediate:
                     Pos2:
                         if (serverName.Equals(dictInterDetails["name"]))
                         {
@@ -1301,11 +1336,11 @@ public class Utils
                         }
                         else
                         {
-                            Utils.Sql.Select(certType.intermediate, serverName);
+                            Utils.Sql.Select(serverType.intermediate, serverName);
                             goto Pos2;
                         }
                         break;
-                    case certType.server:
+                    case serverType.server:
                     Pos3:
                         if (serverName.Equals(dictServerDetails["name"]))
                         {
@@ -1319,11 +1354,11 @@ public class Utils
                         }
                         else
                         {
-                            Utils.Sql.Select(certType.server, serverName);
+                            Utils.Sql.Select(serverType.server, serverName);
                             goto Pos3;
                         }
                         break;
-                    case certType.user:
+                    case serverType.user:
                     Pos4:
                         if (serverName.Equals(dictUserDetails["name"]))
                         {
@@ -1337,7 +1372,7 @@ public class Utils
                         }
                         else
                         {
-                            Utils.Sql.Select(certType.user, serverName);
+                            Utils.Sql.Select(serverType.user, serverName);
                             goto Pos4;
                         }
                         break;
@@ -1365,7 +1400,7 @@ public class Utils
 
                 else
                 {
-                    Utils.Sql.Select(certType.ca, serverName);
+                    Utils.Sql.Select(serverType.ca, serverName);
 
                 }
                 var build = DNs.Build();
@@ -1418,8 +1453,6 @@ public class Utils
                         {
                             return Result.Fail("No Filename given");
                         }
-
-                        return Result.Fail("DialogResult is not DialogResult.OK");
                     }
                     return Result.Ok();
                 }
@@ -1429,13 +1462,14 @@ public class Utils
                 return Result.Fail(Convert.ToString(ex));
             }
         }
-        public static Result SaveFile(string defaultFileName, string filter, byte[] content)
+        public static Result SaveFile(string defaultFileName, string fileExtension, string filter, string content)
         {
             try
             {
+
                 using (SaveFileDialog SaveFile = new SaveFileDialog())
                 {
-                    SaveFile.FileName = defaultFileName;
+                    SaveFile.FileName = defaultFileName + fileExtension;
                     SaveFile.Filter = filter;
                     SaveFile.AddExtension = true;
                     SaveFile.RestoreDirectory = true;
@@ -1445,13 +1479,13 @@ public class Utils
                         string filePath = SaveFile.FileName;
                         if (!string.IsNullOrEmpty(filePath))
                         {
-                            File.WriteAllBytes(filePath, content);
+                            File.WriteAllText(filePath, content);
+                            return Result.Ok();
                         }
                         else
                         {
                             return Result.Fail("No Filename given");
                         }
-                        return Result.Fail("DialogResult is not DialogResult.OK");
                     }
                     return Result.Ok();
                 }
@@ -1461,6 +1495,7 @@ public class Utils
                 return Result.Fail(Convert.ToString(ex));
             }
         }
+   
         private static byte[] GenerateRandomSerialNumber(int byteLength)
         {
             if (byteLength < 1)
@@ -1477,13 +1512,22 @@ public class Utils
 
             return serialNumber;
         }
-        public enum certType
+        public enum serverType
         {
             ca,
             intermediate,
             server,
             user
         }
+
+        public enum certType
+        {
+            priv,
+            pub,
+            selfSigned,
+            signed
+        }
+
         public static List<string> ObjectToString(List<object> obj)
         {
             List<string> list = new List<string>();

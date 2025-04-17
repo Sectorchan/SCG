@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,38 +23,34 @@ namespace SCG.Forms
     public partial class WriteFile : Form
     {
         #region Members
-        public string ServerName { get; set; }
+        private string _ServerName { get; set; }
         public string PrivateKeyPem { get; set; }
-        public string PrivateKey { get; set; }
+        public string _privateKey { get; set; }
         public byte[] PublicKey { get; set; }
+        private serverType _ServerType { get; set; }
+        private certType _Certificate { get; set; }
 
         #endregion
-        public WriteFile(string serverName, string privateKeyPem)
+        public WriteFile(serverType serverType, string serverName, certType certificate)
         {
-            ServerName = serverName;
-            PrivateKeyPem = privateKeyPem;
+            _ServerType = serverType;
+            _Certificate = certificate;
+            _ServerName = serverName;
 
-            InitializeComponent();
-            Cb_cert_ext.Items.AddRange(["PFX files(*.pfx)|*.pfx", "PEM files(*.pem)|*.pem"]);
-            Cb_cert_ext.SelectedIndex = 0;
-            Text = "Export Privatekey";
-        }
-        public WriteFile(string serverName, int keyType)
-        {
-            ServerName = serverName;
-            if (keyType == 0)
+            if (_Certificate == certType.priv)
             {
-                PrivateKey = Utils.dictCaDetails["private_key"];
+                _privateKey = Utils.dictCaDetails["private_key"];
 
                 InitializeComponent();
                 Cb_cert_ext.Items.AddRange(["Select extension", "PFX files(*.pfx)|*.pfx", "PEM files(*.pem)|*.pem"]);
                 Cb_cert_ext.SelectedIndex = 0;
-                Text = "Export Privatekey";
+                //Text = "Export Privatekey";
+                Bt_write_cert.AccessibleName = "ca";
             }
-            else if (keyType == 1)
+            else if (_Certificate == certType.pub)
             {
                 //PublicKey = Convert.ToByte(Utils.dictCaDetails["public_cert"]);
-                ServerName = serverName;
+                _ServerName = serverName;
                 //PublicKey = publicKey;
 
                 InitializeComponent();
@@ -60,41 +58,96 @@ namespace SCG.Forms
                 Cb_cert_ext.SelectedIndex = 0;
                 Text = "Export Publickey";
             }
+            else if (_Certificate == certType.selfSigned)
+            {
+                InitializeComponent();
+                Cb_cert_ext.Items.AddRange(["Select extension", "PFX files(*.pfx)|*.pfx", "CER files(*.cer)|*.cer"]);
+                Cb_cert_ext.SelectedIndex = 0;
+                Text = "Export SelfSigned Certificate";
+            }
+
         }
-        public WriteFile(string serverName, byte[] publicKey)
-        {
-            ServerName = serverName;
-
-            PublicKey = publicKey;
-
-            InitializeComponent();
-            Cb_cert_ext.Items.AddRange(["DER files(*.der)|*.der", "CRT files(*.crt)|*.crt", "CER files(*.cer)|*.cer"]);
-            Cb_cert_ext.SelectedIndex = 0;
-            Text = "Export Publickey";
-        }
-
         private void Bt_write_cert_Click(object sender, EventArgs e)
         {
             string ext = Convert.ToString(Cb_cert_ext.SelectedItem);
             string ext_out = ext.Substring(ext.IndexOf('|') + 2);
 
-            if (Text == "Export Privatekey")
-            {
-                Result res = SaveFile(ServerName + ext_out, Convert.ToString(Cb_cert_ext.SelectedItem), PrivateKey);
-                if (res.IsSuccess)
-                {
-                    Close();
-                }
+            Button btn = (Button)sender;
 
-                
-            }
-            else if (Text == "Export Publickey")
+            if (_Certificate == certType.priv)
             {
-                Result res = SaveFile(ServerName + ext_out, Convert.ToString(Cb_cert_ext.SelectedItem), PublicKey);
+                Result<string> res = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res.IsSuccess)
                 {
                     Close();
                 }
+            }
+            //else if (Text == "Export Publickey")
+            //{
+            //    Result res = SaveFile(ServerName + ext_out, Convert.ToString(Cb_cert_ext.SelectedItem), PublicKey);
+            //    if (res.IsSuccess)
+            //    {
+            //        Close();
+            //    }
+            //}
+            //else if (Text == "Export SelfSigned Certificate")
+            //{
+            //    Result res = SaveFile(ServerName + ext_out, Convert.ToString(Cb_cert_ext.SelectedItem), PublicKey);
+            //    if (res.IsSuccess)
+            //    {
+            //        Close();
+            //    }
+            //}
+
+        }
+
+        public Result<string> SaveFile(string defaultFileName, string defaultFileExtension, string filter)
+        {
+            try
+            {
+                using (SaveFileDialog SaveFile = new SaveFileDialog())
+                {
+                    SaveFile.FileName = defaultFileName + defaultFileExtension;
+                    SaveFile.Filter = filter;
+                    SaveFile.AddExtension = true;
+                    SaveFile.RestoreDirectory = true;
+                    SaveFile.Title = "Save Privatekey File";
+
+                    if (SaveFile.ShowDialog() == DialogResult.OK)
+                    {
+                        switch (_ServerType)
+                        {
+                            case serverType.ca:
+                                
+                                    if (_Certificate == certType.priv)
+                                    {
+                                        File.WriteAllText(SaveFile.FileName, Utils.dictCaDetails["private_key"]);
+                                    }
+                                    else if (_Certificate == certType.pub)
+                                    {
+                                        File.WriteAllBytes(SaveFile.FileName, new byte[] { 33, 33 });
+                                    }
+                                    return Result.Ok("Private Key sucessfully written");
+                                
+                            case serverType.intermediate:
+                                return Result.Fail("Fail");
+                            case serverType.server:
+                                return Result.Fail("Fail");
+                            case serverType.user:
+                                return Result.Fail("Fail");
+                            default:
+                                return Result.Fail("Fail");
+                        }
+
+
+
+                    }
+                    return Result.Fail("Fail");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(Convert.ToString(ex));
             }
         }
 
