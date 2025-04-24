@@ -212,10 +212,10 @@ public partial class Server : Form
 
             if (privateKeyPem.IsSuccess)
             {
-                Result<int> insertRow = Utils.Sql.InsertInto(serverType.ca, Utils.dictCaDetails["name"]);
+                Result<int> insertRow = Utils.Sql.InsertInto(serverType.ca, (string)Utils.dictCaDetails["name"]);
                 if (_writeFile && insertRow.IsSuccess)
                 {
-                    Form writeFileForm = new WriteFile(serverType.ca, Utils.dictCaDetails["name"], certType.priv);
+                    Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.priv);
                     writeFileForm.ShowDialog();
                 }
                 MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
@@ -250,7 +250,7 @@ public partial class Server : Form
                 Result<int> columnsUpdated = Utils.Sql.Update(serverType.ca, serverName, ["public_cert", "public_createDT"], 1);
                 if (_writeFile && columnsUpdated.IsSuccess)
                 {
-                    Form writeFileForm = new WriteFile(serverType.ca, Utils.dictCaDetails["name"], certType.pub);
+                    Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.pub);
                     writeFileForm.ShowDialog();
                 }
                 else
@@ -282,12 +282,12 @@ public partial class Server : Form
 
             dictCaDetails["ss_duration"] = tb_ca_dura.Text;
             int duration = Convert.ToInt32(dictCaDetails["ss_duration"]);
-            string privateKeyPem = dictCaDetails["private_key"];
+            string privateKeyPem = (string)dictCaDetails["private_key"];
 
             int cTempSerialNumber = Convert.ToInt32(dictCaDetails["serialNumber"]);
             cTempSerialNumber++;
             string time = DateTime.Now.ToString("ddMMyyyy");
-            long serialNumber = int.Parse($"{cTempSerialNumber}{time}");
+            long serialNumber = long.Parse($"{cTempSerialNumber}{time}");
 
             if (result.IsSuccess)
             {
@@ -299,16 +299,40 @@ public partial class Server : Form
                     if (certificate.IsSuccess)
                     {
                         byte[] selfSignedCert = certificate.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
+                        File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S1.pfx", selfSignedCert);
+                        Utils.Sql.Select(serverType.ca, serverName);
+                        string s = Convert.ToString(Utils.dictCaDetails["ss_cert"]);
 
+                        return;
+                        //write selfSignedCert as Byte[] into the database
                         Result<int> sqlWrite = Utils.Sql.UpdateSelfSigned(serverType.ca, serverName, selfSignedCert, duration, cTempSerialNumber);
 
-                        if (_certVerify && sqlWrite.IsSuccess)
+
+                        //write selfSignedCert to file
+                        Utils.Sql.Select(serverType.ca, serverName);
+
+                        if (sqlWrite.IsSuccess)
                         {
+                            if (_writeFile)
+                            {
+                                Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, null);
+                                writeFileForm.ShowDialog();
+
+                            }
+                            if (_certVerify)
+                            {
+                                // load selfsigned certificate from database to verify the content
+                                CheckPrivateKey(certificate.Value);
+                            }   
+
+
                             X509Certificate2 sqlSelfSigned = new X509Certificate2(selfSignedCert, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
                             CheckPrivateKey(sqlSelfSigned);
                         }
                         else if (_writeFile)
                         {
+                           
+
                             File.WriteAllBytes($"{serverName}.{fileExtension}", selfSignedCert);
                             MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
                         }
@@ -327,31 +351,24 @@ public partial class Server : Form
     }
     private void Bt_reCreate_ca_selfSigned_key_Click(object sender, EventArgs e)
     {
-        string caName = Convert.ToString(lb_ca_certs.SelectedItem);
-        byte[] intSsCertSql = Utils.Sql.SelectSsCert(serverType.ca, "ss_cert", "name", caName);
-        X509Certificate2 sqlSelfSigned = new X509Certificate2(intSsCertSql, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+
+        byte[] selfSignedSqlCert = (byte[])dictCaDetails["ss_cert"];
+
+        X509Certificate2 sqlSelfSigned = new X509Certificate2(selfSignedSqlCert, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
         byte[] certToSend = sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
 
-        Result<List<object>> list = Utils.Sql.SelectWhereObject(_sshCred, serverType.ca, "name", caName);
+        Result<List<object>> list = Utils.Sql.SelectWhereObject(_sshCred, serverType.ca, "name", serverName);
 
 
 
-
-        //SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-        //saveFileDialog1.InitialDirectory = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        //saveFileDialog1.RestoreDirectory = true;
-        //saveFileDialog1.Title = "Save certificate";
-
-        //saveFileDialog1.AddExtension = true;
-        //saveFileDialog1.CheckFileExists = true;
-        //saveFileDialog1.FileName = "ca_" + caName + "_reCreate_ss";
-        //saveFileDialog1.ShowDialog();
 
 
         //Utils.ssh.UploadCert(Convert.ToString(list.Value[2]), Convert.ToString(list.Value[0]), Convert.ToString(list.Value[1]), certToSend, _remoteFilePath);
 
-        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx)); //includes public and private
-        File.WriteAllBytes("ca_" + caName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
+        File.WriteAllBytes("ca_" + serverName + "_reCreate_ss.pfx", sqlSelfSigned.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx)); //includes public and private
+        File.WriteAllBytes("ca_" + serverName + "_reCreate_ss.cer", sqlSelfSigned.Export(X509ContentType.Cert));//includes only public
     }
 
     private void Bt_ca_uploadCert_Click(object sender, EventArgs e)

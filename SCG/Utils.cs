@@ -48,34 +48,34 @@ public class Utils
                 };
     static SqliteConnection _connection = Server.sqlconnection;
     private static readonly string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
-    public static Dictionary<string, string> dictCaDetails = new Dictionary<string, string>
+    public static Dictionary<string, object> dictCaDetails = new Dictionary<string, object>
                 {
-                    { "id", string.Empty },
-                    { "name", string.Empty },
-                    { "keySize", string.Empty },
-                    { "private_key", string.Empty },
-                    { "private_createDT", string.Empty },
-                    { "public_cert", string.Empty },
-                    { "public_createDT", string.Empty },
-                    { "ss_cert", string.Empty },
-                    { "ss_createDT", string.Empty },
-                    { "ss_duration", string.Empty },
-                    { "subj_country", string.Empty },
-                    { "subj_state", string.Empty },
-                    { "subj_location", string.Empty },
-                    { "subj_organisation", string.Empty },
-                    { "subj_orgaunit", string.Empty },
-                    { "subj_commonname", string.Empty },
-                    { "subj_email", string.Empty },
-                    { "serialNumber", string.Empty },
-                    { "host_name", string.Empty },
-                    { "host_username", string.Empty },
-                    { "host_password", string.Empty },
-                    { "cert_filename", string.Empty },
-                    { "cert_priv_ext", string.Empty },
-                    { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty },
-        { "cert_autoupload", string.Empty }
+                    { "id", null },
+                    { "name", null },
+                    { "keySize", null },
+                    { "private_key", null },
+                    { "private_createDT", null },
+                    { "public_cert", null },
+                    { "public_createDT", null },
+                    { "ss_cert", null },
+                    { "ss_createDT", null },
+                    { "ss_duration", null },
+                    { "subj_country", null },
+                    { "subj_state", null },
+                    { "subj_location", null },
+                    { "subj_organisation", null },
+                    { "subj_orgaunit", null },
+                    { "subj_commonname", null },
+                    { "subj_email", null},
+                    { "serialNumber", null },
+                    { "host_name", null },
+                    { "host_username", null },
+                    { "host_password", null },
+                    { "cert_filename", null },
+                    { "cert_priv_ext", null },
+                    { "cert_pub_ext", null },
+                    { "cert_path", null },
+                    { "cert_autoupload", null }
                 };
     public static Dictionary<string, string> dictInterDetails = new Dictionary<string, string>
                 {
@@ -426,9 +426,9 @@ public class Utils
         {
             try
             {
-                string name = dictCaDetails["name"];
-                string keySize = dictCaDetails["keySize"];
-                string private_key = dictCaDetails["private_key"];
+                string name = (string)dictCaDetails["name"];
+                string keySize = (string)dictCaDetails["keySize"];
+                string private_key = (string)dictCaDetails["private_key"];
                 string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                 using var command = new SqliteCommand(sql, _connection);
@@ -463,11 +463,11 @@ public class Utils
         {
             try
             {
-                if (_name == dictCaDetails["name"])
+                if (_name == (string)dictCaDetails["name"])
                 {
-                    string name = dictCaDetails["name"];
-                    string keySize = dictCaDetails["keySize"];
-                    string private_key = dictCaDetails["private_key"];
+                    string name = (string)dictCaDetails["name"];
+                    string keySize = (string)dictCaDetails["keySize"];
+                    string private_key = (string)dictCaDetails["private_key"];
                     string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                     using var command = new SqliteCommand(sql, _connection);
@@ -577,11 +577,24 @@ public class Utils
 
                 while (reader.Read())
                 {
+                    Type ss = reader.GetFieldType("ss_cert");
                     foreach (string item in s_sqlColumns)
                     {
                         if (!reader.IsDBNull(0))
                         {
+                            Type s = reader.GetFieldType(item);
                             dictCaDetails[item] = reader.GetString(item);
+                          
+                            if (item == "ss_cert")
+                            {
+                                //long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
+                                //byte[] buffer = new byte[length];
+                                //reader.GetBytes(1, 0, buffer, 0, buffer.Length);
+                                //File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2.pfx", buffer);
+
+                                byte[] blobData = (byte[])reader[item];
+                                File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2blob.pfx", blobData);
+                            }
                         }
                     }
                 }
@@ -656,7 +669,7 @@ public class Utils
                 {
                     if (reader.Read())
                     {
-                        // `byte_column` auslesen
+                        // `byte_column` auslesen //PL
                         byte[] byteArray = (byte[])reader["ss_cert"];
 
                         return byteArray;
@@ -999,6 +1012,7 @@ public class Utils
                 throw;
             }
         }
+        //Server.cs 305
         public static Result<int> UpdateSelfSigned(serverType table, string searchTerm, byte[] selfSignedCert, int duration, int serialNumber)
         {
             try
@@ -1105,7 +1119,7 @@ public class Utils
                 {
                     using (RSA rsa = RSA.Create())
                     {
-                        rsa.ImportFromPem(dictCaDetails["private_key"]);
+                        rsa.ImportFromPem((string)dictCaDetails["private_key"]);
                         dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
 
                         return Result.Ok(rsa.ExportRSAPublicKeyPem());
@@ -1174,7 +1188,7 @@ public class Utils
                         switch (table)
                         {
                             case serverType.ca:
-                                rsa.ImportFromPem(dictCaDetails["private_key"]);
+                                rsa.ImportFromPem((string)dictCaDetails["private_key"]);
                                 intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
                                 intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
                                 intermediateRequest.CertificateExtensions
@@ -1232,7 +1246,7 @@ public class Utils
         }
         public static Result<X509Certificate2> CreateCertificate(serverType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
         {
-            byte[] sN = { Convert.ToByte(requesterSerialNumber) };
+            byte[] sN =  BitConverter.GetBytes(requesterSerialNumber) ;
             X509Certificate2 caCertificate;
             CertificateRequest intermediateRequest;
             X509Certificate2 signedCertificate;
@@ -1305,13 +1319,13 @@ public class Utils
                     Pos1:
                         if (serverName.Equals(dictCaDetails["name"]))
                         {
-                            DNs.AddCountryOrRegion(dictCaDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName(dictCaDetails["subj_state"]);
-                            DNs.AddLocalityName(dictCaDetails["subj_location"]);
-                            DNs.AddOrganizationName(dictCaDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName(dictCaDetails["subj_orgaunit"]);
-                            DNs.AddCommonName(dictCaDetails["subj_commonname"]);
-                            DNs.AddEmailAddress(dictCaDetails["subj_email"]);
+                            DNs.AddCountryOrRegion((string)dictCaDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName((string)dictCaDetails["subj_state"]);
+                            DNs.AddLocalityName((string)dictCaDetails["subj_location"]);
+                            DNs.AddOrganizationName((string)dictCaDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName((string)dictCaDetails["subj_orgaunit"]);
+                            DNs.AddCommonName((string)dictCaDetails["subj_commonname"]);
+                            DNs.AddEmailAddress((string)dictCaDetails["subj_email"]);
 
                             X500DistinguishedName dn = DNs.Build();
 
@@ -1324,15 +1338,15 @@ public class Utils
                         }
                     case serverType.intermediate:
                     Pos2:
-                        if (serverName.Equals(dictInterDetails["name"]))
+                        if (serverName.Equals((string)dictInterDetails["name"]))
                         {
-                            DNs.AddCountryOrRegion(dictInterDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName(dictInterDetails["subj_state"]);
-                            DNs.AddLocalityName(dictInterDetails["subj_location"]);
-                            DNs.AddOrganizationName(dictInterDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName(dictInterDetails["subj_orgaunit"]);
-                            DNs.AddCommonName(dictInterDetails["subj_commonname"]);
-                            DNs.AddEmailAddress(dictInterDetails["subj_email"]);
+                            DNs.AddCountryOrRegion((string)dictInterDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName((string)dictInterDetails["subj_state"]);
+                            DNs.AddLocalityName((string)dictInterDetails["subj_location"]);
+                            DNs.AddOrganizationName((string)dictInterDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName((string)dictInterDetails["subj_orgaunit"]);
+                            DNs.AddCommonName((string)dictInterDetails["subj_commonname"]);
+                            DNs.AddEmailAddress((string)dictInterDetails["subj_email"]);
                         }
                         else
                         {
@@ -1342,15 +1356,15 @@ public class Utils
                         break;
                     case serverType.server:
                     Pos3:
-                        if (serverName.Equals(dictServerDetails["name"]))
+                        if (serverName.Equals((string)dictServerDetails["name"]))
                         {
-                            DNs.AddCountryOrRegion(dictServerDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName(dictServerDetails["subj_state"]);
-                            DNs.AddLocalityName(dictServerDetails["subj_location"]);
-                            DNs.AddOrganizationName(dictServerDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName(dictServerDetails["subj_orgaunit"]);
-                            DNs.AddCommonName(dictServerDetails["subj_commonname"]);
-                            DNs.AddEmailAddress(dictServerDetails["subj_email"]);
+                            DNs.AddCountryOrRegion((string)dictServerDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName((string)dictServerDetails["subj_state"]);
+                            DNs.AddLocalityName((string)dictServerDetails["subj_location"]);
+                            DNs.AddOrganizationName((string)dictServerDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName((string)dictServerDetails["subj_orgaunit"]);
+                            DNs.AddCommonName((string)dictServerDetails["subj_commonname"]);
+                            DNs.AddEmailAddress((string)dictServerDetails["subj_email"]);
                         }
                         else
                         {
@@ -1360,15 +1374,15 @@ public class Utils
                         break;
                     case serverType.user:
                     Pos4:
-                        if (serverName.Equals(dictUserDetails["name"]))
+                        if (serverName.Equals((string)dictUserDetails["name"]))
                         {
-                            DNs.AddCountryOrRegion(dictUserDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName(dictUserDetails["subj_state"]);
-                            DNs.AddLocalityName(dictUserDetails["subj_location"]);
-                            DNs.AddOrganizationName(dictUserDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName(dictUserDetails["subj_orgaunit"]);
-                            DNs.AddCommonName(dictUserDetails["subj_commonname"]);
-                            DNs.AddEmailAddress(dictUserDetails["subj_email"]);
+                            DNs.AddCountryOrRegion((string)dictUserDetails["subj_country"]);
+                            DNs.AddStateOrProvinceName((string)dictUserDetails["subj_state"]);
+                            DNs.AddLocalityName((string)dictUserDetails["subj_location"]);
+                            DNs.AddOrganizationName((string)dictUserDetails["subj_organisation"]);
+                            DNs.AddOrganizationalUnitName((string)dictUserDetails["subj_orgaunit"]);
+                            DNs.AddCommonName((string)dictUserDetails["subj_commonname"]);
+                            DNs.AddEmailAddress((string)dictUserDetails["subj_email"]);
                         }
                         else
                         {
@@ -1376,12 +1390,10 @@ public class Utils
                             goto Pos4;
                         }
                         break;
-
                 }
 
                 if (serverName.Equals(dictCaDetails["name"]))
                 {
-
                     //DNs.AddCountryOrRegion(Convert.ToString(twoLetterCode));
                     //DNs.AddStateOrProvinceName(Convert.ToString(stateOrProvinceName));
                     //DNs.AddLocalityName(Convert.ToString(localityName));
