@@ -299,23 +299,24 @@ public partial class Server : Form
                     if (certificate.IsSuccess)
                     {
                         byte[] selfSignedCert = certificate.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
-                        File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S1.pfx", selfSignedCert);
-                        Utils.Sql.Select(serverType.ca, serverName);
-                        string s = Convert.ToString(Utils.dictCaDetails["ss_cert"]);
+                        //File.WriteAllBytes("selfSignedCert_befor_sqlWrite.pfx", selfSignedCert);
 
-                        return;
                         //write selfSignedCert as Byte[] into the database
                         Result<int> sqlWrite = Utils.Sql.UpdateSelfSigned(serverType.ca, serverName, selfSignedCert, duration, cTempSerialNumber);
 
 
                         //write selfSignedCert to file
-                        Utils.Sql.Select(serverType.ca, serverName);
+                        //Utils.Sql.Select(serverType.ca, serverName);
+                        //var x = selfSignedCert.SequenceEqual((byte[])Utils.dictCaDetails["ss_cert"]);
 
                         if (sqlWrite.IsSuccess)
                         {
                             if (_writeFile)
                             {
-                                Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, null);
+                                //Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, null);
+                                //writeFileForm.ShowDialog();
+
+                                Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, selfSignedCert);
                                 writeFileForm.ShowDialog();
 
                             }
@@ -323,19 +324,15 @@ public partial class Server : Form
                             {
                                 // load selfsigned certificate from database to verify the content
                                 CheckPrivateKey(certificate.Value);
-                            }   
-
-
-                            X509Certificate2 sqlSelfSigned = new X509Certificate2(selfSignedCert, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
-                            CheckPrivateKey(sqlSelfSigned);
+                            }
+                            //X509Certificate2 sqlSelfSigned = new X509Certificate2(selfSignedCert, c_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+                            //CheckPrivateKey(sqlSelfSigned);
                         }
-                        else if (_writeFile)
-                        {
-                           
-
-                            File.WriteAllBytes($"{serverName}.{fileExtension}", selfSignedCert);
-                            MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
-                        }
+                        //else if (_writeFile)
+                        //{
+                        //    File.WriteAllBytes($"{serverName}.{fileExtension}", selfSignedCert);
+                        //    MessageBox.Show($"Intermediate-Zertifikat in \"ca_\" + caName + \"_ss.pfx\" gespeichert.");
+                        //}
                         else
                         { MessageBox.Show($"sqlWrite to file failed with: {sqlWrite.Reasons}"); }
                     }

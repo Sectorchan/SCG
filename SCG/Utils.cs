@@ -14,6 +14,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Xml.Linq;
 using WinFormsApp1;
 using static PL.Utils.Tools;
 
@@ -577,24 +578,52 @@ public class Utils
 
                 while (reader.Read())
                 {
-                    Type ss = reader.GetFieldType("ss_cert");
+                    //Type ss = reader.GetFieldType("ss_cert");
+                    //string qw = ss.Name.ToString();
+                    //string qa = ss.FullName.ToString();
+
                     foreach (string item in s_sqlColumns)
                     {
                         if (!reader.IsDBNull(0))
                         {
-                            Type s = reader.GetFieldType(item);
-                            dictCaDetails[item] = reader.GetString(item);
-                          
-                            if (item == "ss_cert")
-                            {
-                                //long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
-                                //byte[] buffer = new byte[length];
-                                //reader.GetBytes(1, 0, buffer, 0, buffer.Length);
-                                //File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2.pfx", buffer);
 
-                                byte[] blobData = (byte[])reader[item];
-                                File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2blob.pfx", blobData);
+                            switch (reader.GetFieldType(item).Name.ToString())
+                            {
+                                case "String":
+                                    dictCaDetails[item] = reader.GetString(item);
+                                    break;
+                                case "Int64":
+                                    dictCaDetails[item] = reader.GetInt64(item);
+                                    break;
+                                case "Byte[]":
+                                    long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
+                                    byte[] buffer = new byte[length];
+                                    reader.GetBytes(7, 0, buffer, 0, buffer.Length);
+                                    dictCaDetails[item] = (byte[])reader[item];
+
+
+                                    //byte[] blobData = (byte[])reader[item];
+                                    //File.WriteAllBytes($"Select-Ca-S2.pfx", blobData);
+                                    //byte[] btmp = (byte[])dictCaDetails[item];
+                                    //File.WriteAllBytes($"Select-Ca-S2.pfx", (byte[])dictCaDetails[item]);
+                                    break;
+                                default:
+
+                                    MessageBox.Show($"Unknown Datatype from SQLite database received! On column: {item}, with the DataType: {reader.GetFieldType(item).Name.ToString()}");
+                                    break;
                             }
+                            //dictCaDetails[item] = reader.GetString(item);
+
+                            //if (item == "ss_cert")
+                            //{
+                            //    //long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
+                            //    //byte[] buffer = new byte[length];
+                            //    //reader.GetBytes(1, 0, buffer, 0, buffer.Length);
+                            //    //File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2.pfx", buffer);
+
+                            //    byte[] blobData = (byte[])reader[item];
+                            //    File.WriteAllBytes("C:\\Users\\Patri\\Downloads\\Ca-S2blob.pfx", blobData);
+                            //}
                         }
                     }
                 }
