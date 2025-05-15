@@ -36,17 +36,24 @@ namespace SCG.Forms
         public WriteFile(serverType serverType, string serverName, certType certificate)
         {
             _ServerType = serverType;
-            _Certificate = certificate;
             _ServerName = serverName;
+            _Certificate = certificate;
+
 
             if (_Certificate == certType.priv)
             {
-                _privateKey = (string)Utils.dictCaDetails["private_key"];
-
+                if (_ServerType == serverType.ca)
+                {
+                    _privateKey = (string)Utils.dictCaDetails["private_key"];
+                }
+                else if (_ServerType == serverType.server)
+                {
+                    _privateKey = (string)Utils.dictServerDetails["private_key"];
+                }
                 InitializeComponent();
                 Cb_cert_ext.Items.AddRange(["Select extension", "PFX files(*.pfx)|*.pfx", "PEM files(*.pem)|*.pem"]);
                 Cb_cert_ext.SelectedIndex = 0;
-                Bt_write_cert.AccessibleName = "ca";
+                //Bt_write_cert.AccessibleName = "ca";
             }
             else if (_Certificate == certType.pub)
             {
@@ -64,12 +71,13 @@ namespace SCG.Forms
                 Text = "Export SelfSigned Certificate";
             }
 
+
         }
         public WriteFile(serverType serverType, string serverName, certType certificate, byte[] selfSigned)
         {
             _ServerType = serverType;
-            _Certificate = certificate;
             _ServerName = serverName;
+            _Certificate = certificate;
             _selfSigned = selfSigned;
 
             if (_Certificate == certType.priv)
@@ -103,32 +111,25 @@ namespace SCG.Forms
         {
             string ext = Convert.ToString(Cb_cert_ext.SelectedItem);
             string ext_out = ext.Substring(ext.IndexOf('|') + 2);
-
-            Button btn = (Button)sender;
+            //Button btn = (Button)sender;
 
             if (_Certificate == certType.priv)
             {
                 Result<string> res = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res.IsSuccess)
-                {
-                    Close();
-                }
+                { Close(); }
             }
             else if (_Certificate == certType.pub)
             {
                 Result<string> res = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res.IsSuccess)
-                {
-                    Close();
-                }
+                { Close(); }
             }
             else if (_Certificate == certType.selfSigned)
             {
                 Result<string> res = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res.IsSuccess)
-                {
-                    Close();
-                }
+                { Close(); }
             }
 
         }
@@ -150,7 +151,6 @@ namespace SCG.Forms
                         switch (_ServerType)
                         {
                             case serverType.ca:
-
                                 if (_Certificate == certType.priv)
                                 {
                                     File.WriteAllText(SaveFile.FileName, (string)Utils.dictCaDetails["private_key"]);
@@ -166,16 +166,30 @@ namespace SCG.Forms
                                     File.WriteAllBytes(SaveFile.FileName, _selfSigned);
                                     return Result.Ok("Success");
                                 }
-                                return Result.Fail("Fail");
-
+                                return Result.Fail($"CA Certificate failed to write");
                             case serverType.intermediate:
-                                return Result.Fail("Fail");
+                                return Result.Fail("Not implemented");
                             case serverType.server:
-                                return Result.Fail("Fail");
+                                if (_Certificate == certType.priv)
+                                {
+                                    File.WriteAllText(SaveFile.FileName, (string)Utils.dictServerDetails["private_key"]);
+                                    return Result.Ok("Success");
+                                }
+                                else if (_Certificate == certType.pub)
+                                {
+                                    File.WriteAllText(SaveFile.FileName, (string)Utils.dictServerDetails["public_cert"]);
+                                    return Result.Ok("Success");
+                                }
+                                else if (_Certificate == certType.selfSigned)
+                                {
+                                    File.WriteAllBytes(SaveFile.FileName, _selfSigned);
+                                    return Result.Ok("Success");
+                                }
+                                return Result.Fail($"Server Certificate failed to write");
                             case serverType.user:
-                                return Result.Fail("Fail");
+                                return Result.Fail("Not implemented");
                             default:
-                                return Result.Fail("Fail");
+                                return Result.Fail("Not implemented");
                         }
 
 

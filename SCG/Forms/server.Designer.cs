@@ -682,7 +682,7 @@ partial class Server
         Bt_gen_server_selfSigned_key.TabIndex = 57;
         Bt_gen_server_selfSigned_key.Text = "5. Generate CSR";
         Bt_gen_server_selfSigned_key.UseVisualStyleBackColor = true;
-        Bt_gen_server_selfSigned_key.Click += Bt_gen_server_selfSigned_key_Click;
+        Bt_gen_server_selfSigned_key.Click += Bt_gen_server_csr_Click;
         // 
         // Bt_gen_server_pub
         // 

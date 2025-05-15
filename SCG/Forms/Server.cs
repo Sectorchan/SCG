@@ -208,10 +208,12 @@ public partial class Server : Form
             int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
             Utils.dictCaDetails.Clear();
             Utils.dictCaDetails["name"] = tb_ca_name.Text;
+            Utils.dictCaDetails["keySize"] = Convert.ToString(keySize);
             Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
 
             if (privateKeyPem.IsSuccess)
             {
+                dictCaDetails["private_key"] = privateKeyPem.Value;
                 Result<int> insertRow = Utils.Sql.InsertInto(serverType.ca, (string)Utils.dictCaDetails["name"]);
                 if (_writeFile && insertRow.IsSuccess)
                 {
@@ -243,10 +245,13 @@ public partial class Server : Form
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
             Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
-            Result<string> publicKey = Utils.Certs.GeneratePublicKey(serverName);
+            string privateKey = (string)dictCaDetails["private_key"];
+
+            Result<string> publicKey = Utils.Certs.GeneratePublicKey(serverName, privateKey);
 
             if (publicKey.IsSuccess)
             {
+                Utils.dictCaDetails["public_cert"] = publicKey.Value;
                 Result<int> columnsUpdated = Utils.Sql.Update(serverType.ca, serverName, ["public_cert", "public_createDT"], 1);
                 if (_writeFile && columnsUpdated.IsSuccess)
                 {
@@ -423,7 +428,7 @@ public partial class Server : Form
         //read private key
         string i_privateKeyPath = Utils.Sql.SelectWhereString(serverType.intermediate, "private_key", "name", interName);
         //generate public key with passed private key
-        Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(i_privateKeyPath);
+        Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(i_privateKeyPath, i_privateKeyPath); // 2nd Parameter just used to avoid error, must be replaced
         //write to sql
         Result<int> insertRow = Utils.Sql.Update(serverType.intermediate, publicKeyPem.Value, interName, "name");
         //write to file
@@ -517,46 +522,78 @@ public partial class Server : Form
     #region server
     private void Bt_gen_server_priv_Click(object sender, EventArgs e)
     {
-        int keySize = Convert.ToInt32(cb_server_keySize.SelectedItem);
-        string serverName = tb_server_name.Text;
-        //generate privatekey
-        Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
-        //write to sql
-        Result<int> insertRow = Utils.Sql.InsertInto(serverType.server, serverName, privateKeyPem.Value, keySize);
-        if (_writeFile)
+        try
         {
-            SaveFile(serverName, privateKeyPem.Value, CertPEM);
-            //write to file
-            File.WriteAllText("cs_" + serverName + "_priv.pem", privateKeyPem.Value);
-        }
-        MessageBox.Show($"Successfully inserted {insertRow.Value} row(s) into the database");
+            int keySize = Convert.ToInt32(cb_server_keySize.SelectedItem);
+            Utils.dictServerDetails.Clear();
+            Utils.dictServerDetails["name"] = tb_server_name.Text;
+            Utils.dictServerDetails["keySize"] = Convert.ToString(keySize);
 
-        lb_server_certs.Items.Clear();
-        ReadServers(lb_server_certs, serverType.server);
-        lb_server_certs.Sorted = true;
-        lb_server_certs.SelectedItem = serverName;
+            Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+
+            if (privateKeyPem.IsSuccess)
+            {
+                dictServerDetails["private_key"] = privateKeyPem.Value;
+                Result<int> insertRow = Utils.Sql.InsertInto(serverType.server, (string)Utils.dictServerDetails["name"]);
+                if (_writeFile && insertRow.IsSuccess)
+                {
+                    Form writeFileForm = new WriteFile(serverType.server, (string)Utils.dictServerDetails["name"], certType.priv);
+                    writeFileForm.ShowDialog();
+                }
+                MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
+            }
+            else
+            {
+                MessageBox.Show($"Generate PrivateKEy failed with: {privateKeyPem.Reasons}");
+            }
+            lb_server_certs.Items.Clear();
+            ReadServers(lb_server_certs, serverType.server);
+            lb_server_certs.Sorted = true;
+            lb_server_certs.SelectedItem = Utils.dictServerDetails["name"];
+        }
+        catch (Exception ex)
+        { MessageBox.Show(ex.ToString(), sender.ToString()); }
     }
     private void Bt_gen_server_pub_Click(object sender, EventArgs e)
-    {
-        string serverName = Convert.ToString(lb_server_certs.SelectedItem);
-        //read private key
-        string s_privateKeyPath = Utils.Sql.SelectWhereString(serverType.server, "private_key", "name", serverName);
-        //generate public key with passed private key
-        Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(s_privateKeyPath);
-        //write to sql
-        int insertRow = Utils.Sql.Update(serverType.server, publicKeyPem.Value, serverName, "name");
-        //write to file
-        File.WriteAllText("cs_" + serverName + "_pub.pem", publicKeyPem.Value);
-        //return result
-        MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
-    }
-
-
-    private void Bt_gen_server_selfSigned_key_Click(object sender, EventArgs e)
     {
         try
         {
             string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            Result<bool> result = Utils.Sql.Select(serverType.server, serverName);
+            string privateKey = (string)dictServerDetails["private_key"];
+            Result<string> publicKey = Utils.Certs.GeneratePublicKey(serverName, privateKey);
+
+            if (publicKey.IsSuccess)
+            {
+                Utils.dictServerDetails["public_cert"] = publicKey.Value;
+                Result<int> columnsUpdated = Utils.Sql.Update(serverType.server, serverName, ["public_cert", "public_createDT"], 1);
+                if (_writeFile && columnsUpdated.IsSuccess)
+                {
+                    Form writeFileForm = new WriteFile(serverType.server, (string)Utils.dictServerDetails["name"], certType.pub);
+                    writeFileForm.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show($"Database Update failed with: {columnsUpdated.Reasons}");
+                }
+                MessageBox.Show($"Successfully inserted {columnsUpdated.Value} row(s) into the database");
+            }
+            else
+            {
+                MessageBox.Show($"Generate PublicKey failed with: {publicKey.Value}");
+            }
+        }
+        catch (Exception)
+        { throw; }
+    }
+
+
+    private void Bt_gen_server_csr_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            string serverName = Convert.ToString(lb_server_certs.SelectedItem);
+            Result<bool> result = Utils.Sql.Select(serverType.server, serverName);
             //which intermediate shall sign the server
             string interName = Convert.ToString(lb_int_certs.SelectedItem);
             int duration = Convert.ToInt32(tb_server_dura.Text);
@@ -574,7 +611,7 @@ public partial class Server : Form
             List<object> fqdnRes = Sql.SelectWhereObject(serverType.server, _fqdn, "name", serverName);
             //X500DistinguishedName distinguishedName = DNBuilder(certType.server, serverName);
             Result<X500DistinguishedName> distinguishedName = DNBuilder(serverType.server, serverName);
-            s_privateKeySn++;
+            //s_privateKeySn++;
 
             //generate from SQL
             Result<X509Certificate2> serverCertSql = Utils.Certs.CreateCertificate(serverType.server, s_privateKeyPath, distinguishedName.Value, null, null, duration, s_privateKeySn);
@@ -651,7 +688,7 @@ public partial class Server : Form
         //read private key
         string s_privateKeyPath = Utils.Sql.SelectWhereString(serverType.user, "private_key", "name", userName);
         //generate public key with passed private key
-        Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(s_privateKeyPath);
+        Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(s_privateKeyPath, s_privateKeyPath);  // 2nd Parameter just used to avoid error, must be replaced
         //write to sql
         int insertRow = Utils.Sql.Update(serverType.user, publicKeyPem.Value, userName, "name");
         //write to file
@@ -771,7 +808,6 @@ public partial class Server : Form
     {
         try
         {
-
             string sub_c = tb_sub_c.Text;
             string sub_s = tb_sub_st.Text;
             string sub_l = tb_sub_loc.Text;
@@ -788,86 +824,52 @@ public partial class Server : Form
                 if (sqlTable.Value == serverType.ca)
                 {
                     serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-                Pos1:
-                    if (dictCaDetails["name"].Equals(serverName))
-                    {
-                        dictCaDetails["subj_country"] = tb_sub_c.Text;
-                        dictCaDetails["subj_state"] = tb_sub_st.Text;
-                        dictCaDetails["subj_location"] = tb_sub_loc.Text;
-                        dictCaDetails["subj_organisation"] = tb_sub_orga.Text;
-                        dictCaDetails["subj_orgaunit"] = tb_sub_ou.Text;
-                        dictCaDetails["subj_commonname"] = tb_sub_cn.Text;
-                        dictCaDetails["subj_email"] = tb_sub_email.Text;
-
-                    }
-                    else
-                    {
-                        Utils.Sql.Select(serverType.ca, serverName);
-                        goto Pos1;
-                    }
+                    Utils.Sql.Select(serverType.ca, serverName);
+                    dictCaDetails["subj_country"] = tb_sub_c.Text;
+                    dictCaDetails["subj_state"] = tb_sub_st.Text;
+                    dictCaDetails["subj_location"] = tb_sub_loc.Text;
+                    dictCaDetails["subj_organisation"] = tb_sub_orga.Text;
+                    dictCaDetails["subj_orgaunit"] = tb_sub_ou.Text;
+                    dictCaDetails["subj_commonname"] = tb_sub_cn.Text;
+                    dictCaDetails["subj_email"] = tb_sub_email.Text;
                 }
                 else if (sqlTable.Value == serverType.intermediate)
                 {
                     serverName = Convert.ToString(lb_int_certs.SelectedItem);
-                Pos2:
-                    if (dictInterDetails["name"].Equals(serverName))
-                    {
-                        dictInterDetails["subj_country"] = tb_sub_c.Text;
-                        dictInterDetails["subj_state"] = tb_sub_st.Text;
-                        dictInterDetails["subj_location"] = tb_sub_loc.Text;
-                        dictInterDetails["subj_organisation"] = tb_sub_orga.Text;
-                        dictInterDetails["subj_orgaunit"] = tb_sub_ou.Text;
-                        dictInterDetails["subj_commonname"] = tb_sub_cn.Text;
-                        dictInterDetails["subj_email"] = tb_sub_email.Text;
+                    Utils.Sql.Select(serverType.intermediate, serverName);
 
-                    }
-                    else
-                    {
-                        Utils.Sql.Select(serverType.intermediate, serverName);
-                        goto Pos2;
-                    }
+                    dictInterDetails["subj_country"] = tb_sub_c.Text;
+                    dictInterDetails["subj_state"] = tb_sub_st.Text;
+                    dictInterDetails["subj_location"] = tb_sub_loc.Text;
+                    dictInterDetails["subj_organisation"] = tb_sub_orga.Text;
+                    dictInterDetails["subj_orgaunit"] = tb_sub_ou.Text;
+                    dictInterDetails["subj_commonname"] = tb_sub_cn.Text;
+                    dictInterDetails["subj_email"] = tb_sub_email.Text;
                 }
                 else if (sqlTable.Value == serverType.server)
                 {
                     serverName = Convert.ToString(lb_server_certs.SelectedItem);
-                Pos3:
-                    if (dictServerDetails["name"].Equals(serverName))
-                    {
-                        dictServerDetails["subj_country"] = tb_sub_c.Text;
-                        dictServerDetails["subj_state"] = tb_sub_st.Text;
-                        dictServerDetails["subj_location"] = tb_sub_loc.Text;
-                        dictServerDetails["subj_organisation"] = tb_sub_orga.Text;
-                        dictServerDetails["subj_orgaunit"] = tb_sub_ou.Text;
-                        dictServerDetails["subj_commonname"] = tb_sub_cn.Text;
-                        dictServerDetails["subj_email"] = tb_sub_email.Text;
+                    Utils.Sql.Select(serverType.server, serverName);
 
-                    }
-                    else
-                    {
-                        Utils.Sql.Select(serverType.server, serverName);
-                        goto Pos3;
-                    }
+                    dictServerDetails["subj_country"] = tb_sub_c.Text;
+                    dictServerDetails["subj_state"] = tb_sub_st.Text;
+                    dictServerDetails["subj_location"] = tb_sub_loc.Text;
+                    dictServerDetails["subj_organisation"] = tb_sub_orga.Text;
+                    dictServerDetails["subj_orgaunit"] = tb_sub_ou.Text;
+                    dictServerDetails["subj_commonname"] = tb_sub_cn.Text;
+                    dictServerDetails["subj_email"] = tb_sub_email.Text;
                 }
                 else if (sqlTable.Value == serverType.user)
                 {
                     serverName = Convert.ToString(lb_user_certs.SelectedItem);
-                Pos4:
-                    if (dictUserDetails["name"].Equals(serverName))
-                    {
-                        dictUserDetails["subj_country"] = tb_sub_c.Text;
-                        dictUserDetails["subj_state"] = tb_sub_st.Text;
-                        dictUserDetails["subj_location"] = tb_sub_loc.Text;
-                        dictUserDetails["subj_organisation"] = tb_sub_orga.Text;
-                        dictUserDetails["subj_orgaunit"] = tb_sub_ou.Text;
-                        dictUserDetails["subj_commonname"] = tb_sub_cn.Text;
-                        dictUserDetails["subj_email"] = tb_sub_email.Text;
-
-                    }
-                    else
-                    {
-                        Utils.Sql.Select(serverType.user, serverName);
-                        goto Pos4;
-                    }
+                    Utils.Sql.Select(serverType.user, serverName);
+                    dictUserDetails["subj_country"] = tb_sub_c.Text;
+                    dictUserDetails["subj_state"] = tb_sub_st.Text;
+                    dictUserDetails["subj_location"] = tb_sub_loc.Text;
+                    dictUserDetails["subj_organisation"] = tb_sub_orga.Text;
+                    dictUserDetails["subj_orgaunit"] = tb_sub_ou.Text;
+                    dictUserDetails["subj_commonname"] = tb_sub_cn.Text;
+                    dictUserDetails["subj_email"] = tb_sub_email.Text;
                 }
 
                 Result<int> result = Utils.Sql.Update(sqlTable.Value, serverName, ["public_cert", "public_createDT"], 2);
@@ -995,6 +997,7 @@ public partial class Server : Form
 
     #endregion
 
+    #region sonstiges
     /// <summary>
     /// Enables the Generate Private Key button
     /// </summary>
@@ -1064,7 +1067,7 @@ public partial class Server : Form
         //writeFileForm.ShowDialog();
 
     }
-
+    #endregion
 
 }
 
