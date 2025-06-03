@@ -1,7 +1,5 @@
-﻿using System;
-using Microsoft.Data.Sqlite;
-using PL;
-using WinFormsApp1;
+﻿using Microsoft.Data.Sqlite;
+using static SCG.Forms.Server;
 
 public class DatabaseConnection
 {

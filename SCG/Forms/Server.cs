@@ -1,6 +1,5 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
-using static secrets.Secrets;
 using PL;
 using static PL.Utils.Certs;
 using static PL.Utils.Sql;
@@ -9,19 +8,19 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using static PL.Utils;
 using static PL.Utils.Tools;
-using System.Text;
-using WinFormsApp1;
-using System.Diagnostics.Eventing.Reader;
-
 
 namespace SCG.Forms;
 
 public partial class Server : Form
 {
-    public Server() { InitializeComponent(); }
+    public Server()
+    {
+        InitializeComponent();
+        //customButton1.CustomClick += CustomButton1_CustomClick;
+    }
 
     #region Private members
-    //private readonly bool _writeFile = Global.saveToDisk;
+
     private readonly bool _writeFile = true;
     private readonly bool _certVerify = true;
     private readonly string[] _fqdn = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
@@ -92,7 +91,6 @@ public partial class Server : Form
                     TreeNode tree = new TreeNode(Convert.ToString(item));
                     tree.Tag = "Hey";
                     treeView1.Nodes.Add(tree);
-
                 }
             }
         }
@@ -101,10 +99,11 @@ public partial class Server : Form
     }
 
 
-    public Result<List<string>> ReadServers(dynamic control, serverType table)
+    public static Result<List<string>> ReadServers(dynamic control, serverType table)
     {
         try
         {
+
             List<string> serverList = new List<string>();
             Result<List<string>> result = Utils.Sql.SqlSelect("name", table);
 
@@ -200,7 +199,6 @@ public partial class Server : Form
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-
     private void Bt_gen_ca_priv_onClick(object sender, EventArgs e)
     {
         try
@@ -215,6 +213,7 @@ public partial class Server : Form
             {
                 dictCaDetails["private_key"] = privateKeyPem.Value;
                 Result<int> insertRow = Utils.Sql.InsertInto(serverType.ca, (string)Utils.dictCaDetails["name"]);
+
                 if (_writeFile && insertRow.IsSuccess)
                 {
                     Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.priv);
@@ -224,7 +223,7 @@ public partial class Server : Form
             }
             else
             {
-                MessageBox.Show($"Generate PrivateKEy failed with: {privateKeyPem.Reasons}");
+                MessageBox.Show($"Generate PrivateKey failed with: {privateKeyPem.Reasons}");
             }
             lb_ca_certs.Items.Clear();
             ReadServers(lb_ca_certs, serverType.ca);
@@ -233,6 +232,378 @@ public partial class Server : Form
         }
         catch (Exception ex)
         { MessageBox.Show(ex.ToString(), sender.ToString()); }
+    }
+
+    private void CustomButton1_CustomClick(object? sender, CustomClickEventArgs e)
+    {
+        try
+        {
+            serverType serverType = e.ServerType;
+            certType certType = e.CertType;
+
+            if (e.ServerType == serverType.ca)
+            {
+
+                if (e.CertType == certType.priv)
+                {
+                    int keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
+                    Utils.dictCaDetails.Clear();
+                    Utils.dictCaDetails["name"] = tb_ca_name.Text;
+                    Utils.dictCaDetails["keySize"] = Convert.ToString(keySize);
+                    Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+                    if (privateKeyPem.IsSuccess)
+                    {
+                        //dictCaDetails["private_key"] = privateKeyPem.Value;
+                        Result<int> insertRow = Utils.Sql.InsertInto(serverType, (string)Utils.dictCaDetails["name"]);
+                        if (_writeFile && insertRow.IsSuccess)
+                        {
+                            Form writeFileForm = new WriteFile(serverType, (string)Utils.dictCaDetails["name"], certType);
+                            writeFileForm.ShowDialog();
+                        }
+                        MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database");
+                    }
+                    else
+                    { MessageBox.Show($"Generate PrivateKey failed with: {privateKeyPem.Reasons}"); }
+                    lb_ca_certs.Items.Clear();
+                    ReadServers(lb_ca_certs, serverType.ca);
+                    lb_ca_certs.Sorted = true;
+                    lb_ca_certs.SelectedItem = Utils.dictCaDetails["name"];
+                }
+                else if (e.CertType == certType.pub)
+                {
+                }
+                else if (e.CertType == certType.selfSigned)
+                {
+                }
+            }
+            else if (e.ServerType == serverType.intermediate)
+            {
+                if (e.CertType == certType.priv)
+                {
+                    int keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
+                    Utils.dictInterDetails.Clear();
+                    Utils.dictInterDetails["name"] = tb_ca_name.Text;
+                    Utils.dictInterDetails["keySize"] = Convert.ToString(keySize);
+                }
+                else if (e.CertType == certType.pub)
+                {
+                }
+                else if (e.CertType == certType.csr)
+                {
+                }
+                else if (e.CertType == certType.selfSigned)
+                {
+                }
+                else if (e.CertType == certType.signed)
+                {
+                }
+            }
+            else if (e.ServerType == serverType.server)
+            {
+                if (e.CertType == certType.priv)
+                {
+                }
+                else if (e.CertType == certType.pub)
+                {
+                }
+                else if (e.CertType == certType.csr)
+                {
+                }
+                else if (e.CertType == certType.selfSigned)
+                {
+                }
+                else if (e.CertType == certType.signed)
+                {
+                }
+            }
+            else if (e.ServerType == serverType.user)
+            {
+                if (e.CertType == certType.priv)
+                {
+                }
+                else if (e.CertType == certType.pub)
+                {
+                }
+                else if (e.CertType == certType.csr)
+                {
+                }
+                else if (e.CertType == certType.selfSigned)
+                {
+                }
+                else if (e.CertType == certType.signed)
+                {
+                }
+            }
+            else if (e.CertType == certType.pub && e.ServerType == serverType.intermediate)
+            {
+                MessageBox.Show($"certificate: {e.CertType} \n server: {e.ServerType}");
+            }
+        }
+        catch (Exception)
+        { throw; }
+    }
+
+    //private void CustomButton2_CustomClick(object sender, CustomClickEventArgs e)
+    //{
+    //    try
+    //    {
+    //        serverType serverType = e.ServerType;
+    //        certType certType = e.CertType;
+    //        string serverName = string.Empty;
+    //        int keySize = 0;
+    //        if (certType == certType.priv)
+    //        {
+    //            if (serverType == serverType.ca)
+    //            {
+    //                keySize = Convert.ToInt32(cb_ca_keySize.SelectedItem);
+    //                Utils.dictCaDetails.Clear();
+    //                serverName = tb_ca_name.Text;
+    //                Utils.dictCaDetails["name"] = serverName;
+    //                Utils.dictCaDetails["keySize"] = Convert.ToString(keySize);
+    //            }
+    //            else if (serverType == serverType.intermediate)
+    //            {
+    //                keySize = Convert.ToInt32(cb_int_keySize.SelectedItem);
+    //                Utils.dictInterDetails.Clear();
+    //                serverName = tb_int_name.Text;
+    //            }
+    //            else if (serverType == serverType.server)
+    //            {
+    //                keySize = Convert.ToInt32(cb_server_keySize.SelectedItem);
+    //                Utils.dictServerDetails.Clear();
+    //                serverName = tb_server_name.Text;
+    //            }
+    //            else if (serverType == serverType.user)
+    //            {
+    //                keySize = Convert.ToInt32(cb_user_keySize.SelectedItem);
+    //                Utils.dictUserDetails.Clear();
+    //                serverName = tb_user_name.Text;
+    //            }
+
+    //            Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+
+    //            Dictionary<string, object>? targetDict = serverType switch
+    //            {
+    //                serverType.ca => Utils.dictCaDetails,
+    //                serverType.intermediate => Utils.dictInterDetails,
+    //                serverType.server => Utils.dictServerDetails,
+    //                serverType.user => Utils.dictUserDetails,
+    //                _ => null
+    //            };
+    //            DictWriter.setValue(targetDict, "private_key", privateKeyPem.Value);
+
+    //            Result<int> insertRow = Utils.Sql.InsertInto(serverType, serverName);
+
+    //            Form writeFileForm = new WriteFile(serverType, serverName, certType);
+    //            writeFileForm.ShowDialog();
+
+    //            if (serverType == serverType.ca)
+    //            {
+    //                lb_ca_certs.Items.Clear();
+    //                ReadServers(lb_ca_certs, serverType);
+    //                lb_ca_certs.Sorted = true;
+    //                lb_ca_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.intermediate)
+    //            {
+    //                lb_int_certs.Items.Clear();
+    //                ReadServers(lb_int_certs, serverType);
+    //                lb_int_certs.Sorted = true;
+    //                lb_int_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.server)
+    //            {
+    //                lb_server_certs.Items.Clear();
+    //                ReadServers(lb_server_certs, serverType);
+    //                lb_server_certs.Sorted = true;
+    //                lb_server_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.user)
+    //            {
+    //                lb_user_certs.Items.Clear();
+    //                ReadServers(lb_user_certs, serverType);
+    //                lb_user_certs.Sorted = true;
+    //                lb_user_certs.SelectedItem = serverName;
+    //            }
+    //            if (privateKeyPem.IsSuccess && insertRow.IsSuccess)
+    //            {
+    //                MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database and saved to the Harddisk");
+    //            }
+    //        }
+    //        else if (certType == certType.pub)
+    //        {
+    //            if (serverType == serverType.ca)
+    //            {
+    //                Utils.dictCaDetails.Clear();
+    //                serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+    //                Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+
+    //            }
+    //            else if (serverType == serverType.intermediate)
+    //            {
+
+    //            }
+    //            else if (serverType == serverType.server)
+    //            {
+
+    //            }
+    //            else if (serverType == serverType.user)
+    //            {
+
+    //            }
+
+    //            Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+
+    //            Dictionary<string, object>? targetDict = serverType switch
+    //            {
+    //                serverType.ca => Utils.dictCaDetails,
+    //                serverType.intermediate => Utils.dictInterDetails,
+    //                serverType.server => Utils.dictServerDetails,
+    //                serverType.user => Utils.dictUserDetails,
+    //                _ => null
+    //            };
+    //            DictWriter.setValue(targetDict, "private_key", privateKeyPem.Value);
+
+    //            Result<int> insertRow = Utils.Sql.InsertInto(serverType, serverName);
+
+    //            Form writeFileForm = new WriteFile(serverType, serverName, certType);
+    //            writeFileForm.ShowDialog();
+
+    //            if (serverType == serverType.ca)
+    //            {
+    //                lb_ca_certs.Items.Clear();
+    //                ReadServers(lb_ca_certs, serverType);
+    //                lb_ca_certs.Sorted = true;
+    //                lb_ca_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.intermediate)
+    //            {
+    //                lb_int_certs.Items.Clear();
+    //                ReadServers(lb_int_certs, serverType);
+    //                lb_int_certs.Sorted = true;
+    //                lb_int_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.server)
+    //            {
+    //                lb_server_certs.Items.Clear();
+    //                ReadServers(lb_server_certs, serverType);
+    //                lb_server_certs.Sorted = true;
+    //                lb_server_certs.SelectedItem = serverName;
+    //            }
+    //            else if (serverType == serverType.user)
+    //            {
+    //                lb_user_certs.Items.Clear();
+    //                ReadServers(lb_user_certs, serverType);
+    //                lb_user_certs.Sorted = true;
+    //                lb_user_certs.SelectedItem = serverName;
+    //            }
+    //            if (privateKeyPem.IsSuccess && insertRow.IsSuccess)
+    //            {
+    //                MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database and saved to the Harddisk");
+    //            }
+    //        }
+
+    //    }
+    //    catch (Exception)
+    //    {
+    //        throw;
+    //    }
+
+    //}
+
+    private void CustomButton2_CustomClick(object sender, CustomClickEventArgs e)
+    {
+        try
+        {
+            var certType = e.CertType;
+            var serverType = e.ServerType;
+            string serverName = string.Empty;
+
+            serverName = cb_new_ca.Checked ? tb_ca_name.Text : Utils.Tools.GetServerName(this, serverType);
+
+            targetDict = Utils.Tools.GetTargetDict(serverType);
+            if (targetDict == null) return;
+            targetDict.Clear();
+            DictWriter.setValue(targetDict, "name", serverName);
+            if (!(certType == certType.priv)) Utils.Sql.Select(serverType, serverName);
+
+            if (certType == certType.priv)
+            {
+                int keySize = Utils.Tools.GetKeySize(this, serverType);
+
+                DictWriter.setValue(targetDict, "keySize", Convert.ToInt64(keySize));
+
+                var privateKeyPem = Utils.Certs.GeneratePrivateKey(keySize);
+                if (!privateKeyPem.IsSuccess) return;
+
+                DictWriter.setValue(targetDict, "private_key", privateKeyPem.Value);
+
+                var insertRow = Utils.Sql.InsertInto(serverType, serverName);
+                if (!insertRow.IsSuccess) return;
+
+                new WriteFile(serverType, serverName, certType).ShowDialog();
+                Utils.Tools.UpdateCertList(this, serverType, serverName);
+
+                MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database and saved to the Harddisk");
+            }
+            else if (certType == certType.pub)
+            {
+                // Beispielhafte Verarbeitung für Public Certificates:
+                Utils.Sql.Select(serverType, serverName);
+
+                Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(serverName, (string)targetDict["private_key"]);
+                DictWriter.setValue(targetDict, "public_cert", publicKeyPem.Value);
+
+                var insertRow = Utils.Sql.Update(serverType, serverName, ["public_cert", "public_createDT"]);
+
+                if (!insertRow.IsSuccess) return;
+
+                new WriteFile(serverType, serverName, certType).ShowDialog();
+                Utils.Tools.UpdateCertList(this, serverType, serverName);
+
+                MessageBox.Show($"Successfully handled public key for {serverType} and saved to database and disk.");
+            }
+            else if (certType == certType.selfSigned)
+            {
+                //DictWriter.setValue(targetDict, "name", Convert.ToInt32(tb_ca_dura.Text));
+                DictWriter.setValue<int>(targetDict, "ss_duration", Convert.ToInt32(tb_ca_dura.Text));
+                //int duration = Convert.ToInt32(targetDict["ss_duration"]);
+
+                //Utils.Sql.Select(serverType, serverName); //Load existing data from SQL including private key
+                Result<X509Certificate2> selfSignedCert = Utils.Certs.CreateSelfSignedCertificate1(serverType, serverName);
+                //byte[] selfSigned = selfSignedCert.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
+                DictWriter.setValue<byte[]>(targetDict, "ss_cert", selfSignedCert.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx));
+
+                Utils.Sql.Update(serverType, serverName, ["ss_cert", "ss_createDT", "serialNumber", "ss_duration"]);
+
+                if (!_writeFile) return;
+                Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, (byte[])targetDict["ss_cert"]);
+                writeFileForm.ShowDialog();
+
+
+            }
+            else if (certType == certType.csr)
+            {
+                Utils.Sql.Select(serverType, serverName);
+                Result<X509Certificate2> certificate = Utils.Certs.CreateSelfSignedCertificate(serverType, serverName);
+                if (!certificate.IsSuccess) return;
+
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+    private void Bt_save_ca_priv_Click(object sender, EventArgs e)
+    {
+        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+        if (result.IsSuccess)
+        {
+            Form writeFileForm = new WriteFile(serverType.ca, serverName, certType.priv);
+            writeFileForm.ShowDialog();
+        }
     }
     /// <summary>
     /// Button click "Generate Public Key"
@@ -283,7 +654,7 @@ public partial class Server : Form
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
             Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
-            string fileExtension = "pfx";
+
 
             dictCaDetails["ss_duration"] = tb_ca_dura.Text;
             int duration = Convert.ToInt32(dictCaDetails["ss_duration"]);
@@ -453,7 +824,6 @@ public partial class Server : Form
 
             //load CA certificate from file
             string caSsCertFile = "ca_" + serverName + "_ss.pfx";
-            string caPassword = "";
             //read CA certificate pfx from SQL
             byte[] caSsCertSql = Utils.Sql.SelectSsCert(serverType.ca, "ss_cert", "name", serverName);
             string caIndex = Utils.Sql.SelectWhereString(serverType.ca, "id", "name", serverName);
@@ -594,12 +964,14 @@ public partial class Server : Form
         {
             string serverName = Convert.ToString(lb_server_certs.SelectedItem);
             Result<bool> result = Utils.Sql.Select(serverType.server, serverName);
+            string privateKey = (string)dictServerDetails["private_key"];
+
+
             //which intermediate shall sign the server
             string interName = Convert.ToString(lb_int_certs.SelectedItem);
             int duration = Convert.ToInt32(tb_server_dura.Text);
             // load intermediate certificate from file
             string intSsCertFile = "ci_" + interName + "_ss.pfx";
-            string intPassword = "";
             //read intermediate certificate pfx from SQL
             byte[] intSsCertSql = Utils.Sql.SelectSsCert(serverType.intermediate, "ss_cert", "name", interName);
             string intIndex = Utils.Sql.SelectWhereString(serverType.intermediate, "id", "name", interName);
@@ -614,22 +986,26 @@ public partial class Server : Form
             //s_privateKeySn++;
 
             //generate from SQL
-            Result<X509Certificate2> serverCertSql = Utils.Certs.CreateCertificate(serverType.server, s_privateKeyPath, distinguishedName.Value, null, null, duration, s_privateKeySn);
+            //Result<X509Certificate2> serverCertSql = Utils.Certs.CreateCertificate(serverType.server, s_privateKeyPath, distinguishedName.Value, null, null, duration, s_privateKeySn);
+            //Utils.Certs.CreateCSR(serverType.server, serverName);
+            Result<string> serverCsr = Utils.Certs.CreateCSR(serverType.server, serverName);
 
-
-            if (_writeFile)
+            if (serverCsr.IsSuccess)
             {
-                //write signed certificate to file
-                File.WriteAllBytes("cs_" + serverName + "_ss.pfx", serverCertSql.Value.Export(X509ContentType.Pfx, s_selfsignedPasswordPfx)); //includes public and private
-                File.WriteAllBytes("cs_" + serverName + "_ss.cer", serverCertSql.Value.Export(X509ContentType.Cert));//includes only public
+                Result<int> result1 = Utils.Sql.Update(serverType.server, serverName, ["certsign_req", "certsign_req_createDT"]);
+                if (_writeFile && result1.IsSuccess)
+                {
+                    Form writeFileForm = new WriteFile(serverType.server, serverName, certType.csr);
+                    writeFileForm.ShowDialog();
+                }
             }
-            //write signed certificate to sql database
-            Utils.Sql.UpdateSelfSigned(serverType.server, serverName, serverCertSql.Value.Export(X509ContentType.Pfx, s_selfsignedPasswordPfx), Convert.ToInt32(intIndex), duration, s_privateKeySn);
-            if (_certVerify)
+            if (!_certVerify)
             {
+                string pem = (string)dictServerDetails["certsign_req"];
                 // load selfsigned certificate from database to verify the content
-                byte[] servSsCertSql = Utils.Sql.SelectSsCert(serverType.server, "ss_cert", "name", serverName);
-                var sqlSelfSigned = new X509Certificate2(servSsCertSql, s_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+                byte[] servSsCertSql = Utils.Certs.ConvertPemToCsrBytes(pem);
+                //var sqlSelfSigned = new X509Certificate2(servSsCertSql, s_selfsignedPasswordPfx, X509KeyStorageFlags.Exportable);
+                var sqlSelfSigned = new X509Certificate2(pem);
                 CheckPrivateKey(sqlSelfSigned);
             }
             //information message
@@ -710,7 +1086,6 @@ public partial class Server : Form
             int duration = Convert.ToInt32(tb_user_dura.Text);
             // load intermediate certificate from file
             string intSsCertFile = "ci_" + interName + "_ss.pfx";
-            string intPassword = "";
             //read intermediate certificate pfx from SQL
             byte[] intSsCertSql = Utils.Sql.SelectSsCert(serverType.intermediate, "ss_cert", "name", interName);
             string intIndex = Utils.Sql.SelectWhereString(serverType.intermediate, "id", "name", interName);
@@ -863,6 +1238,7 @@ public partial class Server : Form
                 {
                     serverName = Convert.ToString(lb_user_certs.SelectedItem);
                     Utils.Sql.Select(serverType.user, serverName);
+
                     dictUserDetails["subj_country"] = tb_sub_c.Text;
                     dictUserDetails["subj_state"] = tb_sub_st.Text;
                     dictUserDetails["subj_location"] = tb_sub_loc.Text;
@@ -1058,16 +1434,77 @@ public partial class Server : Form
 
     private void button5_Click(object sender, EventArgs e)
     {
-        //string pem = "232";
-        //byte[] bytes = Encoding.UTF8.GetBytes(pem);
+        string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
 
-        //Form writeFileForm = new WriteFile("serverName", bytes);
-        //writeFileForm.Text = "Exporting Private Key";
+        Utils.Tools.SaveFile("Test-ca", "pem", (string)dictCaDetails["private_key"]);
+    }
 
-        //writeFileForm.ShowDialog();
+    #endregion
+    public static class Global
+    {
+        //public static readonly string database = "blubb";
+        public static readonly string database = Properties.Settings.Default.databasePath;
+        public static readonly bool autoUpload = Properties.Settings.Default.autoUpload;
+        public static readonly bool saveToDisk = Properties.Settings.Default.saveToDisk;
+
+        //public static readonly string[] caBasicConstraint = ["true","",null, "true"];
+        public static readonly string[] caKeyUsage = ["critical", "digitalSignature", "cRLSign", "keyCertSign"]; //critical, digitalSignature, cRLSign, keyCertSign
+        public static readonly X509BasicConstraintsExtension caBasicConstraint = new X509BasicConstraintsExtension(true, false, 0, true);
+        public static readonly X509KeyUsageExtension caKeyUsageExtension = new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.CrlSign, true);
+        public static readonly string[] intBasicConstraint = ["true", "", "0", "true"];
+        public static readonly string[] intKeyUsage = ["critical", "digitalSignature", "cRLSign", "keyCertSign"]; //critical, digitalSignature, cRLSign, keyCertSign
+
+        public static readonly string[] serBasicConstraint = ["false", "", null, "false"];
+        public static readonly string[] serKeyUsage = ["critical", "digitalSignature", "keyEncipherment"]; //critical, digitalSignature, keyEncipherment
+        public static readonly string[] serExtKeyUsage2 = ["serverAuth"]; //extendedKeyUsage = serverAuth
+        public static readonly OidCollection serverAuth = new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }; //extendedKeyUsage = serverAuth new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") } 
+
+        public static readonly string[] usrBasicConstraint = ["false", "", null, "false"];
+        public static readonly string[] usrKeyUsage = ["critical", "nonRepudiation", "digitalSignature", "keyEncipherment"]; //critical, nonRepudiation, digitalSignature, keyEncipherment
+        public static readonly string[] usrExtKeyUsage = ["clientAuth", "emailProtection"]; //extendedKeyUsage = clientAuth, emailProtection
+        public static readonly OidCollection clientAuth = new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }; //extendedKeyUsage = clientAuth new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }
+        public static readonly OidCollection secureEmail = new OidCollection { new Oid("1.3.6.1.5.5.7.3.4") }; //extendedKeyUsage = secureEmail new OidCollection { new Oid("1.3.6.1.5.5.7.3.4") }
+
+        public enum certType2
+        {
+            ca,
+            intermediate,
+            server,
+            user
+        }
+
+        public enum dbTable
+        {
+            id,
+            name,
+            private_bits,
+            private_key,
+            private_createDT,
+            public_cert,
+            public_createDT,
+            csr_cert,
+            csr_createDT,
+            ss_cert,
+            ss_createDT,
+            ss_duration,
+            subj_country,
+            subj_state,
+            subj_location,
+            subj_organisation,
+            subj_orgaunit,
+            subj_commonname,
+            subj_email,
+            isCa,
+            not_pathlen,
+            depth,
+            critical,
+        }
 
     }
-    #endregion
+
+
+
 
 }
 

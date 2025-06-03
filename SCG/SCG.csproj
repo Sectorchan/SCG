@@ -13,6 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="external_components\**" />
+    <EmbeddedResource Remove="external_components\**" />
+    <None Remove="external_components\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Forms\edit_config-Surface-Patrick.cs" />
     <Compile Remove="Forms\Server-Surface-Patrick.cs" />
     <Compile Remove="Forms\server.Designer-Surface-Patrick.cs" />
@@ -72,35 +78,13 @@
     <!--<None Update="database.sqbpro">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>-->
-    <None Update="openssl-ca.cnf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="openssl-inter.cnf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
     <!--<None Update="openssl-serve.cnf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>-->
-    <None Update="FolderStructure.txt">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="openssl2.exe">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Update="test_tools\_clear all.bat">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="test_tools\_create certs.bat">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="external_components\" />
   </ItemGroup>
 
 </Project>

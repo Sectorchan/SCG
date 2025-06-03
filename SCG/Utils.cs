@@ -1,23 +1,14 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Renci.SshNet;
 using SCG.Forms;
-using System;
 using System.Buffers;
 using System.Data;
-using System.Data.Common;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Xml.Linq;
-using WinFormsApp1;
 using static PL.Utils.Tools;
-
+using static SCG.Forms.Server;
 
 
 namespace PL;
@@ -48,7 +39,8 @@ public class Utils
 
                 };
     static SqliteConnection _connection = Server.sqlconnection;
-    private static readonly string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
+    private static readonly string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "signed_against", "signed_createDT", "certsign_req", "certsign_req_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
+
     public static Dictionary<string, object> dictCaDetails = new Dictionary<string, object>();
     //{
     //    { "id", null },
@@ -78,36 +70,7 @@ public class Utils
     //    { "cert_path", null },
     //    { "cert_autoupload", null }
     //};
-    public static Dictionary<string, string> dictInterDetails = new Dictionary<string, string>
-                {
-                    { "id", string.Empty },
-                    { "name", string.Empty },
-                    { "keySize", string.Empty },
-                    { "private_key", string.Empty },
-                    { "private_createDT", string.Empty },
-                    { "public_cert", string.Empty },
-                    { "public_createDT", string.Empty },
-                    { "ss_cert", string.Empty },
-                    { "ss_createDT", string.Empty },
-                    { "ss_duration", string.Empty },
-                    { "subj_country", string.Empty },
-                    { "subj_state", string.Empty },
-                    { "subj_location", string.Empty },
-                    { "subj_organisation", string.Empty },
-                    { "subj_orgaunit", string.Empty },
-                    { "subj_commonname", string.Empty },
-                    { "subj_email", string.Empty },
-                    { "serialNumber", string.Empty },
-                    { "host_name", string.Empty },
-                    { "host_username", string.Empty },
-                    { "host_password", string.Empty },
-                    { "cert_filename", string.Empty },
-                    { "cert_priv_ext", string.Empty },
-                    { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty },
-                    { "cert_autoupload", string.Empty }
-                };
-    public static Dictionary<string, object> dictServerDetails = new Dictionary<string, object>();
+    public static Dictionary<string, object> dictInterDetails = new Dictionary<string, object>();
     //{
     //    { "id", string.Empty },
     //    { "name", string.Empty },
@@ -136,35 +99,66 @@ public class Utils
     //    { "cert_path", string.Empty },
     //    { "cert_autoupload", string.Empty }
     //};
-    public static Dictionary<string, string> dictUserDetails = new Dictionary<string, string>
-                {
-                    { "id", string.Empty },
-                    { "name", string.Empty },
-                    { "keySize", string.Empty },
-                    { "private_key", string.Empty },
-                    { "private_createDT", string.Empty },
-                    { "public_cert", string.Empty },
-                    { "public_createDT", string.Empty },
-                    { "ss_cert", string.Empty },
-                    { "ss_createDT", string.Empty },
-                    { "ss_duration", string.Empty },
-                    { "subj_country", string.Empty },
-                    { "subj_state", string.Empty },
-                    { "subj_location", string.Empty },
-                    { "subj_organisation", string.Empty },
-                    { "subj_orgaunit", string.Empty },
-                    { "subj_commonname", string.Empty },
-                    { "subj_email", string.Empty },
-                    { "serialNumber", string.Empty },
-                    { "host_name", string.Empty },
-                    { "host_username", string.Empty },
-                    { "host_password", string.Empty },
-                    { "cert_filename", string.Empty },
-                    { "cert_priv_ext", string.Empty },
-                    { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty },
-                    { "cert_autoupload", string.Empty }
-                };
+    public static Dictionary<string, object> dictServerDetails = new Dictionary<string, object>();
+    //    {
+    //        { "id", string.Empty
+    //},
+    //        { "name", string.Empty },
+    //        { "keySize", string.Empty },
+    //        { "private_key", string.Empty },
+    //        { "private_createDT", string.Empty },
+    //        { "public_cert", string.Empty },
+    //        { "public_createDT", string.Empty },
+    //        { "ss_cert", string.Empty },
+    //        { "ss_createDT", string.Empty },
+    //        { "ss_duration", string.Empty },
+    //        { "subj_country", string.Empty },
+    //        { "subj_state", string.Empty },
+    //        { "subj_location", string.Empty },
+    //        { "subj_organisation", string.Empty },
+    //        { "subj_orgaunit", string.Empty },
+    //        { "subj_commonname", string.Empty },
+    //        { "subj_email", string.Empty },
+    //        { "serialNumber", string.Empty },
+    //        { "host_name", string.Empty },
+    //        { "host_username", string.Empty },
+    //        { "host_password", string.Empty },
+    //        { "cert_filename", string.Empty },
+    //        { "cert_priv_ext", string.Empty },
+    //        { "cert_pub_ext", string.Empty },
+    //        { "cert_path", string.Empty },
+    //        { "cert_autoupload", string.Empty }
+    //    };
+    public static Dictionary<string, object> targetDict = new Dictionary<string, object>();
+    public static Dictionary<string, object> dictUserDetails = new Dictionary<string, object>();
+    //{
+    //    { "id", string.Empty },
+    //    { "name", string.Empty },
+    //    { "keySize", string.Empty },
+    //    { "private_key", string.Empty },
+    //    { "private_createDT", string.Empty },
+    //    { "public_cert", string.Empty },
+    //    { "public_createDT", string.Empty },
+    //    { "ss_cert", string.Empty },
+    //    { "ss_createDT", string.Empty },
+    //    { "ss_duration", string.Empty },
+    //    { "subj_country", string.Empty },
+    //    { "subj_state", string.Empty },
+    //    { "subj_location", string.Empty },
+    //    { "subj_organisation", string.Empty },
+    //    { "subj_orgaunit", string.Empty },
+    //    { "subj_commonname", string.Empty },
+    //    { "subj_email", string.Empty },
+    //    { "serialNumber", string.Empty },
+    //    { "host_name", string.Empty },
+    //    { "host_username", string.Empty },
+    //    { "host_password", string.Empty },
+    //    { "cert_filename", string.Empty },
+    //    { "cert_priv_ext", string.Empty },
+    //    { "cert_pub_ext", string.Empty },
+    //    { "cert_path", string.Empty },
+    //    { "cert_autoupload", string.Empty }
+    //};
     public class ssh
     {
         /// <summary>
@@ -467,11 +461,11 @@ public class Utils
                 switch (table)
                 {
                     case serverType.ca:
-                        if (_name == (string)dictCaDetails["name"])
+                        if (_name == (string)targetDict["name"])
                         {
-                            string name = (string)dictCaDetails["name"];
-                            string keySize = (string)dictCaDetails["keySize"];
-                            string private_key = (string)dictCaDetails["private_key"];
+                            string name = (string)targetDict["name"];
+                            long keySize = (long)targetDict["keySize"];
+                            string private_key = (string)targetDict["private_key"];
                             string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                             using var command = new SqliteCommand(sql, _connection);
@@ -484,6 +478,22 @@ public class Utils
                         }
                         return Result.Fail("Servername is different");
                     case serverType.intermediate:
+                        if (_name == (string)dictInterDetails["name"])
+                        {
+                            string name = (string)dictInterDetails["name"];
+                            string keySize = (string)dictInterDetails["keySize"];
+                            string private_key = (string)dictInterDetails["private_key"];
+                            string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
+
+                            using var command = new SqliteCommand(sql, _connection);
+                            command.Parameters.AddWithValue("@_name", name);
+                            command.Parameters.AddWithValue("@_keySize", keySize);
+                            command.Parameters.AddWithValue("@_private_key", private_key);
+                            command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
+
+                            return Result.Ok(command.ExecuteNonQuery());
+                        }
+
                         return Result.Fail($"Not implemented");
                     case serverType.server:
                         if (_name == (string)dictServerDetails["name"])
@@ -603,17 +613,19 @@ public class Utils
 
                 if (reader.HasRows)
                 {
+                    string item = string.Empty;
                     while (reader.Read())
                     {
-                        foreach (string item in s_sqlColumns)
+                        for (int j = 0; j < reader.FieldCount; j++)
                         {
+                            item = reader.GetName(j);
                             if (!reader.IsDBNull(0))
                             {
                                 switch (reader.GetFieldType(item).Name.ToString())
                                 {
                                     case "String":
                                         dictCaDetails[item] = reader.GetString(item);
-                                       break;
+                                        break;
                                     case "Int64":
                                         dictCaDetails[item] = reader.GetInt64(item);
                                         break;
@@ -625,7 +637,6 @@ public class Utils
                                         break;
                                     default:
                                         return Result.Fail($"Unknown Datatype from SQLite database received! On column: {item}, with the DataType: {reader.GetFieldType(item).Name.ToString()}");
-
                                 }
                             }
                             else
@@ -810,7 +821,7 @@ public class Utils
             }
             catch (Exception ex)
             {
-                return null;
+                return Result.Fail(Convert.ToString(ex));
             }
 
         }
@@ -862,7 +873,7 @@ public class Utils
                     return null;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -892,7 +903,7 @@ public class Utils
 
                 return rowUpdated;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
             }
@@ -939,19 +950,37 @@ public class Utils
                 {
                     foreach (var column in columns)
                     {
-                        if (column == "public_createDT" || column == "private_createDT")
+                        if (column == "public_createDT" || column == "private_createDT" || column == "ss_createDT" || column == "certsign_req_createDT")
                         {
-                            dictCaDetails[column] = DateTime.Now.ToString();
+                            if (table == serverType.ca)
+                            { dictCaDetails[column] = DateTime.Now.ToString(); }
+                            else if (table == serverType.intermediate)
+                            { dictInterDetails[column] = DateTime.Now.ToString(); }
+                            else if (table == serverType.server)
+                            { dictServerDetails[column] = DateTime.Now.ToString(); }
+                            else if (table == serverType.user)
+                            { dictUserDetails[column] = DateTime.Now.ToString(); }
                         }
+
+
                         command.Parameters.Clear();
                         command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                        if (table == serverType.ca)
+                        { command.Parameters.AddWithValue("@_value", dictCaDetails[column]); }
+                        else if (table == serverType.intermediate)
+                        { command.Parameters.AddWithValue("@_value", dictInterDetails[column]); }
+                        else if (table == serverType.server)
+                        { command.Parameters.AddWithValue("@_value", dictServerDetails[column]); }
+                        else if (table == serverType.user)
+                        { command.Parameters.AddWithValue("@_value", dictUserDetails[column]); }
+
+
                         command.Parameters.AddWithValue("@_searchTerm", serverName);
 
                         int rowInserted = command.ExecuteNonQuery();
                         rowIns += rowInserted;
-                        return Result.Ok(rowIns);
+
                     }
                 }
                 return Result.Ok(rowIns);
@@ -1002,7 +1031,23 @@ public class Utils
                                     command.Parameters.Clear();
                                     command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    if (table == serverType.ca)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    }
+                                    else if (table == serverType.intermediate)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictInterDetails[column]);
+                                    }
+                                    else if (table == serverType.server)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictServerDetails[column]);
+                                    }
+                                    else if (table == serverType.user)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictUserDetails[column]);
+                                    }
+
                                     command.Parameters.AddWithValue("@_searchTerm", serverName);
 
                                     int rowInserted = command.ExecuteNonQuery();
@@ -1017,7 +1062,23 @@ public class Utils
                                     command.Parameters.Clear();
                                     command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    if (table == serverType.ca)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
+                                    }
+                                    else if (table == serverType.intermediate)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictInterDetails[column]);
+                                    }
+                                    else if (table == serverType.server)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictServerDetails[column]);
+                                    }
+                                    else if (table == serverType.user)
+                                    {
+                                        command.Parameters.AddWithValue("@_value", dictUserDetails[column]);
+                                    }
+
                                     command.Parameters.AddWithValue("@_searchTerm", serverName);
 
                                     int rowInserted = command.ExecuteNonQuery();
@@ -1142,7 +1203,7 @@ public class Utils
             }
             catch (Exception ex)
             {
-                return Result.Fail("failed");
+                return Result.Fail(ex.Message);
             }
         }
         public static int UpdateSelfSigned(serverType table, string searchTerm, byte[] selfSignedCert, int idSignedCa, int duration, int serialNumber)
@@ -1172,7 +1233,7 @@ public class Utils
                 return rowInserted;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
             }
@@ -1182,11 +1243,6 @@ public class Utils
 
     public class Certs
     {
-        private readonly bool writeFile = true;
-        private readonly string privateKeyPath = "privateKey.pem";
-        private readonly string[] basicConstraint = []; //bool certificateAuthority, bool hasPathLengthConstraint, int pathLengthConstraint, bool critical);
-
-
         public static Result<string> GeneratePrivateKey(int keySize)
         {
             try
@@ -1194,50 +1250,86 @@ public class Utils
                 if (keySize != 0)
                 {
                     using (RSA rsa = RSA.Create(keySize))
-                    {
-                        return Result.Ok(rsa.ExportRSAPrivateKeyPem());
-                    }
+                    { return Result.Ok(rsa.ExportRSAPrivateKeyPem()); }
                 }
                 else
-                {
-                    return Result.Fail("Keysize is 0");
-                }
+                { return Result.Fail("Keysize is 0"); }
             }
             catch (Exception ex)
-            {
-                return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
-            }
+            { return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}"); }
         }
+
         public static Result<string> GeneratePublicKey(string serverName, string privateKey)
         {
             try
             {
-                    using (RSA rsa = RSA.Create())
-                    {
-                        rsa.ImportFromPem(privateKey);
-                        dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem(privateKey);
+                    //dictCaDetails["public_cert"] = rsa.ExportRSAPublicKeyPem();
 
-                        return Result.Ok(rsa.ExportRSAPublicKeyPem());
-                    }
-                
+                    return Result.Ok(rsa.ExportRSAPublicKeyPem());
+                }
+
             }
             catch (Exception ex)
             {
                 return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
+        public static Result<X509Certificate2> CreateSelfSignedCertificate1(serverType serverType, string serverName)
+        {
+            try
+            {
+                X509Certificate2 caCertificate;
+                CertificateRequest request;
+                X509Certificate2 signedCertificate;
+                Result<X500DistinguishedName> DNresult = DNBuilder(serverType, serverName);
+                if (!DNresult.IsSuccess) return Result.Fail("DNBuilder failed");
 
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem((string)targetDict["private_key"]);
+                    request = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+                    if (serverType == serverType.ca)
+                    {
+                        request.CertificateExtensions.Add(Global.caBasicConstraint);
+                        request.CertificateExtensions.Add(Global.caKeyUsageExtension);
+                        request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+                    }
+                    if (serverType == serverType.ca)
+                    {
+                        #region Create serialnumber
+                        int cTempSerialNumber = Convert.ToInt32(targetDict["serialNumber"]);
+                        cTempSerialNumber++;
+                        string time = DateTime.Now.ToString("ddMMyyyy");
+                        long serialNumber = long.Parse($"{cTempSerialNumber}{time}");
+                        #endregion
+                        int month = (int)targetDict["ss_duration"];
+                        signedCertificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(month));
+
+                        if (!signedCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                        {
+                            throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
+                        }
+
+                        return Result.Ok(signedCertificate);
+                    }
+                    return Result.Fail("failed");
+                }
+            }
+            catch (Exception ex)
+            { return Result.Fail(""); }
+        }
         public static Result<X509Certificate2> CreateSelfSignedCertificate(serverType table, string serverName)
         {
             try
             {
-                byte[] sN;
-                X509Certificate2 Certificate;
                 //X500DistinguishedName distinguishedName = DNBuilder(table, serverName).Value;
                 Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
                 CertificateRequest intermediateRequest;
                 X509Certificate2 signedCertificate;
-                string issuerPassword = "string.Empty";
 
                 #region test
                 //using (RSA rsa = RSA.Create())
@@ -1328,6 +1420,68 @@ public class Utils
             }
             return null;
         }
+
+        //public static void CreateCSR(serverType table, string serverName)
+        public static Result<string> CreateCSR(serverType table, string serverName)
+        {
+            string privateKeyPem = string.Empty;
+            string csrKeyPem = string.Empty;
+            if (table == serverType.ca)
+            { privateKeyPem = (string)dictCaDetails["private_key"]; }
+            else if (table == serverType.intermediate)
+            { privateKeyPem = (string)dictInterDetails["private_key"]; }
+            else if (table == serverType.server)
+            { privateKeyPem = (string)dictServerDetails["private_key"]; }
+            else if (table == serverType.user)
+            { privateKeyPem = (string)dictUserDetails["private_key"]; }
+            try
+            {
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem(privateKeyPem);
+                    Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
+
+                    var request = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    if (table == serverType.intermediate)
+                    {
+                        request.CertificateExtensions.Add(Global.caBasicConstraint);
+                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
+                    }
+                    else if (table == serverType.server)
+                    {
+                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
+                        //request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+                        //request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
+                    }
+                    else if (table == serverType.user)
+                    {
+                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
+                    }
+                    if (table == serverType.ca)
+                    { dictCaDetails["certsign_req"] = request.CreateSigningRequestPem(); }
+                    else if (table == serverType.intermediate)
+                    { dictInterDetails["certsign_req"] = request.CreateSigningRequestPem(); }
+                    else if (table == serverType.server)
+                    { dictServerDetails["certsign_req"] = request.CreateSigningRequestPem(); }
+                    else if (table == serverType.user)
+                    { dictUserDetails["certsign_req"] = request.CreateSigningRequestPem(); }
+
+                    return Result.Ok(request.CreateSigningRequestPem());
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
+
+
         public static Result<X509Certificate2> CreateCertificate(serverType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
         {
             byte[] sN = BitConverter.GetBytes(requesterSerialNumber);
@@ -1391,100 +1545,175 @@ public class Utils
             return chain;
         }
         //public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
-        public static Result<X500DistinguishedName> DNBuilder(serverType table, string serverName)
+        public static Result<X500DistinguishedName> DNBuilder(serverType serverType, string serverName)
         {
-            try
+            Result<bool> result = Result.Ok();
+            if (result.IsSuccess)
             {
-                X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
+                string CountryOrRegion = string.Empty;
+                string StateOrProvinceName = string.Empty;
+                string LocalityName = string.Empty;
+                string OrganizationName = string.Empty;
+                string OrganizationalUnitName = string.Empty;
+                string CommonName = string.Empty;
+                string EmailAddress = string.Empty;
 
-                switch (table)
+                if (serverType == serverType.ca)
                 {
-                    case serverType.ca:
-                    Pos1:
-                        if (serverName.Equals(dictCaDetails["name"]))
-                        {
-                            DNs.AddCountryOrRegion((string)dictCaDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName((string)dictCaDetails["subj_state"]);
-                            DNs.AddLocalityName((string)dictCaDetails["subj_location"]);
-                            DNs.AddOrganizationName((string)dictCaDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName((string)dictCaDetails["subj_orgaunit"]);
-                            DNs.AddCommonName((string)dictCaDetails["subj_commonname"]);
-                            DNs.AddEmailAddress((string)dictCaDetails["subj_email"]);
-
-                            X500DistinguishedName dn = DNs.Build();
-
-                            return Result.Ok(DNs.Build());
-                        }
-                        else
-                        {
-                            Utils.Sql.Select(serverType.ca, serverName);
-                            goto Pos1;
-                        }
-                    case serverType.intermediate:
-                    Pos2:
-                        if (serverName.Equals((string)dictInterDetails["name"]))
-                        {
-                            DNs.AddCountryOrRegion((string)dictInterDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName((string)dictInterDetails["subj_state"]);
-                            DNs.AddLocalityName((string)dictInterDetails["subj_location"]);
-                            DNs.AddOrganizationName((string)dictInterDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName((string)dictInterDetails["subj_orgaunit"]);
-                            DNs.AddCommonName((string)dictInterDetails["subj_commonname"]);
-                            DNs.AddEmailAddress((string)dictInterDetails["subj_email"]);
-                        }
-                        else
-                        {
-                            Utils.Sql.Select(serverType.intermediate, serverName);
-                            goto Pos2;
-                        }
-                        break;
-                    case serverType.server:
-                    Pos3:
-                        if (serverName.Equals((string)dictServerDetails["name"]))
-                        {
-                            DNs.AddCountryOrRegion((string)dictServerDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName((string)dictServerDetails["subj_state"]);
-                            DNs.AddLocalityName((string)dictServerDetails["subj_location"]);
-                            DNs.AddOrganizationName((string)dictServerDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName((string)dictServerDetails["subj_orgaunit"]);
-                            DNs.AddCommonName((string)dictServerDetails["subj_commonname"]);
-                            DNs.AddEmailAddress((string)dictServerDetails["subj_email"]);
-                        }
-                        else
-                        {
-                            Utils.Sql.Select(serverType.server, serverName);
-                            goto Pos3;
-                        }
-                        break;
-                    case serverType.user:
-                    Pos4:
-                        if (serverName.Equals((string)dictUserDetails["name"]))
-                        {
-                            DNs.AddCountryOrRegion((string)dictUserDetails["subj_country"]);
-                            DNs.AddStateOrProvinceName((string)dictUserDetails["subj_state"]);
-                            DNs.AddLocalityName((string)dictUserDetails["subj_location"]);
-                            DNs.AddOrganizationName((string)dictUserDetails["subj_organisation"]);
-                            DNs.AddOrganizationalUnitName((string)dictUserDetails["subj_orgaunit"]);
-                            DNs.AddCommonName((string)dictUserDetails["subj_commonname"]);
-                            DNs.AddEmailAddress((string)dictUserDetails["subj_email"]);
-                        }
-                        else
-                        {
-                            Utils.Sql.Select(serverType.user, serverName);
-                            goto Pos4;
-                        }
-                        break;
+                    CountryOrRegion = (string)dictCaDetails["subj_country"];
+                    StateOrProvinceName = (string)dictCaDetails["subj_state"];
+                    LocalityName = (string)dictCaDetails["subj_location"];
+                    OrganizationName = (string)dictCaDetails["subj_organisation"];
+                    OrganizationalUnitName = (string)dictCaDetails["subj_orgaunit"];
+                    CommonName = (string)dictCaDetails["subj_commonname"];
+                    EmailAddress = (string)dictCaDetails["subj_email"];
                 }
-                var build = DNs.Build();
+                else if (serverType == serverType.intermediate)
+                {
+                    CountryOrRegion = (string)dictInterDetails["subj_country"];
+                    StateOrProvinceName = (string)dictInterDetails["subj_state"];
+                    LocalityName = (string)dictInterDetails["subj_location"];
+                    OrganizationName = (string)dictInterDetails["subj_organisation"];
+                    OrganizationalUnitName = (string)dictInterDetails["subj_orgaunit"];
+                    CommonName = (string)dictInterDetails["subj_commonname"];
+                    EmailAddress = (string)dictInterDetails["subj_email"];
+                }
+                else if (serverType == serverType.server)
+                {
+                    CountryOrRegion = (string)dictServerDetails["subj_country"];
+                    StateOrProvinceName = (string)dictServerDetails["subj_state"];
+                    LocalityName = (string)dictServerDetails["subj_location"];
+                    OrganizationName = (string)dictServerDetails["subj_organisation"];
+                    OrganizationalUnitName = (string)dictServerDetails["subj_orgaunit"];
+                    CommonName = (string)dictServerDetails["subj_commonname"];
+                    EmailAddress = (string)dictServerDetails["subj_email"];
+                }
+                else if (serverType == serverType.user)
+                {
+                    CountryOrRegion = (string)dictUserDetails["subj_country"];
+                    StateOrProvinceName = (string)dictUserDetails["subj_state"];
+                    LocalityName = (string)dictUserDetails["subj_location"];
+                    OrganizationName = (string)dictUserDetails["subj_organisation"];
+                    OrganizationalUnitName = (string)dictUserDetails["subj_orgaunit"];
+                    CommonName = (string)dictUserDetails["subj_commonname"];
+                    EmailAddress = (string)dictUserDetails["subj_email"];
+                }
 
-                return build;
+                X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
+                DNs.AddCountryOrRegion(CountryOrRegion);
+                DNs.AddStateOrProvinceName(StateOrProvinceName);
+                DNs.AddLocalityName(LocalityName);
+                DNs.AddOrganizationName(OrganizationName);
+                DNs.AddOrganizationalUnitName(OrganizationalUnitName);
+                DNs.AddCommonName(CommonName);
+                DNs.AddEmailAddress(EmailAddress);
+
+                return Result.Ok(DNs.Build());
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(Convert.ToString(ex));
-                return null;
-            }
+            return Result.Fail("Failed to build DN");
+
+            //try
+            //{
+            //    X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
+
+            //    switch (table)
+            //    {
+            //        case serverType.ca:
+            //        Pos1:
+            //            if (serverName.Equals(dictCaDetails["name"]))
+            //            {
+            //                DNs.AddCountryOrRegion(CountryOrRegion);
+            //                DNs.AddStateOrProvinceName((string)dictCaDetails["subj_state"]);
+            //                DNs.AddLocalityName((string)dictCaDetails["subj_location"]);
+            //                DNs.AddOrganizationName((string)dictCaDetails["subj_organisation"]);
+            //                DNs.AddOrganizationalUnitName((string)dictCaDetails["subj_orgaunit"]);
+            //                DNs.AddCommonName((string)dictCaDetails["subj_commonname"]);
+            //                DNs.AddEmailAddress((string)dictCaDetails["subj_email"]);
+
+            //                X500DistinguishedName dn = DNs.Build();
+
+            //                return Result.Ok(DNs.Build());
+            //            }
+            //            else
+            //            {
+            //                Utils.Sql.Select(serverType.ca, serverName);
+            //                goto Pos1;
+            //            }
+            //        case serverType.intermediate:
+            //        Pos2:
+            //            if (serverName.Equals((string)dictInterDetails["name"]))
+            //            {
+            //                DNs.AddCountryOrRegion((string)dictInterDetails["subj_country"]);
+            //                DNs.AddStateOrProvinceName((string)dictInterDetails["subj_state"]);
+            //                DNs.AddLocalityName((string)dictInterDetails["subj_location"]);
+            //                DNs.AddOrganizationName((string)dictInterDetails["subj_organisation"]);
+            //                DNs.AddOrganizationalUnitName((string)dictInterDetails["subj_orgaunit"]);
+            //                DNs.AddCommonName((string)dictInterDetails["subj_commonname"]);
+            //                DNs.AddEmailAddress((string)dictInterDetails["subj_email"]);
+            //            }
+            //            else
+            //            {
+            //                Utils.Sql.Select(serverType.intermediate, serverName);
+            //                goto Pos2;
+            //            }
+            //            break;
+            //        case serverType.server:
+            //        Pos3:
+            //            if (serverName.Equals((string)dictServerDetails["name"]))
+            //            {
+            //                DNs.AddCountryOrRegion((string)dictServerDetails["subj_country"]);
+            //                DNs.AddStateOrProvinceName((string)dictServerDetails["subj_state"]);
+            //                DNs.AddLocalityName((string)dictServerDetails["subj_location"]);
+            //                DNs.AddOrganizationName((string)dictServerDetails["subj_organisation"]);
+            //                DNs.AddOrganizationalUnitName((string)dictServerDetails["subj_orgaunit"]);
+            //                DNs.AddCommonName((string)dictServerDetails["subj_commonname"]);
+            //                DNs.AddEmailAddress((string)dictServerDetails["subj_email"]);
+            //            }
+            //            else
+            //            {
+            //                Utils.Sql.Select(serverType.server, serverName);
+            //                goto Pos3;
+            //            }
+            //            break;
+            //        case serverType.user:
+            //        Pos4:
+            //            if (serverName.Equals((string)dictUserDetails["name"]))
+            //            {
+            //                DNs.AddCountryOrRegion((string)dictUserDetails["subj_country"]);
+            //                DNs.AddStateOrProvinceName((string)dictUserDetails["subj_state"]);
+            //                DNs.AddLocalityName((string)dictUserDetails["subj_location"]);
+            //                DNs.AddOrganizationName((string)dictUserDetails["subj_organisation"]);
+            //                DNs.AddOrganizationalUnitName((string)dictUserDetails["subj_orgaunit"]);
+            //                DNs.AddCommonName((string)dictUserDetails["subj_commonname"]);
+            //                DNs.AddEmailAddress((string)dictUserDetails["subj_email"]);
+            //            }
+            //            else
+            //            {
+            //                Utils.Sql.Select(serverType.user, serverName);
+            //                goto Pos4;
+            //            }
+            //            break;
+            //    }
+            //    var build = DNs.Build();
+
+            //    return build;
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(Convert.ToString(ex));
+            //    return null;
+            //}
         }
+        public static byte[] ConvertPemToCsrBytes(string pem)
+        {
+            var lines = pem.Split('\n')
+                           .Where(line => !line.StartsWith("-----") && !string.IsNullOrWhiteSpace(line))
+                           .ToArray();
+
+            string base64 = string.Join("", lines);
+            return Convert.FromBase64String(base64);
+        }
+
 
         public static void CheckPrivateKey(X509Certificate2 caCertificate)
         {
@@ -1502,6 +1731,62 @@ public class Utils
     }
     public class Tools
     {
+        public static string GetServerName(Server form, serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => (string)form.lb_ca_certs.SelectedItem,
+                serverType.intermediate => (string)form.lb_int_certs.SelectedItem,
+                serverType.server => (string)form.lb_server_certs.SelectedItem,
+                serverType.user => (string)form.lb_user_certs.SelectedItem,
+                _ => string.Empty
+            };
+        }
+        public static int GetKeySize(Server form, serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => Convert.ToInt32(form.cb_ca_keySize.SelectedItem),
+                serverType.intermediate => Convert.ToInt32(form.cb_int_keySize.SelectedItem),
+                serverType.server => Convert.ToInt32(form.cb_server_keySize.SelectedItem),
+                serverType.user => Convert.ToInt32(form.cb_user_keySize.SelectedItem),
+                _ => 0
+            };
+        }
+
+        public static Dictionary<string, object>? GetTargetDict(serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => dictCaDetails,
+                serverType.intermediate => dictInterDetails,
+                serverType.server => dictServerDetails,
+                serverType.user => dictUserDetails,
+                _ => null
+            };
+        }
+
+        public static void UpdateCertList(Server form, serverType type, string selectedName)
+        {
+            var listBox = type switch
+            {
+                serverType.ca => form.lb_ca_certs,
+                serverType.intermediate => form.lb_int_certs,
+                serverType.server => form.lb_server_certs,
+                serverType.user => form.lb_user_certs,
+                _ => null
+            };
+
+            if (listBox != null)
+            {
+                listBox.Items.Clear();
+                Server.ReadServers(listBox, type);
+                listBox.Sorted = true;
+                listBox.SelectedItem = selectedName;
+            }
+        }
+
+
         public static Result SaveFile(string defaultFileName, string filter, string content)
         {
             try
@@ -1597,6 +1882,7 @@ public class Utils
             priv,
             pub,
             selfSigned,
+            csr,
             signed
         }
 
