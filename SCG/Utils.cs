@@ -478,11 +478,11 @@ public class Utils
                         }
                         return Result.Fail("Servername is different");
                     case serverType.intermediate:
-                        if (_name == (string)dictInterDetails["name"])
+                        if (_name == (string)targetDict["name"])
                         {
-                            string name = (string)dictInterDetails["name"];
-                            string keySize = (string)dictInterDetails["keySize"];
-                            string private_key = (string)dictInterDetails["private_key"];
+                            string name = (string)targetDict["name"];
+                            long keySize = (long)targetDict["keySize"];
+                            string private_key = (string)targetDict["private_key"];
                             string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                             using var command = new SqliteCommand(sql, _connection);
@@ -493,6 +493,24 @@ public class Utils
 
                             return Result.Ok(command.ExecuteNonQuery());
                         }
+                        return Result.Fail("Servername is different");
+
+
+                        //if (_name == (string)dictInterDetails["name"])
+                        //{
+                        //    string name = (string)dictInterDetails["name"];
+                        //    string keySize = (string)dictInterDetails["keySize"];
+                        //    string private_key = (string)dictInterDetails["private_key"];
+                        //    string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
+
+                        //    using var command = new SqliteCommand(sql, _connection);
+                        //    command.Parameters.AddWithValue("@_name", name);
+                        //    command.Parameters.AddWithValue("@_keySize", keySize);
+                        //    command.Parameters.AddWithValue("@_private_key", private_key);
+                        //    command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
+
+                        //    return Result.Ok(command.ExecuteNonQuery());
+                        //}
 
                         return Result.Fail($"Not implemented");
                     case serverType.server:
@@ -647,7 +665,6 @@ public class Utils
                 }
                 return Result.Fail("Nothing to read");
             }
-
             else if (table == serverType.intermediate)
             {
                 return Result.Fail("not implemented");
@@ -694,14 +711,8 @@ public class Utils
                 }
                 return Result.Fail("Nothing to read");
             }
-            else if (table == serverType.user)
-            {
-                return Result.Fail("not implemented");
-            }
-            else
-            {
-                return Result.Fail($"no server found in {table}");
-            }
+            else if (table == serverType.user)            {                return Result.Fail("not implemented");            }
+            else            {                return Result.Fail($"no server found in {table}");            }
         }
 
         public static string SelectWhereString(serverType table, string resultColumn, string searchColumn, string searchValue)
@@ -1320,7 +1331,7 @@ public class Utils
                 }
             }
             catch (Exception ex)
-            { return Result.Fail(""); }
+            { return Result.Fail(Convert.ToString(ex)); }
         }
         public static Result<X509Certificate2> CreateSelfSignedCertificate(serverType table, string serverName)
         {

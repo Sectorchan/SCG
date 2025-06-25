@@ -513,19 +513,25 @@ public partial class Server : Form
 
     private void CustomButton2_CustomClick(object sender, CustomClickEventArgs e)
     {
+        // 25.06.2025: covers the following certs: CA-priv,pub,selfSigned
         try
         {
             var certType = e.CertType;
             var serverType = e.ServerType;
             string serverName = string.Empty;
 
-            serverName = cb_new_ca.Checked ? tb_ca_name.Text : Utils.Tools.GetServerName(this, serverType);
+            serverName = cb_new_ca.Checked || cb_new_int.Checked ? tb_ca_name.Text : Utils.Tools.GetServerName(this, serverType);
+            serverName = cb_new_int.Checked ? tb_int_name.Text : Utils.Tools.GetServerName(this, serverType);
 
             targetDict = Utils.Tools.GetTargetDict(serverType);
             if (targetDict == null) return;
             targetDict.Clear();
             DictWriter.setValue(targetDict, "name", serverName);
-            if (!(certType == certType.priv)) Utils.Sql.Select(serverType, serverName);
+            if (!(certType == certType.priv))
+            {
+var selectSql = Utils.Sql.Select(serverType, serverName);
+                if (!selectSql.IsSuccess){ MessageBox.Show($"Fehler: {selectSql.Reasons[0].Message}"); }
+            }
 
             if (certType == certType.priv)
             {

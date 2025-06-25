@@ -152,7 +152,7 @@ namespace SCG.Forms
 
             if (_Certificate == certType.priv)
             {
-                Result<string> res1 = SaveFile(_ServerName, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
+                Result<string> res1 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
                 if (res1.IsSuccess)
                 { Close(); }
             }
