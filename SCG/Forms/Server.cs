@@ -520,17 +520,18 @@ public partial class Server : Form
             var serverType = e.ServerType;
             string serverName = string.Empty;
 
-            serverName = cb_new_ca.Checked || cb_new_int.Checked ? tb_ca_name.Text : Utils.Tools.GetServerName(this, serverType);
+            serverName = cb_new_ca.Checked ? tb_ca_name.Text : Utils.Tools.GetServerName(this, serverType);
             serverName = cb_new_int.Checked ? tb_int_name.Text : Utils.Tools.GetServerName(this, serverType);
 
             targetDict = Utils.Tools.GetTargetDict(serverType);
             if (targetDict == null) return;
             targetDict.Clear();
             DictWriter.setValue(targetDict, "name", serverName);
+
             if (!(certType == certType.priv))
             {
-var selectSql = Utils.Sql.Select(serverType, serverName);
-                if (!selectSql.IsSuccess){ MessageBox.Show($"Fehler: {selectSql.Reasons[0].Message}"); }
+                var selectSql = Utils.Sql.Select(serverType, serverName);
+                if (!selectSql.IsSuccess) { MessageBox.Show($"Fehler: {selectSql.Reasons[0].Message}"); }
             }
 
             if (certType == certType.priv)
@@ -585,15 +586,26 @@ var selectSql = Utils.Sql.Select(serverType, serverName);
                 if (!_writeFile) return;
                 Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.selfSigned, (byte[])targetDict["ss_cert"]);
                 writeFileForm.ShowDialog();
-
-
             }
             else if (certType == certType.csr)
             {
-                Utils.Sql.Select(serverType, serverName);
-                Result<X509Certificate2> certificate = Utils.Certs.CreateSelfSignedCertificate(serverType, serverName);
+                // Utils.Sql.Select(serverType, serverName);
+                Result<X509Certificate2> certificate = Utils.Certs.CreateCertSigningRequest(serverType, serverName);
                 if (!certificate.IsSuccess) return;
 
+            }
+
+            else if (certType == certType.signed)
+            {
+                Utils.Sql.Select(serverType, serverName);
+                Result<X509Certificate2> signedCert = Utils.Certs.CreateSignedCertificate(serverType, serverName);
+                if (!signedCert.IsSuccess) return;
+                byte[] signedCertBytes = signedCert.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
+                DictWriter.setValue<byte[]>(targetDict, "signed_cert", signedCertBytes);
+                Utils.Sql.Update(serverType, serverName, ["signed_cert", "signed_createDT"]);
+                if (!_writeFile) return;
+                Form writeFileForm = new WriteFile(serverType.ca, (string)Utils.dictCaDetails["name"], certType.signed, signedCertBytes);
+                writeFileForm.ShowDialog();
             }
         }
         catch (Exception)

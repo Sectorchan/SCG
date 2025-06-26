@@ -144,6 +144,7 @@ partial class Server
         customButton3 = new CustomButton();
         bt_ca_signed = new CustomButton();
         bt_int_pub = new CustomButton();
+        bt_int_signCA = new CustomButton();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -1286,11 +1287,24 @@ partial class Server
         bt_int_pub.UseVisualStyleBackColor = true;
         bt_int_pub.CustomClick += CustomButton2_CustomClick;
         // 
+        // bt_int_signCA
+        // 
+        bt_int_signCA._certType = PL.Utils.Tools.certType.signed;
+        bt_int_signCA._serverType = PL.Utils.Tools.serverType.intermediate;
+        bt_int_signCA.Location = new Point(281, 369);
+        bt_int_signCA.Name = "bt_int_signCA";
+        bt_int_signCA.Size = new Size(75, 23);
+        bt_int_signCA.TabIndex = 110;
+        bt_int_signCA.Text = "signTest";
+        bt_int_signCA.UseVisualStyleBackColor = true;
+        bt_int_signCA.CustomClick += CustomButton2_CustomClick;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1052, 791);
+        Controls.Add(bt_int_signCA);
         Controls.Add(bt_int_pub);
         Controls.Add(bt_ca_signed);
         Controls.Add(customButton3);
@@ -1507,4 +1521,5 @@ partial class Server
     private CustomButton customButton3;
     private CustomButton bt_ca_signed;
     private CustomButton bt_int_pub;
+    private CustomButton bt_int_signCA;
 }

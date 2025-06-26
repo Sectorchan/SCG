@@ -1,6 +1,7 @@
 ﻿using FluentResults;
 using Microsoft.Data.Sqlite;
 using Renci.SshNet;
+using SCG;
 using SCG.Forms;
 using System.Buffers;
 using System.Data;
@@ -130,6 +131,7 @@ public class Utils
     //        { "cert_autoupload", string.Empty }
     //    };
     public static Dictionary<string, object> targetDict = new Dictionary<string, object>();
+    public static Dictionary<string, object> signerDict = new Dictionary<string, object>();
     public static Dictionary<string, object> dictUserDetails = new Dictionary<string, object>();
     //{
     //    { "id", string.Empty },
@@ -621,12 +623,11 @@ public class Utils
         /// <returns></returns>
         public static Result<bool> Select(serverType table, string serverName)
         {
-            if (table == serverType.ca)
-            {
-                var sql = $"SELECT * FROM {table} WHERE name=@serverName";
 
+                string sql = $"SELECT * FROM {table} WHERE name=@serverName";
                 using var command = new SqliteCommand(sql, _connection);
                 command.Parameters.AddWithValue("@serverName", serverName);
+
                 using var reader = command.ExecuteReader();
 
                 if (reader.HasRows)
@@ -642,17 +643,20 @@ public class Utils
                                 switch (reader.GetFieldType(item).Name.ToString())
                                 {
                                     case "String":
-                                        dictCaDetails[item] = reader.GetString(item);
-                                        break;
+                                        //dictCaDetails[item] = reader.GetString(item);
+                                        DictWriter.setValue(targetDict, item, reader.GetString(item));
+                                    break;
                                     case "Int64":
-                                        dictCaDetails[item] = reader.GetInt64(item);
-                                        break;
+                                        //dictCaDetails[item] = reader.GetInt64(item);
+                                        DictWriter.setValue(targetDict, item, reader.GetInt64(item));
+                                    break;
                                     case "Byte[]":
                                         long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
                                         byte[] buffer = new byte[length];
                                         reader.GetBytes(7, 0, buffer, 0, buffer.Length);
-                                        dictCaDetails[item] = (byte[])reader[item];
-                                        break;
+                                        //dictCaDetails[item] = (byte[])reader[item];
+                                    DictWriter.setValue(targetDict, item, (byte[])reader[item]);
+                                    break;
                                     default:
                                         return Result.Fail($"Unknown Datatype from SQLite database received! On column: {item}, with the DataType: {reader.GetFieldType(item).Name.ToString()}");
                                 }
@@ -664,55 +668,6 @@ public class Utils
                     return true;
                 }
                 return Result.Fail("Nothing to read");
-            }
-            else if (table == serverType.intermediate)
-            {
-                return Result.Fail("not implemented");
-            }
-            else if (table == serverType.server)
-            {
-                var sql = $"SELECT * FROM {table} WHERE name=@serverName";
-
-                using var command = new SqliteCommand(sql, _connection);
-                command.Parameters.AddWithValue("@serverName", serverName);
-                using var reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        foreach (string item in s_sqlColumns)
-                        {
-                            if (!reader.IsDBNull(0))
-                            {
-                                switch (reader.GetFieldType(item).Name.ToString())
-                                {
-                                    case "String":
-                                        dictServerDetails[item] = reader.GetString(item);
-                                        break;
-                                    case "Int64":
-                                        dictServerDetails[item] = reader.GetInt64(item);
-                                        break;
-                                    case "Byte[]":
-                                        long length = reader.GetBytes(item, 0, null, 0, 0);
-                                        byte[] buffer = new byte[length];
-                                        reader.GetBytes(7, 0, buffer, 0, buffer.Length);
-                                        dictServerDetails[item] = (byte[])reader[item];
-                                        break;
-                                    default:
-                                        return Result.Fail($"Unknown Datatype from SQLite database received! On column: {item}, with the DataType: {reader.GetFieldType(item).Name.ToString()}");
-                                }
-                            }
-                            else
-                            { return Result.Fail($"Column {item} is NULL"); }
-                        }
-                    }
-                    return true;
-                }
-                return Result.Fail("Nothing to read");
-            }
-            else if (table == serverType.user)            {                return Result.Fail("not implemented");            }
-            else            {                return Result.Fail($"no server found in {table}");            }
         }
 
         public static string SelectWhereString(serverType table, string resultColumn, string searchColumn, string searchValue)
@@ -1294,7 +1249,7 @@ public class Utils
             {
                 X509Certificate2 caCertificate;
                 CertificateRequest request;
-                X509Certificate2 signedCertificate;
+                X509Certificate2 selfSignedCertificate;
                 Result<X500DistinguishedName> DNresult = DNBuilder(serverType, serverName);
                 if (!DNresult.IsSuccess) return Result.Fail("DNBuilder failed");
 
@@ -1318,14 +1273,14 @@ public class Utils
                         long serialNumber = long.Parse($"{cTempSerialNumber}{time}");
                         #endregion
                         int month = (int)targetDict["ss_duration"];
-                        signedCertificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(month));
+                        selfSignedCertificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(month));
 
-                        if (!signedCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
+                        if (!selfSignedCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
                         {
                             throw new ArgumentException("The issuer certificate does not have a Basic Constraints extension.");
                         }
 
-                        return Result.Ok(signedCertificate);
+                        return Result.Ok(selfSignedCertificate);
                     }
                     return Result.Fail("failed");
                 }
@@ -1333,7 +1288,7 @@ public class Utils
             catch (Exception ex)
             { return Result.Fail(Convert.ToString(ex)); }
         }
-        public static Result<X509Certificate2> CreateSelfSignedCertificate(serverType table, string serverName)
+        public static Result<X509Certificate2> CreateCertSigningRequest(serverType table, string serverName)
         {
             try
             {
@@ -1374,7 +1329,7 @@ public class Utils
                 #endregion
                 if (DNresult.IsSuccess)
                 {
-                    using (RSA rsa = RSA.Create())
+                     using (RSA rsa = RSA.Create())
                     {
                         intermediateRequest = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
@@ -1492,6 +1447,32 @@ public class Utils
 
         }
 
+        public static Result<X509Certificate2> CreateSignedCertificate(serverType table, string serverName, string signerName)
+        {
+            Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
+            CertificateRequest certRequestCSR;
+            if (table == serverType.intermediate)
+            {
+                Sql.Select(serverType.ca, )
+            }
+
+            if (DNresult.IsSuccess)
+            {
+
+                using (RSA rsa = RSA.Create())
+                {
+                    rsa.ImportFromPem((string)targetDict["private_key"]);
+
+                    certRequestCSR = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+                    // var caCert = new X509Certificate2("ca.pfx", "deinPasswort", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+                    var caCert = new X509Certificate2((byte[])targetDict["ss_cert"], (string)targetDict["ss_passwd"], X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+
+                }
+                return Result.Ok();
+            }
+            return Result.Fail("false");
+        }
 
         public static Result<X509Certificate2> CreateCertificate(serverType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
         {
@@ -1776,6 +1757,7 @@ public class Utils
                 _ => null
             };
         }
+
 
         public static void UpdateCertList(Server form, serverType type, string selectedName)
         {

@@ -1,4 +1,6 @@
-﻿namespace SCG;
+﻿using System.Diagnostics;
+
+namespace SCG;
 public static class DictWriter
 {
     public static void setValue<T>(Dictionary<string, object>? dict, string key, T value)
@@ -24,4 +26,6 @@ public static class DictWriter
         foreach (var (key, value) in entries)
             dict[key] = value;
     }
+
+   
 }
