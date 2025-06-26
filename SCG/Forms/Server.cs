@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using static PL.Utils;
 using static PL.Utils.Tools;
+using System.Windows.Forms;
 
 namespace SCG.Forms;
 
@@ -53,7 +54,8 @@ public partial class Server : Form
         lbl_ca_name.Visible = false;
         tb_ca_name.Visible = false;
         lb_ca_certs.Items.Clear();
-        ReadServers(lb_ca_certs, serverType.ca);
+        //ReadServers(lb_ca_certs, serverType.ca);
+        read(lb_ca_certs, serverType.ca);
         lb_ca_certs.Sorted = true;
 
         lbl_int_name.Visible = false;
@@ -65,11 +67,13 @@ public partial class Server : Form
         tb_server_name.Visible = false;
         lbl_server_name.Visible = false;
         lb_server_certs.Items.Clear();
-        ReadServers(lb_server_certs, serverType.server);
+        //ReadServers(lb_server_certs, serverType.server);
+        read(lb_server_certs, serverType.server);
         lb_server_certs.Sorted = true;
 
         tb_user_name.Visible = false;
         lbl_user_name.Visible = false;
+
         lb_user_certs.Items.Clear();
         ReadServers(lb_user_certs, serverType.user);
         lb_user_certs.Sorted = true;
@@ -98,13 +102,24 @@ public partial class Server : Form
         treeView1.Sort();
     }
 
-
-    public static Result<List<string>> ReadServers(dynamic control, serverType table)
+    public static void read(dynamic control, serverType table)
     {
         try
         {
+            Utils.Sql.SeSelect(table, control);
 
-            List<string> serverList = new List<string>();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+    public static void ReadServers(dynamic control, serverType table)
+    {
+        try
+        {
             Result<List<string>> result = Utils.Sql.SqlSelect("name", table);
 
             if (result.IsSuccess)
@@ -114,23 +129,14 @@ public partial class Server : Form
                     foreach (var item in result.Value)
                     {
                         control.Items.Add(item);
+
                     }
-                    return Result.Ok(serverList);
                 }
-                else
-                {
-                    return Result.Fail("Empty List");
-                }
-            }
-            else
-            {
-                return Result.Fail("Fehler");
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
-            return Result.Fail(ex.Message);
         }
     }
 
@@ -530,7 +536,7 @@ public partial class Server : Form
 
             if (!(certType == certType.priv))
             {
-                var selectSql = Utils.Sql.Select(serverType, serverName);
+                var selectSql = Utils.Sql.Select(serverType, serverName, columnType.name);
                 if (!selectSql.IsSuccess) { MessageBox.Show($"Fehler: {selectSql.Reasons[0].Message}"); }
             }
 
@@ -556,7 +562,7 @@ public partial class Server : Form
             else if (certType == certType.pub)
             {
                 // Beispielhafte Verarbeitung für Public Certificates:
-                Utils.Sql.Select(serverType, serverName);
+                Utils.Sql.Select(serverType, serverName, columnType.name);
 
                 Result<string> publicKeyPem = Utils.Certs.GeneratePublicKey(serverName, (string)targetDict["private_key"]);
                 DictWriter.setValue(targetDict, "public_cert", publicKeyPem.Value);
@@ -597,7 +603,7 @@ public partial class Server : Form
 
             else if (certType == certType.signed)
             {
-                Utils.Sql.Select(serverType, serverName);
+                Utils.Sql.Select(serverType, serverName, columnType.name);
                 Result<X509Certificate2> signedCert = Utils.Certs.CreateSignedCertificate(serverType, serverName);
                 if (!signedCert.IsSuccess) return;
                 byte[] signedCertBytes = signedCert.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
@@ -616,7 +622,7 @@ public partial class Server : Form
     private void Bt_save_ca_priv_Click(object sender, EventArgs e)
     {
         string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName, columnType.name);
         if (result.IsSuccess)
         {
             Form writeFileForm = new WriteFile(serverType.ca, serverName, certType.priv);
@@ -633,7 +639,7 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-            Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+            Result<bool> result = Utils.Sql.Select(serverType.ca, serverName, columnType.name);
             string privateKey = (string)dictCaDetails["private_key"];
 
             Result<string> publicKey = Utils.Certs.GeneratePublicKey(serverName, privateKey);
@@ -671,7 +677,7 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-            Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+            Result<bool> result = Utils.Sql.Select(serverType.ca, serverName, columnType.name);
 
 
             dictCaDetails["ss_duration"] = tb_ca_dura.Text;
@@ -743,7 +749,7 @@ public partial class Server : Form
     private void Bt_reCreate_ca_selfSigned_key_Click(object sender, EventArgs e)
     {
         string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName, columnType.name);
 
         byte[] selfSignedSqlCert = (byte[])dictCaDetails["ss_cert"];
 
@@ -947,7 +953,7 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_server_certs.SelectedItem);
-            Result<bool> result = Utils.Sql.Select(serverType.server, serverName);
+            Result<bool> result = Utils.Sql.Select(serverType.server, serverName, columnType.name);
             string privateKey = (string)dictServerDetails["private_key"];
             Result<string> publicKey = Utils.Certs.GeneratePublicKey(serverName, privateKey);
 
@@ -981,7 +987,7 @@ public partial class Server : Form
         try
         {
             string serverName = Convert.ToString(lb_server_certs.SelectedItem);
-            Result<bool> result = Utils.Sql.Select(serverType.server, serverName);
+            Result<bool> result = Utils.Sql.Select(serverType.server, serverName, columnType.name);
             string privateKey = (string)dictServerDetails["private_key"];
 
 
@@ -1217,7 +1223,7 @@ public partial class Server : Form
                 if (sqlTable.Value == serverType.ca)
                 {
                     serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-                    Utils.Sql.Select(serverType.ca, serverName);
+                    Utils.Sql.Select(serverType.ca, serverName, columnType.name);
                     dictCaDetails["subj_country"] = tb_sub_c.Text;
                     dictCaDetails["subj_state"] = tb_sub_st.Text;
                     dictCaDetails["subj_location"] = tb_sub_loc.Text;
@@ -1229,7 +1235,7 @@ public partial class Server : Form
                 else if (sqlTable.Value == serverType.intermediate)
                 {
                     serverName = Convert.ToString(lb_int_certs.SelectedItem);
-                    Utils.Sql.Select(serverType.intermediate, serverName);
+                    Utils.Sql.Select(serverType.intermediate, serverName, columnType.name);
 
                     dictInterDetails["subj_country"] = tb_sub_c.Text;
                     dictInterDetails["subj_state"] = tb_sub_st.Text;
@@ -1242,7 +1248,7 @@ public partial class Server : Form
                 else if (sqlTable.Value == serverType.server)
                 {
                     serverName = Convert.ToString(lb_server_certs.SelectedItem);
-                    Utils.Sql.Select(serverType.server, serverName);
+                    Utils.Sql.Select(serverType.server, serverName, columnType.name);
 
                     dictServerDetails["subj_country"] = tb_sub_c.Text;
                     dictServerDetails["subj_state"] = tb_sub_st.Text;
@@ -1255,7 +1261,7 @@ public partial class Server : Form
                 else if (sqlTable.Value == serverType.user)
                 {
                     serverName = Convert.ToString(lb_user_certs.SelectedItem);
-                    Utils.Sql.Select(serverType.user, serverName);
+                    Utils.Sql.Select(serverType.user, serverName, columnType.name);
 
                     dictUserDetails["subj_country"] = tb_sub_c.Text;
                     dictUserDetails["subj_state"] = tb_sub_st.Text;
@@ -1453,7 +1459,7 @@ public partial class Server : Form
     private void button5_Click(object sender, EventArgs e)
     {
         string serverName = Convert.ToString(lb_ca_certs.SelectedItem);
-        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName);
+        Result<bool> result = Utils.Sql.Select(serverType.ca, serverName, columnType.name);
 
         Utils.Tools.SaveFile("Test-ca", "pem", (string)dictCaDetails["private_key"]);
     }
@@ -1521,8 +1527,14 @@ public partial class Server : Form
 
     }
 
-
-
-
+    private void button6_Click(object sender, EventArgs e)
+    {
+        if (lb_ca_certs.SelectedItem is PL.Certs selectedItem)
+        {
+            int id = selectedItem.Id;
+            string name = selectedItem.Name;
+            MessageBox.Show($"ID: {id}, Name: {name}");
+        }
+    }
 }
 

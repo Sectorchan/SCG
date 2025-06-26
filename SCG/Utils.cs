@@ -5,9 +5,12 @@ using SCG;
 using SCG.Forms;
 using System.Buffers;
 using System.Data;
+using System.Data.Common;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Windows.Forms;
+using static PL.Certs;
 using static PL.Utils.Tools;
 using static SCG.Forms.Server;
 
@@ -553,6 +556,31 @@ public class Utils
             }
         }
 
+        public static void SeSelect(serverType serverType, dynamic control)
+        {
+            var sql = $"SELECT id, name FROM {serverType}";
+
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    var item = new PL.Certs
+                    {
+                        //Id = reader.GetInt32(0), // oder: reader.GetInt32(reader.GetOrdinal("id"))
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        //Name = reader.GetString(1) // oder: reader.GetString(reader.GetOrdinal("name"))
+                        Name = reader.GetString(reader.GetOrdinal("name"))
+                    };
+
+                    control.Items.Add(item);
+                }
+            }
+
+        }
+
         /// <summary>
         /// Performs a SQL SELECT statement
         /// </summary>
@@ -621,7 +649,7 @@ public class Utils
         /// <param name="table">Select the table which should be read</param>
         /// <param name="serverName">Specify the servername which parameter you want to read.</param>
         /// <returns></returns>
-        public static Result<bool> Select(serverType table, string serverName)
+        public static Result<bool> Select(serverType table, string serverName, columnType column)
         {
 
                 string sql = $"SELECT * FROM {table} WHERE name=@serverName";
@@ -1447,13 +1475,13 @@ public class Utils
 
         }
 
-        public static Result<X509Certificate2> CreateSignedCertificate(serverType table, string serverName, string signerName)
+        public static Result<X509Certificate2> CreateSignedCertificate(serverType table, string serverName)
         {
             Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
             CertificateRequest certRequestCSR;
             if (table == serverType.intermediate)
             {
-                Sql.Select(serverType.ca, )
+                Sql.Select(serverType.ca, "signerName", columnType.id);
             }
 
             if (DNresult.IsSuccess)
@@ -1877,6 +1905,11 @@ public class Utils
             selfSigned,
             csr,
             signed
+        }
+        public enum columnType
+        {
+            name,
+            id
         }
 
         public static List<string> ObjectToString(List<object> obj)
