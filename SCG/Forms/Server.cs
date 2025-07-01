@@ -61,7 +61,7 @@ public partial class Server : Form
         lbl_int_name.Visible = false;
         tb_int_name.Visible = false;
         lb_int_certs.Items.Clear();
-        ReadServers(lb_int_certs, serverType.intermediate);
+        read(lb_int_certs, serverType.intermediate);
         lb_int_certs.Sorted = true;
 
         tb_server_name.Visible = false;
@@ -1529,11 +1529,31 @@ public partial class Server : Form
 
     private void button6_Click(object sender, EventArgs e)
     {
-        if (lb_ca_certs.SelectedItem is PL.Certs selectedItem)
+        if (sender is ListBox listBox)
         {
-            int id = selectedItem.Id;
-            string name = selectedItem.Name;
-            MessageBox.Show($"ID: {id}, Name: {name}");
+            if (listBox.SelectedItem is PL.Certs selectedItem)
+            {
+                int id = selectedItem.id;
+                string name = selectedItem.name;
+                int keySize = selectedItem.keySize;
+                string private_key = selectedItem.private_key;
+                long serialNumber = selectedItem.serialNumber;
+                MessageBox.Show($"ID: {id}, Name: {name}, keySize: {keySize}, serialnumber: {serialNumber}, private_key: {private_key}");
+            }
+            listBox.SelectedIndex = -1; // Deselect the item after showing the message
+        }
+    }
+
+    private void button7_Click(object sender, EventArgs e)
+    {
+        if (lb_int_certs.SelectedItem is PL.Certs selectedItem)
+        {
+            int id = selectedItem.id;
+            string name = selectedItem.name;
+            int keySize = selectedItem.keySize;
+            string private_key = selectedItem.private_key;
+            long serialNumber = selectedItem.serialNumber;
+            MessageBox.Show($"ID: {id}, Name: {name}, keySize: {keySize}, serialnumber: {serialNumber}, private_key: {private_key}");
         }
     }
 }

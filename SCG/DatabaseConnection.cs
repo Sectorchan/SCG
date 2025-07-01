@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using System.Linq.Expressions;
+using Microsoft.Data.Sqlite;
 using static SCG.Forms.Server;
 
 public class DatabaseConnection
@@ -12,14 +13,24 @@ public class DatabaseConnection
 
     private DatabaseConnection()
     {
-        SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-        _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-        _connectionString.DataSource = _database;
-        _connectionString.Password = null;
-        string connectionString = _connectionString.ToString();
+        try
+        {
+            SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
+            _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
+            _connectionString.DataSource = _database;
+            _connectionString.Password = null;
+            string connectionString = _connectionString.ToString();
 
-        _connection = new SqliteConnection(connectionString);
-        _connection.Open();
+            _connection = new SqliteConnection(connectionString);
+            _connection.Open();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error: {ex.Message}");
+            
+        }
+
+
     }
 
     public static DatabaseConnection GetInstance()

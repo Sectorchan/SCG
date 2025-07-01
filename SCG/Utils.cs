@@ -558,25 +558,63 @@ public class Utils
 
         public static void SeSelect(serverType serverType, dynamic control)
         {
-            var sql = $"SELECT id, name FROM {serverType}";
-
-            using var command = new SqliteCommand(sql, _connection);
-            using var reader = command.ExecuteReader();
-
-            if (reader.HasRows)
+            try
             {
-                while (reader.Read())
-                {
-                    var item = new PL.Certs
-                    {
-                        //Id = reader.GetInt32(0), // oder: reader.GetInt32(reader.GetOrdinal("id"))
-                        Id = reader.GetInt32(reader.GetOrdinal("id")),
-                        //Name = reader.GetString(1) // oder: reader.GetString(reader.GetOrdinal("name"))
-                        Name = reader.GetString(reader.GetOrdinal("name"))
-                    };
+                var sql = $"SELECT * FROM {serverType}";
 
-                    control.Items.Add(item);
+                using var command = new SqliteCommand(sql, _connection);
+                using var reader = command.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        var item = new PL.Certs
+                        {
+                            ////Id = reader.GetInt32(0), // oder: reader.GetInt32(reader.GetOrdinal("id"))
+                            //id = reader.GetInt32(reader.GetOrdinal("id")),
+                            ////Name = reader.GetString(1) // oder: reader.GetString(reader.GetOrdinal("name"))
+                            //name = reader.GetString(reader.GetOrdinal("name")),
+
+                            //keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
+                            //private_key = reader.GetString(reader.GetOrdinal("private_key"))
+
+                            id = reader.GetInt32(reader.GetOrdinal("id")),  
+                            name = reader.GetString(reader.GetOrdinal("name")),
+                            keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
+                            private_key = reader.GetString(reader.GetOrdinal("private_key")),
+                            private_createDT = reader.GetInt32(reader.GetOrdinal("private_createDT")),
+                            public_cert = reader.GetString(reader.GetOrdinal("public_cert")),
+                            public_createDT = reader.GetInt32(reader.GetOrdinal("public_createDT")),
+                            ss_cert = reader.GetString(reader.GetOrdinal("ss_cert")),
+                            ss_createDT = reader.GetInt32(reader.GetOrdinal("ss_createDT")),
+                            ss_duration = reader.GetInt32(reader.GetOrdinal("ss_duration")),
+                            subj_country = reader.GetString(reader.GetOrdinal("subj_country")),
+                            subj_state = reader.GetString(reader.GetOrdinal("subj_state")),
+                            subj_location = reader.GetString(reader.GetOrdinal("subj_location")),
+                            subj_organisation = reader.GetString(reader.GetOrdinal("subj_organisation")),
+                            subj_orgaunit = reader.GetString(reader.GetOrdinal("subj_orgaunit")),
+                            subj_commonname = reader.GetString(reader.GetOrdinal("subj_commonname")),
+                            subj_email = reader.GetString(reader.GetOrdinal("subj_email")),
+                            serialNumber = reader.GetInt64(reader.GetOrdinal("serialNumber")),
+                            host_name = reader.GetString(reader.GetOrdinal("host_name")),
+                            host_username = reader.GetString(reader.GetOrdinal("host_username")),
+                            host_password = reader.GetString(reader.GetOrdinal("host_password")),
+                            cert_filename = reader.GetString(reader.GetOrdinal("cert_filename")),
+                            cert_priv_ext = reader.GetString(reader.GetOrdinal("cert_priv_ext")),
+                            cert_pub_ext = reader.GetString(reader.GetOrdinal("cert_pub_ext")),
+                            cert_path = reader.GetString(reader.GetOrdinal("cert_path")),
+                            cert_autoupload = reader.GetInt32(reader.GetOrdinal("cert_autoupload"))
+
+                        };
+
+                        control.Items.Add(item);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
@@ -633,6 +671,7 @@ public class Utils
                         columns.Add(reader.GetString("cert_priv_ext"));
                         columns.Add(reader.GetString("cert_pub_ext"));
                         columns.Add(reader.GetString("cert_path"));
+                        columns.Add(reader.GetString("cert_autoupload"));
                     }
                 }
                 return columns;

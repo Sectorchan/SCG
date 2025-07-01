@@ -146,6 +146,8 @@ partial class Server
         bt_int_pub = new CustomButton();
         bt_int_signCA = new CustomButton();
         button6 = new Button();
+        button7 = new Button();
+        customButton4 = new CustomButton();
         gb_default_disti_names.SuspendLayout();
         panel1.SuspendLayout();
         panel2.SuspendLayout();
@@ -1059,7 +1061,7 @@ partial class Server
         Lbl_ca_fileExtension_Priv.AutoSize = true;
         Lbl_ca_fileExtension_Priv.Location = new Point(6, 54);
         Lbl_ca_fileExtension_Priv.Name = "Lbl_ca_fileExtension_Priv";
-        Lbl_ca_fileExtension_Priv.Size = new Size(67, 15);
+        Lbl_ca_fileExtension_Priv.Size = new Size(66, 15);
         Lbl_ca_fileExtension_Priv.TabIndex = 88;
         Lbl_ca_fileExtension_Priv.Text = "File Ext Priv";
         // 
@@ -1077,7 +1079,7 @@ partial class Server
         Lbl_ca_fileExtension_Pub.AutoSize = true;
         Lbl_ca_fileExtension_Pub.Location = new Point(-4, 81);
         Lbl_ca_fileExtension_Pub.Name = "Lbl_ca_fileExtension_Pub";
-        Lbl_ca_fileExtension_Pub.Size = new Size(80, 15);
+        Lbl_ca_fileExtension_Pub.Size = new Size(79, 15);
         Lbl_ca_fileExtension_Pub.TabIndex = 90;
         Lbl_ca_fileExtension_Pub.Text = "File Ext Public";
         // 
@@ -1310,11 +1312,34 @@ partial class Server
         button6.UseVisualStyleBackColor = true;
         button6.Click += button6_Click;
         // 
+        // button7
+        // 
+        button7.Location = new Point(456, 86);
+        button7.Name = "button7";
+        button7.Size = new Size(75, 23);
+        button7.TabIndex = 112;
+        button7.Text = "button7";
+        button7.UseVisualStyleBackColor = true;
+        button7.Click += button6_Click;
+        // 
+        // customButton4
+        // 
+        customButton4._certType = PL.Utils.Tools.certType.priv;
+        customButton4._serverType = PL.Utils.Tools.serverType.ca;
+        customButton4.Location = new Point(211, 58);
+        customButton4.Name = "customButton4";
+        customButton4.Size = new Size(75, 23);
+        customButton4.TabIndex = 113;
+        customButton4.Text = "customButton4";
+        customButton4.UseVisualStyleBackColor = true;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1052, 791);
+        Controls.Add(customButton4);
+        Controls.Add(button7);
         Controls.Add(button6);
         Controls.Add(bt_int_signCA);
         Controls.Add(bt_int_pub);
@@ -1535,4 +1560,6 @@ partial class Server
     private CustomButton bt_int_pub;
     private CustomButton bt_int_signCA;
     private Button button6;
+    private Button button7;
+    private CustomButton customButton4;
 }
