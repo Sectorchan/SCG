@@ -1,18 +1,18 @@
-﻿using FluentResults;
-using Microsoft.Data.Sqlite;
-using Renci.SshNet;
-using SCG;
-using SCG.Forms;
-using System.Buffers;
-using System.Data;
-using System.Data.Common;
+﻿using System.Data;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Windows.Forms;
-using static PL.Certs;
+using FluentResults;
+using Microsoft.Data.Sqlite;
+using Renci.SshNet;
+using SCG.Forms;
 using static PL.Utils.Tools;
 using static SCG.Forms.Server;
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 
 namespace PL;
@@ -21,149 +21,16 @@ public class Utils
 {
     private const string serverAuth2 = "1.3.6.1.5.5.7.3.1";
     private const string clientAuth2 = "1.3.6.1.5.5.7.3.2";
-    private static readonly string[] s_pubCert = ["public_cert", "public_createDT"];
-    private static readonly string[] s_ssCert = ["ss_cert", "ss_createDT", "ss_duration"];
-    private static readonly string[] s_destNames = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
 
-
-
-
-    private static readonly Dictionary<string, string> s_certDetails = new Dictionary<string, string>
-                {
-                    { "cert_filename", string.Empty },
-                    { "cert_priv_ext", string.Empty },
-                    { "cert_pub_ext", string.Empty },
-                    { "cert_path", string.Empty }
-                };
-    private static Dictionary<string, string> _serverDetails = new Dictionary<string, string>
-                {
-                    { "host_name", string.Empty },
-                    { "host_username", string.Empty },
-                    { "host_password", string.Empty }
-
-                };
     static SqliteConnection _connection = Server.sqlconnection;
-    private static readonly string[] s_sqlColumns = ["id", "name", "keySize", "private_key", "private_createDT", "public_cert", "public_createDT", "signed_against", "signed_createDT", "certsign_req", "certsign_req_createDT", "ss_cert", "ss_createDT", "ss_duration", "subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email", "serialNumber", "host_name", "host_username", "host_password", "cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path", "cert_autoupload"];
 
-    public static Dictionary<string, object> dictCaDetails = new Dictionary<string, object>();
-    //{
-    //    { "id", null },
-    //    { "name", null },
-    //    { "keySize", null },
-    //    { "private_key", null },
-    //    { "private_createDT", null },
-    //    { "public_cert", null },
-    //    { "public_createDT", null },
-    //    { "ss_cert", null },
-    //    { "ss_createDT", null },
-    //    { "ss_duration", null },
-    //    { "subj_country", null },
-    //    { "subj_state", null },
-    //    { "subj_location", null },
-    //    { "subj_organisation", null },
-    //    { "subj_orgaunit", null },
-    //    { "subj_commonname", null },
-    //    { "subj_email", null},
-    //    { "serialNumber", null },
-    //    { "host_name", null },
-    //    { "host_username", null },
-    //    { "host_password", null },
-    //    { "cert_filename", null },
-    //    { "cert_priv_ext", null },
-    //    { "cert_pub_ext", null },
-    //    { "cert_path", null },
-    //    { "cert_autoupload", null }
-    //};
-    public static Dictionary<string, object> dictInterDetails = new Dictionary<string, object>();
-    //{
-    //    { "id", string.Empty },
-    //    { "name", string.Empty },
-    //    { "keySize", string.Empty },
-    //    { "private_key", string.Empty },
-    //    { "private_createDT", string.Empty },
-    //    { "public_cert", string.Empty },
-    //    { "public_createDT", string.Empty },
-    //    { "ss_cert", string.Empty },
-    //    { "ss_createDT", string.Empty },
-    //    { "ss_duration", string.Empty },
-    //    { "subj_country", string.Empty },
-    //    { "subj_state", string.Empty },
-    //    { "subj_location", string.Empty },
-    //    { "subj_organisation", string.Empty },
-    //    { "subj_orgaunit", string.Empty },
-    //    { "subj_commonname", string.Empty },
-    //    { "subj_email", string.Empty },
-    //    { "serialNumber", string.Empty },
-    //    { "host_name", string.Empty },
-    //    { "host_username", string.Empty },
-    //    { "host_password", string.Empty },
-    //    { "cert_filename", string.Empty },
-    //    { "cert_priv_ext", string.Empty },
-    //    { "cert_pub_ext", string.Empty },
-    //    { "cert_path", string.Empty },
-    //    { "cert_autoupload", string.Empty }
-    //};
-    public static Dictionary<string, object> dictServerDetails = new Dictionary<string, object>();
-    //    {
-    //        { "id", string.Empty
-    //},
-    //        { "name", string.Empty },
-    //        { "keySize", string.Empty },
-    //        { "private_key", string.Empty },
-    //        { "private_createDT", string.Empty },
-    //        { "public_cert", string.Empty },
-    //        { "public_createDT", string.Empty },
-    //        { "ss_cert", string.Empty },
-    //        { "ss_createDT", string.Empty },
-    //        { "ss_duration", string.Empty },
-    //        { "subj_country", string.Empty },
-    //        { "subj_state", string.Empty },
-    //        { "subj_location", string.Empty },
-    //        { "subj_organisation", string.Empty },
-    //        { "subj_orgaunit", string.Empty },
-    //        { "subj_commonname", string.Empty },
-    //        { "subj_email", string.Empty },
-    //        { "serialNumber", string.Empty },
-    //        { "host_name", string.Empty },
-    //        { "host_username", string.Empty },
-    //        { "host_password", string.Empty },
-    //        { "cert_filename", string.Empty },
-    //        { "cert_priv_ext", string.Empty },
-    //        { "cert_pub_ext", string.Empty },
-    //        { "cert_path", string.Empty },
-    //        { "cert_autoupload", string.Empty }
-    //    };
-    public static Dictionary<string, object> targetDict = new Dictionary<string, object>();
-    public static Dictionary<string, object> signerDict = new Dictionary<string, object>();
-    public static Dictionary<string, object> dictUserDetails = new Dictionary<string, object>();
-    //{
-    //    { "id", string.Empty },
-    //    { "name", string.Empty },
-    //    { "keySize", string.Empty },
-    //    { "private_key", string.Empty },
-    //    { "private_createDT", string.Empty },
-    //    { "public_cert", string.Empty },
-    //    { "public_createDT", string.Empty },
-    //    { "ss_cert", string.Empty },
-    //    { "ss_createDT", string.Empty },
-    //    { "ss_duration", string.Empty },
-    //    { "subj_country", string.Empty },
-    //    { "subj_state", string.Empty },
-    //    { "subj_location", string.Empty },
-    //    { "subj_organisation", string.Empty },
-    //    { "subj_orgaunit", string.Empty },
-    //    { "subj_commonname", string.Empty },
-    //    { "subj_email", string.Empty },
-    //    { "serialNumber", string.Empty },
-    //    { "host_name", string.Empty },
-    //    { "host_username", string.Empty },
-    //    { "host_password", string.Empty },
-    //    { "cert_filename", string.Empty },
-    //    { "cert_priv_ext", string.Empty },
-    //    { "cert_pub_ext", string.Empty },
-    //    { "cert_path", string.Empty },
-    //    { "cert_autoupload", string.Empty }
-    //};
+    private const int KeySize = 32; // 256 Bit
+    private const int SaltSize = 16;
+    private const int IvSize = 16;
+    private const int Iterations = 100_000;
+    private const string FilePath = "encrypted.dat";
+
+
     public class ssh
     {
         /// <summary>
@@ -182,9 +49,7 @@ public class Utils
                 {
                     sftp.Connect();
                     using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyInPem)))
-                    {
-                        sftp.UploadFile(memoryStream, remoteFilePath);
-                    }
+                    { sftp.UploadFile(memoryStream, remoteFilePath); }
                     sftp.Disconnect();
                 }
             }
@@ -207,9 +72,7 @@ public class Utils
                 {
                     sftp.Connect();
                     using (var memoryStream = new MemoryStream(localCertificate))
-                    {
-                        sftp.UploadFile(memoryStream, remoteFilePath);
-                    }
+                    { sftp.UploadFile(memoryStream, remoteFilePath); }
                     sftp.Disconnect();
                 }
             }
@@ -220,14 +83,9 @@ public class Utils
         public static void DownloadCert(string host, string localFilePath, string remoteFilePath)
         {
             try
-            {
-
-            }
+            { }
             catch (Exception ex)
-
-            {
-                MessageBox.Show(Convert.ToString(ex));
-            }
+            { MessageBox.Show(Convert.ToString(ex)); }
         }
     }
     public class Sql
@@ -251,132 +109,7 @@ public class Utils
                 return null;
             }
         }
-        public static string[] GetServerDetails(serverType table, string serverName)
-        {
-            try
-            {
-                string[] str = new string[3];
 
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-
-                string column = string.Join(",", _serverDetails.Keys);
-                var sql = $"SELECT {column} FROM {table} WHERE name=@_searchValue"; // geht nicht 
-                using var command = new SqliteCommand(sql, connection);
-
-                command.Parameters.AddWithValue("@_searchValue", serverName);
-                using var reader = command.ExecuteReader();
-                int i = 0;
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        foreach (string key in _serverDetails.Keys)
-                        {
-                            str[i] = reader[key]?.ToString();
-                            i++;
-                        }
-                    }
-                }
-                connection.Close();
-                return str;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-        public static string[] GetCaServerDetails(string serverName)
-        {
-            try
-            {
-                int i = 0;
-                string[] str = new string[3];
-
-                string column = string.Join(",", _serverDetails.Keys);
-                var sql = $"SELECT {column} FROM ca WHERE name=@_searchValue";
-
-                using var command = new SqliteCommand(sql, DatabaseConnection.GetInstance().GetConnection());
-
-                command.Parameters.AddWithValue("@_searchValue", serverName);
-                using var reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        foreach (string key in _serverDetails.Keys)
-                        {
-                            str[i] = reader[key]?.ToString();
-                            i++;
-                        }
-                    }
-                }
-                //connection.Close();
-                return str;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="table"></param>
-        /// <param name="serverName"></param>
-        /// <returns>privatekey,publickey, remotePathPrivateKey, remotePathPublicKey</returns>
-        public static string[] GetCertDetails(serverType table, string serverName)
-        {
-            try
-            {
-                string[] str = new string[4];
-
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-
-                string column = string.Join(",", s_certDetails.Keys);
-                var sql = $"SELECT {column} FROM {table} WHERE name=@_searchValue"; // geht nicht 
-                using var command = new SqliteCommand(sql, connection);
-
-                command.Parameters.AddWithValue("@_searchValue", serverName);
-                using var reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        foreach (string key in s_certDetails.Keys)
-                        {
-                            s_certDetails[key] = reader[key]?.ToString();
-                        }
-                    }
-                }
-                connection.Close();
-                str[0] = s_certDetails["cert_filename"] + "." + s_certDetails["cert_priv_ext"];
-                str[1] = s_certDetails["cert_filename"] + "." + s_certDetails["cert_pub_ext"];
-                str[2] = s_certDetails["cert_path"] + str[0];
-                str[3] = s_certDetails["cert_path"] + str[1];
-
-
-                return str;
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
 
         public static string GetPrivateKey(serverType table, string serverName)
         {
@@ -422,172 +155,66 @@ public class Utils
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
         ///
-        public static Result<int> InsertInto(serverType table, string _name, string privKey, int _keySize)
+        public static Result<int> InsertInto(serverType table, string _name, PL.Certs cert)
         {
             try
             {
-                string name = (string)dictCaDetails["name"];
-                string keySize = (string)dictCaDetails["keySize"];
-                string private_key = (string)dictCaDetails["private_key"];
+
                 string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                 using var command = new SqliteCommand(sql, _connection);
-                command.Parameters.AddWithValue("@_name", name);
-                command.Parameters.AddWithValue("@_keySize", keySize);
-                command.Parameters.AddWithValue("@_private_key", private_key);
+                command.Parameters.AddWithValue("@_name", cert.name);
+                command.Parameters.AddWithValue("@_keySize", cert.keySize);
+                command.Parameters.AddWithValue("@_private_key", cert.private_key);
                 command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
 
-                return command.ExecuteNonQuery();
+                return Result.Ok(command.ExecuteNonQuery());
+
             }
             catch (Exception ex)
             {
                 if (ex == null)
-                {
-                    //return 0; //
-                    return Result.Fail("Possible wrong SQL credentials");
-                }
+                { return Result.Fail("Possible wrong SQL credentials"); }
                 else
-                {
-                    //return 0; //
-                    return Result.Fail(ex.Message);
-                }
+                { return Result.Fail(ex.Message); }
             }
         }
-        /// <summary>
-        /// Create and insert first row of this server to the SQL table
-        /// </summary>
-        /// <param name="table"></param>
-        /// <param name="_name"></param>
-        /// <returns></returns>
-        public static Result<int> InsertInto(serverType table, string _name)
-        {
-            try
-            {
-                switch (table)
-                {
-                    case serverType.ca:
-                        if (_name == (string)targetDict["name"])
-                        {
-                            string name = (string)targetDict["name"];
-                            long keySize = (long)targetDict["keySize"];
-                            string private_key = (string)targetDict["private_key"];
-                            string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
-
-                            using var command = new SqliteCommand(sql, _connection);
-                            command.Parameters.AddWithValue("@_name", name);
-                            command.Parameters.AddWithValue("@_keySize", keySize);
-                            command.Parameters.AddWithValue("@_private_key", private_key);
-                            command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-
-                            return Result.Ok(command.ExecuteNonQuery());
-                        }
-                        return Result.Fail("Servername is different");
-                    case serverType.intermediate:
-                        if (_name == (string)targetDict["name"])
-                        {
-                            string name = (string)targetDict["name"];
-                            long keySize = (long)targetDict["keySize"];
-                            string private_key = (string)targetDict["private_key"];
-                            string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
-
-                            using var command = new SqliteCommand(sql, _connection);
-                            command.Parameters.AddWithValue("@_name", name);
-                            command.Parameters.AddWithValue("@_keySize", keySize);
-                            command.Parameters.AddWithValue("@_private_key", private_key);
-                            command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-
-                            return Result.Ok(command.ExecuteNonQuery());
-                        }
-                        return Result.Fail("Servername is different");
 
 
-                        //if (_name == (string)dictInterDetails["name"])
-                        //{
-                        //    string name = (string)dictInterDetails["name"];
-                        //    string keySize = (string)dictInterDetails["keySize"];
-                        //    string private_key = (string)dictInterDetails["private_key"];
-                        //    string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
-
-                        //    using var command = new SqliteCommand(sql, _connection);
-                        //    command.Parameters.AddWithValue("@_name", name);
-                        //    command.Parameters.AddWithValue("@_keySize", keySize);
-                        //    command.Parameters.AddWithValue("@_private_key", private_key);
-                        //    command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-
-                        //    return Result.Ok(command.ExecuteNonQuery());
-                        //}
-
-                        return Result.Fail($"Not implemented");
-                    case serverType.server:
-                        if (_name == (string)dictServerDetails["name"])
-                        {
-                            string name = (string)dictServerDetails["name"];
-                            string keySize = (string)dictServerDetails["keySize"];
-                            string private_key = (string)dictServerDetails["private_key"];
-                            string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
-
-                            using var command = new SqliteCommand(sql, _connection);
-                            command.Parameters.AddWithValue("@_name", name);
-                            command.Parameters.AddWithValue("@_keySize", keySize);
-                            command.Parameters.AddWithValue("@_private_key", private_key);
-                            command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
-
-                            return Result.Ok(command.ExecuteNonQuery());
-                        }
-                        return Result.Fail("Servername is different");
-                    case serverType.user:
-                        return Result.Fail($"Not implemented");
-
-                }
-                return Result.Fail(SqlSelect("*", table).ToString());
-            }
-            catch (Exception ex)
-            {
-                if (ex == null)
-                {
-                    //return 0; //
-                    return Result.Fail("Possible wrong SQL credentials");
-                }
-                else
-                {
-                    //return 0; //
-                    return Result.Fail(ex.Message);
-                }
-            }
-        }
 
         public static void SeSelect(serverType serverType, dynamic control)
         {
             try
             {
-                var sql = $"SELECT * FROM {serverType}";
+                string items = string.Empty;
+
+                string sql = $"SELECT * FROM {serverType}";
 
                 using var command = new SqliteCommand(sql, _connection);
                 using var reader = command.ExecuteReader();
+
 
                 if (reader.HasRows)
                 {
                     while (reader.Read())
                     {
+                        byte[] ss_cert = null;
+                        int i_ss_cert = reader.GetOrdinal("ss_cert");
+                        long size = reader.GetBytes(i_ss_cert, 0, null, 0, 0); // Größe ermitteln
+                        ss_cert = new byte[size];
+                        reader.GetBytes(i_ss_cert, 0, ss_cert, 0, (int)size);  // Daten einlesen
+
                         var item = new PL.Certs
                         {
-                            ////Id = reader.GetInt32(0), // oder: reader.GetInt32(reader.GetOrdinal("id"))
-                            //id = reader.GetInt32(reader.GetOrdinal("id")),
-                            ////Name = reader.GetString(1) // oder: reader.GetString(reader.GetOrdinal("name"))
-                            //name = reader.GetString(reader.GetOrdinal("name")),
-
-                            //keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
-                            //private_key = reader.GetString(reader.GetOrdinal("private_key"))
-
-                            id = reader.GetInt32(reader.GetOrdinal("id")),  
+                            id = reader.GetInt32(reader.GetOrdinal("id")),
                             name = reader.GetString(reader.GetOrdinal("name")),
                             keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
                             private_key = reader.GetString(reader.GetOrdinal("private_key")),
                             private_createDT = reader.GetInt32(reader.GetOrdinal("private_createDT")),
                             public_cert = reader.GetString(reader.GetOrdinal("public_cert")),
-                            public_createDT = reader.GetInt32(reader.GetOrdinal("public_createDT")),
-                            ss_cert = reader.GetString(reader.GetOrdinal("ss_cert")),
-                            ss_createDT = reader.GetInt32(reader.GetOrdinal("ss_createDT")),
+                            public_createDT = reader.GetString(reader.GetOrdinal("public_createDT")),
+                            ss_cert = ss_cert,
+                            ss_createDT = reader.GetString(reader.GetOrdinal("ss_createDT")),
                             ss_duration = reader.GetInt32(reader.GetOrdinal("ss_duration")),
                             subj_country = reader.GetString(reader.GetOrdinal("subj_country")),
                             subj_state = reader.GetString(reader.GetOrdinal("subj_state")),
@@ -600,11 +227,25 @@ public class Utils
                             host_name = reader.GetString(reader.GetOrdinal("host_name")),
                             host_username = reader.GetString(reader.GetOrdinal("host_username")),
                             host_password = reader.GetString(reader.GetOrdinal("host_password")),
-                            cert_filename = reader.GetString(reader.GetOrdinal("cert_filename")),
-                            cert_priv_ext = reader.GetString(reader.GetOrdinal("cert_priv_ext")),
-                            cert_pub_ext = reader.GetString(reader.GetOrdinal("cert_pub_ext")),
-                            cert_path = reader.GetString(reader.GetOrdinal("cert_path")),
-                            cert_autoupload = reader.GetInt32(reader.GetOrdinal("cert_autoupload"))
+
+                            signed_against = reader.GetString(reader.GetOrdinal("signed_against")),
+                            signed_createDT = reader.GetString(reader.GetOrdinal("signed_createDT")),
+
+                            cert_priv_filename = reader.GetString(reader.GetOrdinal("cert_priv_filename")),
+                            cert_priv_fileext = reader.GetString(reader.GetOrdinal("cert_priv_fileext")),
+                            cert_priv_path = reader.GetString(reader.GetOrdinal("cert_priv_path")),
+                            cert_pub_filename = reader.GetString(reader.GetOrdinal("cert_pub_filename")),
+                            cert_pub_fileext = reader.GetString(reader.GetOrdinal("cert_pub_fileext")),
+                            cert_pub_path = reader.GetString(reader.GetOrdinal("cert_pub_path")),
+                            cert_signed_filename = reader.GetString(reader.GetOrdinal("cert_signed_filename")),
+                            cert_signed_fileext = reader.GetString(reader.GetOrdinal("cert_signed_fileext")),
+                            cert_signed_path = reader.GetString(reader.GetOrdinal("cert_signed_path")),
+
+                            cert_autoupload = reader.GetInt32(reader.GetOrdinal("cert_autoupload")),
+                            san1 = reader.GetString(reader.GetOrdinal("san1")),
+                            san2 = reader.GetString(reader.GetOrdinal("san2")),
+                            san3 = reader.GetString(reader.GetOrdinal("san3")),
+                            san4 = reader.GetString(reader.GetOrdinal("san4"))
 
                         };
 
@@ -618,6 +259,7 @@ public class Utils
             }
 
         }
+
 
         /// <summary>
         /// Performs a SQL SELECT statement
@@ -688,54 +330,7 @@ public class Utils
         /// <param name="table">Select the table which should be read</param>
         /// <param name="serverName">Specify the servername which parameter you want to read.</param>
         /// <returns></returns>
-        public static Result<bool> Select(serverType table, string serverName, columnType column)
-        {
 
-                string sql = $"SELECT * FROM {table} WHERE name=@serverName";
-                using var command = new SqliteCommand(sql, _connection);
-                command.Parameters.AddWithValue("@serverName", serverName);
-
-                using var reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    string item = string.Empty;
-                    while (reader.Read())
-                    {
-                        for (int j = 0; j < reader.FieldCount; j++)
-                        {
-                            item = reader.GetName(j);
-                            if (!reader.IsDBNull(0))
-                            {
-                                switch (reader.GetFieldType(item).Name.ToString())
-                                {
-                                    case "String":
-                                        //dictCaDetails[item] = reader.GetString(item);
-                                        DictWriter.setValue(targetDict, item, reader.GetString(item));
-                                    break;
-                                    case "Int64":
-                                        //dictCaDetails[item] = reader.GetInt64(item);
-                                        DictWriter.setValue(targetDict, item, reader.GetInt64(item));
-                                    break;
-                                    case "Byte[]":
-                                        long length = reader.GetBytes(item, 0, null, 0, 0); // BLOB-Größe ermitteln
-                                        byte[] buffer = new byte[length];
-                                        reader.GetBytes(7, 0, buffer, 0, buffer.Length);
-                                        //dictCaDetails[item] = (byte[])reader[item];
-                                    DictWriter.setValue(targetDict, item, (byte[])reader[item]);
-                                    break;
-                                    default:
-                                        return Result.Fail($"Unknown Datatype from SQLite database received! On column: {item}, with the DataType: {reader.GetFieldType(item).Name.ToString()}");
-                                }
-                            }
-                            else
-                            { return Result.Fail($"Column {item} is NULL"); }
-                        }
-                    }
-                    return true;
-                }
-                return Result.Fail("Nothing to read");
-        }
 
         public static string SelectWhereString(serverType table, string resultColumn, string searchColumn, string searchValue)
         {
@@ -974,7 +569,7 @@ public class Utils
                 return Result.Fail(ex.Message);
             }
         }
-        public static Result<int> Update(serverType table, string serverName, string[] columns)
+        public static Result<int> Update(serverType table, PL.Certs cert, PL.Certs issuerCert, string[] columns)
         {
             try
             {
@@ -983,33 +578,35 @@ public class Utils
                 {
                     foreach (var column in columns)
                     {
-                        if (column == "public_createDT" || column == "private_createDT" || column == "ss_createDT" || column == "certsign_req_createDT")
+                        if (column is "public_createDT" or "private_createDT" or "ss_createDT" or "signed_createDT")
                         {
-                            if (table == serverType.ca)
-                            { dictCaDetails[column] = DateTime.Now.ToString(); }
-                            else if (table == serverType.intermediate)
-                            { dictInterDetails[column] = DateTime.Now.ToString(); }
-                            else if (table == serverType.server)
-                            { dictServerDetails[column] = DateTime.Now.ToString(); }
-                            else if (table == serverType.user)
-                            { dictUserDetails[column] = DateTime.Now.ToString(); }
+                            PropertyInfo property = typeof(PL.Certs).GetProperty(column);
+                            if (property != null && property.CanWrite)
+                            {
+                                property.SetValue(cert, Convert.ToString(DateTime.Now));
+                            }
                         }
-
+                        if (column is "signed_against")
+                        {
+                            PropertyInfo property = typeof(PL.Certs).GetProperty(column);
+                            if (property != null && property.CanWrite)
+                            {
+                                property.SetValue(cert, Convert.ToString(issuerCert.id));
+                            }
+                        }
 
                         command.Parameters.Clear();
                         command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                        if (table == serverType.ca)
-                        { command.Parameters.AddWithValue("@_value", dictCaDetails[column]); }
-                        else if (table == serverType.intermediate)
-                        { command.Parameters.AddWithValue("@_value", dictInterDetails[column]); }
-                        else if (table == serverType.server)
-                        { command.Parameters.AddWithValue("@_value", dictServerDetails[column]); }
-                        else if (table == serverType.user)
-                        { command.Parameters.AddWithValue("@_value", dictUserDetails[column]); }
+                        var prop = typeof(PL.Certs).GetProperty(column);
 
+                        if (prop != null)
+                        {
+                            object value = prop.GetValue(cert) ?? DBNull.Value;
+                            command.Parameters.AddWithValue("@_value", value);
+                        }
 
-                        command.Parameters.AddWithValue("@_searchTerm", serverName);
+                        command.Parameters.AddWithValue("@_searchTerm", cert.name);
 
                         int rowInserted = command.ExecuteNonQuery();
                         rowIns += rowInserted;
@@ -1023,131 +620,7 @@ public class Utils
                 return Result.Fail(ex.ToString());
             }
         }
-        public static Result<int>
-            Update(serverType table, string serverName, string[] columns, int type)
-        {
-            try
-            {
-                int rowIns = 0;
-                using (var command = _connection.CreateCommand())
-                {
-                    switch (type)
-                    {
-                        case 0:
-                            {
-                                return Result.Fail("Not implemented");
-                            }
-                        case 1: //Public Cert
-                            {
-                                foreach (string column in s_pubCert)
-                                {
-                                    if (column.Equals("public_createDT"))
-                                    {
-                                        //dictCaDetails[column] = DateTime.Now.ToString();
-                                        if (table == serverType.ca)
-                                        {
-                                            dictCaDetails[column] = DateTime.Now.ToString();
-                                        }
-                                        else if (table == serverType.intermediate)
-                                        {
-                                            dictInterDetails[column] = DateTime.Now.ToString();
-                                        }
-                                        else if (table == serverType.server)
-                                        {
-                                            dictServerDetails[column] = DateTime.Now.ToString();
-                                        }
-                                        else if (table == serverType.user)
-                                        {
-                                            dictUserDetails[column] = DateTime.Now.ToString();
-                                        }
-                                    }
-                                    command.Parameters.Clear();
-                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                                    if (table == serverType.ca)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
-                                    }
-                                    else if (table == serverType.intermediate)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictInterDetails[column]);
-                                    }
-                                    else if (table == serverType.server)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictServerDetails[column]);
-                                    }
-                                    else if (table == serverType.user)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictUserDetails[column]);
-                                    }
-
-                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
-
-                                    int rowInserted = command.ExecuteNonQuery();
-                                    rowIns += rowInserted;
-                                }
-                                return Result.Ok(rowIns);
-                            }
-                        case 2: // Dest Names
-                            {
-                                foreach (var column in s_destNames)
-                                {
-                                    command.Parameters.Clear();
-                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
-
-                                    if (table == serverType.ca)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
-                                    }
-                                    else if (table == serverType.intermediate)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictInterDetails[column]);
-                                    }
-                                    else if (table == serverType.server)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictServerDetails[column]);
-                                    }
-                                    else if (table == serverType.user)
-                                    {
-                                        command.Parameters.AddWithValue("@_value", dictUserDetails[column]);
-                                    }
-
-                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
-
-                                    int rowInserted = command.ExecuteNonQuery();
-                                    rowIns += rowInserted;
-
-                                }
-                                return Result.Ok(rowIns);
-                            }
-                        case 3: // selfSigned Update
-                            {
-                                foreach (var column in s_ssCert)
-                                {
-                                    if (column == "ss_createDT")
-                                    {
-                                        dictCaDetails[column] = DateTime.Now.ToString();
-                                    }
-                                    command.Parameters.Clear();
-                                    command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
-
-                                    command.Parameters.AddWithValue("@_value", dictCaDetails[column]);
-                                    command.Parameters.AddWithValue("@_searchTerm", serverName);
-
-                                    int rowInserted = command.ExecuteNonQuery();
-                                    rowIns += rowInserted;
-                                }
-                                return Result.Ok(rowIns);
-                            }
-                    }
-                }
-                return Result.Ok(rowIns);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail(ex.ToString());
-            }
-        }
 
         public static int UpdateBasicConstraints(serverType table, string searchTerm, bool isCa, bool noPaLen, int depth, bool critical)
         {
@@ -1310,19 +783,19 @@ public class Utils
                 return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
-        public static Result<X509Certificate2> CreateSelfSignedCertificate1(serverType serverType, string serverName)
+        public static Result<X509Certificate2> GenerateSelfsigned(serverType serverType, PL.Certs certs)
         {
             try
             {
-                X509Certificate2 caCertificate;
                 CertificateRequest request;
                 X509Certificate2 selfSignedCertificate;
-                Result<X500DistinguishedName> DNresult = DNBuilder(serverType, serverName);
-                if (!DNresult.IsSuccess) return Result.Fail("DNBuilder failed");
+                Result<X500DistinguishedName> DNresult = DNBuilder(certs);
+                if (!DNresult.IsSuccess)
+                    return Result.Fail("DNBuilder failed");
 
                 using (RSA rsa = RSA.Create())
                 {
-                    rsa.ImportFromPem((string)targetDict["private_key"]);
+                    rsa.ImportFromPem(certs.private_key);
                     request = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
                     if (serverType == serverType.ca)
@@ -1334,12 +807,12 @@ public class Utils
                     if (serverType == serverType.ca)
                     {
                         #region Create serialnumber
-                        int cTempSerialNumber = Convert.ToInt32(targetDict["serialNumber"]);
+                        int cTempSerialNumber = Convert.ToInt32(certs.serialNumber);
                         cTempSerialNumber++;
                         string time = DateTime.Now.ToString("ddMMyyyy");
                         long serialNumber = long.Parse($"{cTempSerialNumber}{time}");
                         #endregion
-                        int month = (int)targetDict["ss_duration"];
+                        int month = certs.ss_duration;
                         selfSignedCertificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(month));
 
                         if (!selfSignedCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any())
@@ -1355,190 +828,41 @@ public class Utils
             catch (Exception ex)
             { return Result.Fail(Convert.ToString(ex)); }
         }
-        public static Result<X509Certificate2> CreateCertSigningRequest(serverType table, string serverName)
+        public static Result<X509Certificate2> GenerateSigned(serverType serverType, PL.Certs issuer, PL.Certs requester)
         {
-            try
+            X509Certificate2 issuerCertificate = new X509Certificate2(issuer.ss_cert);
+            using RSA issuerPrivateKey = issuerCertificate.GetRSAPrivateKey();
+
+            if (requester.ss_duration < 1)
             {
-                //X500DistinguishedName distinguishedName = DNBuilder(table, serverName).Value;
-                Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
-                CertificateRequest intermediateRequest;
-                X509Certificate2 signedCertificate;
-
-                #region test
-                //using (RSA rsa = RSA.Create())
-                //{
-                //    rsa.ImportFromPem(dictCaDetails["private_key"]);
-                //    CertificateRequest request = new CertificateRequest(new X500DistinguishedName(dictCaDetails["subj_country"], dictCaDetails["subj_state"], dictCaDetails["subj_location"], dictCaDetails["subj_organisation"], dictCaDetails["subj_orgaunit"], dictCaDetails["subj_commonname"], dictCaDetails["subj_email"]), rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                //    request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
-                //    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
-                //    request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
-                //    Certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddMonths(12));
-                //    sN = Certificate.GetSerialNumber();
-                //    dictCaDetails["serialNumber"] = sN.ToString();
-                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_duration"] = "12";
-                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_duration"] = "12";
-                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_duration"] = "12";
-                //    dictCaDetails["public_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["public_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_cert"] = Certificate.Export(X509ContentType.Cert).ToString();
-                //    dictCaDetails["ss_createDT"] = DateTime.Now.ToString();
-                //    dictCaDetails["ss_duration"] = "
-                #endregion
-                if (DNresult.IsSuccess)
-                {
-                     using (RSA rsa = RSA.Create())
-                    {
-                        intermediateRequest = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                        switch (table)
-                        {
-                            case serverType.ca:
-                                rsa.ImportFromPem((string)dictCaDetails["private_key"]);
-                                intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
-                                intermediateRequest.CertificateExtensions.Add(Global.caKeyUsageExtension);
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
-                                signedCertificate = intermediateRequest.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now
-                                    .AddMonths(Convert.ToInt32(dictCaDetails["ss_duration"])));
-                                return signedCertificate;
-
-                            case serverType.intermediate:
-                                rsa.ImportFromPem((string)dictInterDetails["private_key"]);
-                                intermediateRequest.CertificateExtensions.Add(Global.caBasicConstraint);
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign |
-                                        X509KeyUsageFlags.CrlSign, true));
-                                break;
-                            case serverType.server:
-                                rsa.ImportFromPem((string)dictServerDetails["private_key"]);
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature |
-                                        X509KeyUsageFlags.KeyEncipherment, true));
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
-                                break;
-
-                            case serverType.user:
-                                rsa.ImportFromPem((string)dictUserDetails["private_key"]);
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment |
-                                        X509KeyUsageFlags.NonRepudiation |
-                                        X509KeyUsageFlags.DigitalSignature |
-                                        X509KeyUsageFlags.KeyEncipherment, true));
-                                intermediateRequest.CertificateExtensions
-                                    .Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
-                                break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return null;
-            }
-            return null;
-        }
-
-        //public static void CreateCSR(serverType table, string serverName)
-        public static Result<string> CreateCSR(serverType table, string serverName)
-        {
-            string privateKeyPem = string.Empty;
-            string csrKeyPem = string.Empty;
-            if (table == serverType.ca)
-            { privateKeyPem = (string)dictCaDetails["private_key"]; }
-            else if (table == serverType.intermediate)
-            { privateKeyPem = (string)dictInterDetails["private_key"]; }
-            else if (table == serverType.server)
-            { privateKeyPem = (string)dictServerDetails["private_key"]; }
-            else if (table == serverType.user)
-            { privateKeyPem = (string)dictUserDetails["private_key"]; }
-            try
-            {
-                using (RSA rsa = RSA.Create())
-                {
-                    rsa.ImportFromPem(privateKeyPem);
-                    Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
-
-                    var request = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                    if (table == serverType.intermediate)
-                    {
-                        request.CertificateExtensions.Add(Global.caBasicConstraint);
-                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
-                    }
-                    else if (table == serverType.server)
-                    {
-                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
-                        //request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
-                        //request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(serverAuth2) }, false));
-                    }
-                    else if (table == serverType.user)
-                    {
-                        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
-                        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid(clientAuth2) }, false));
-                    }
-                    if (table == serverType.ca)
-                    { dictCaDetails["certsign_req"] = request.CreateSigningRequestPem(); }
-                    else if (table == serverType.intermediate)
-                    { dictInterDetails["certsign_req"] = request.CreateSigningRequestPem(); }
-                    else if (table == serverType.server)
-                    { dictServerDetails["certsign_req"] = request.CreateSigningRequestPem(); }
-                    else if (table == serverType.user)
-                    { dictUserDetails["certsign_req"] = request.CreateSigningRequestPem(); }
-
-                    return Result.Ok(request.CreateSigningRequestPem());
-                }
-            }
-            catch (Exception)
-            {
-
-                throw;
+                return Result.Fail($"Certificate Duration <=1 month");
             }
 
-        }
+            Result<X500DistinguishedName> DNresult = DNBuilder(requester);
+            if (!DNresult.IsSuccess) return Result.Fail($"{DNresult.Reasons[0].Message}");
 
-        public static Result<X509Certificate2> CreateSignedCertificate(serverType table, string serverName)
-        {
-            Result<X500DistinguishedName> DNresult = DNBuilder(table, serverName);
-            CertificateRequest certRequestCSR;
-            if (table == serverType.intermediate)
+            using (RSA requesterKey = RSA.Create())
             {
-                Sql.Select(serverType.ca, "signerName", columnType.id);
+                requesterKey.ImportFromPem(requester.private_key);
+
+                var req = new CertificateRequest(
+                    DNresult.Value,
+                    requesterKey,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+
+                req.CertificateExtensions.Add(Global.caBasicConstraint);
+                req.CertificateExtensions.Add(Global.caKeyUsageExtension);
+                req.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
+
+                DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddDays(-1);
+                DateTimeOffset notAfter = notBefore.AddMonths(requester.ss_duration);
+
+                X509Certificate2 requesterCertificate = req.Create(issuerCertificate, notBefore, notAfter, Utils.Tools.GenerateSerialnumber(requester));
+                X509Certificate2 certWithKey = requesterCertificate.CopyWithPrivateKey(requesterKey);
+
+                return certWithKey;
             }
-
-            if (DNresult.IsSuccess)
-            {
-
-                using (RSA rsa = RSA.Create())
-                {
-                    rsa.ImportFromPem((string)targetDict["private_key"]);
-
-                    certRequestCSR = new CertificateRequest(DNresult.Value, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                    // var caCert = new X509Certificate2("ca.pfx", "deinPasswort", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
-                    var caCert = new X509Certificate2((byte[])targetDict["ss_cert"], (string)targetDict["ss_passwd"], X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
-
-                }
-                return Result.Ok();
-            }
-            return Result.Fail("false");
         }
 
         public static Result<X509Certificate2> CreateCertificate(serverType table, string requestPrivKey, X500DistinguishedName distinguishedName, byte[] issuerCert, string issuerPasswd, int requesterDuration, long requesterSerialNumber)
@@ -1603,174 +927,23 @@ public class Utils
 
             return chain;
         }
-        //public static X500DistinguishedName DNBuilder(string twoLetterCode, string stateOrProvinceName, string localityName, string organizationName, string organizationalUnitName, string commonName, string emailAddress)
-        public static Result<X500DistinguishedName> DNBuilder(serverType serverType, string serverName)
+        public static Result<X500DistinguishedName> DNBuilder(PL.Certs certs)
         {
-            Result<bool> result = Result.Ok();
-            if (result.IsSuccess)
+            try
             {
-                string CountryOrRegion = string.Empty;
-                string StateOrProvinceName = string.Empty;
-                string LocalityName = string.Empty;
-                string OrganizationName = string.Empty;
-                string OrganizationalUnitName = string.Empty;
-                string CommonName = string.Empty;
-                string EmailAddress = string.Empty;
-
-                if (serverType == serverType.ca)
-                {
-                    CountryOrRegion = (string)dictCaDetails["subj_country"];
-                    StateOrProvinceName = (string)dictCaDetails["subj_state"];
-                    LocalityName = (string)dictCaDetails["subj_location"];
-                    OrganizationName = (string)dictCaDetails["subj_organisation"];
-                    OrganizationalUnitName = (string)dictCaDetails["subj_orgaunit"];
-                    CommonName = (string)dictCaDetails["subj_commonname"];
-                    EmailAddress = (string)dictCaDetails["subj_email"];
-                }
-                else if (serverType == serverType.intermediate)
-                {
-                    CountryOrRegion = (string)dictInterDetails["subj_country"];
-                    StateOrProvinceName = (string)dictInterDetails["subj_state"];
-                    LocalityName = (string)dictInterDetails["subj_location"];
-                    OrganizationName = (string)dictInterDetails["subj_organisation"];
-                    OrganizationalUnitName = (string)dictInterDetails["subj_orgaunit"];
-                    CommonName = (string)dictInterDetails["subj_commonname"];
-                    EmailAddress = (string)dictInterDetails["subj_email"];
-                }
-                else if (serverType == serverType.server)
-                {
-                    CountryOrRegion = (string)dictServerDetails["subj_country"];
-                    StateOrProvinceName = (string)dictServerDetails["subj_state"];
-                    LocalityName = (string)dictServerDetails["subj_location"];
-                    OrganizationName = (string)dictServerDetails["subj_organisation"];
-                    OrganizationalUnitName = (string)dictServerDetails["subj_orgaunit"];
-                    CommonName = (string)dictServerDetails["subj_commonname"];
-                    EmailAddress = (string)dictServerDetails["subj_email"];
-                }
-                else if (serverType == serverType.user)
-                {
-                    CountryOrRegion = (string)dictUserDetails["subj_country"];
-                    StateOrProvinceName = (string)dictUserDetails["subj_state"];
-                    LocalityName = (string)dictUserDetails["subj_location"];
-                    OrganizationName = (string)dictUserDetails["subj_organisation"];
-                    OrganizationalUnitName = (string)dictUserDetails["subj_orgaunit"];
-                    CommonName = (string)dictUserDetails["subj_commonname"];
-                    EmailAddress = (string)dictUserDetails["subj_email"];
-                }
-
                 X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
-                DNs.AddCountryOrRegion(CountryOrRegion);
-                DNs.AddStateOrProvinceName(StateOrProvinceName);
-                DNs.AddLocalityName(LocalityName);
-                DNs.AddOrganizationName(OrganizationName);
-                DNs.AddOrganizationalUnitName(OrganizationalUnitName);
-                DNs.AddCommonName(CommonName);
-                DNs.AddEmailAddress(EmailAddress);
+                DNs.AddCountryOrRegion(certs.subj_country);
+                DNs.AddStateOrProvinceName(certs.subj_state);
+                DNs.AddLocalityName(certs.subj_location);
+                DNs.AddOrganizationName(certs.subj_organisation);
+                DNs.AddOrganizationalUnitName(certs.subj_orgaunit);
+                DNs.AddCommonName(certs.subj_commonname);
+                DNs.AddEmailAddress(certs.subj_email);
 
                 return Result.Ok(DNs.Build());
             }
-            return Result.Fail("Failed to build DN");
-
-            //try
-            //{
-            //    X500DistinguishedNameBuilder DNs = new X500DistinguishedNameBuilder();
-
-            //    switch (table)
-            //    {
-            //        case serverType.ca:
-            //        Pos1:
-            //            if (serverName.Equals(dictCaDetails["name"]))
-            //            {
-            //                DNs.AddCountryOrRegion(CountryOrRegion);
-            //                DNs.AddStateOrProvinceName((string)dictCaDetails["subj_state"]);
-            //                DNs.AddLocalityName((string)dictCaDetails["subj_location"]);
-            //                DNs.AddOrganizationName((string)dictCaDetails["subj_organisation"]);
-            //                DNs.AddOrganizationalUnitName((string)dictCaDetails["subj_orgaunit"]);
-            //                DNs.AddCommonName((string)dictCaDetails["subj_commonname"]);
-            //                DNs.AddEmailAddress((string)dictCaDetails["subj_email"]);
-
-            //                X500DistinguishedName dn = DNs.Build();
-
-            //                return Result.Ok(DNs.Build());
-            //            }
-            //            else
-            //            {
-            //                Utils.Sql.Select(serverType.ca, serverName);
-            //                goto Pos1;
-            //            }
-            //        case serverType.intermediate:
-            //        Pos2:
-            //            if (serverName.Equals((string)dictInterDetails["name"]))
-            //            {
-            //                DNs.AddCountryOrRegion((string)dictInterDetails["subj_country"]);
-            //                DNs.AddStateOrProvinceName((string)dictInterDetails["subj_state"]);
-            //                DNs.AddLocalityName((string)dictInterDetails["subj_location"]);
-            //                DNs.AddOrganizationName((string)dictInterDetails["subj_organisation"]);
-            //                DNs.AddOrganizationalUnitName((string)dictInterDetails["subj_orgaunit"]);
-            //                DNs.AddCommonName((string)dictInterDetails["subj_commonname"]);
-            //                DNs.AddEmailAddress((string)dictInterDetails["subj_email"]);
-            //            }
-            //            else
-            //            {
-            //                Utils.Sql.Select(serverType.intermediate, serverName);
-            //                goto Pos2;
-            //            }
-            //            break;
-            //        case serverType.server:
-            //        Pos3:
-            //            if (serverName.Equals((string)dictServerDetails["name"]))
-            //            {
-            //                DNs.AddCountryOrRegion((string)dictServerDetails["subj_country"]);
-            //                DNs.AddStateOrProvinceName((string)dictServerDetails["subj_state"]);
-            //                DNs.AddLocalityName((string)dictServerDetails["subj_location"]);
-            //                DNs.AddOrganizationName((string)dictServerDetails["subj_organisation"]);
-            //                DNs.AddOrganizationalUnitName((string)dictServerDetails["subj_orgaunit"]);
-            //                DNs.AddCommonName((string)dictServerDetails["subj_commonname"]);
-            //                DNs.AddEmailAddress((string)dictServerDetails["subj_email"]);
-            //            }
-            //            else
-            //            {
-            //                Utils.Sql.Select(serverType.server, serverName);
-            //                goto Pos3;
-            //            }
-            //            break;
-            //        case serverType.user:
-            //        Pos4:
-            //            if (serverName.Equals((string)dictUserDetails["name"]))
-            //            {
-            //                DNs.AddCountryOrRegion((string)dictUserDetails["subj_country"]);
-            //                DNs.AddStateOrProvinceName((string)dictUserDetails["subj_state"]);
-            //                DNs.AddLocalityName((string)dictUserDetails["subj_location"]);
-            //                DNs.AddOrganizationName((string)dictUserDetails["subj_organisation"]);
-            //                DNs.AddOrganizationalUnitName((string)dictUserDetails["subj_orgaunit"]);
-            //                DNs.AddCommonName((string)dictUserDetails["subj_commonname"]);
-            //                DNs.AddEmailAddress((string)dictUserDetails["subj_email"]);
-            //            }
-            //            else
-            //            {
-            //                Utils.Sql.Select(serverType.user, serverName);
-            //                goto Pos4;
-            //            }
-            //            break;
-            //    }
-            //    var build = DNs.Build();
-
-            //    return build;
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(Convert.ToString(ex));
-            //    return null;
-            //}
-        }
-        public static byte[] ConvertPemToCsrBytes(string pem)
-        {
-            var lines = pem.Split('\n')
-                           .Where(line => !line.StartsWith("-----") && !string.IsNullOrWhiteSpace(line))
-                           .ToArray();
-
-            string base64 = string.Join("", lines);
-            return Convert.FromBase64String(base64);
+            catch (Exception ex)
+            { return Result.Fail($"{ex.Message}"); }
         }
 
 
@@ -1801,6 +974,28 @@ public class Utils
                 _ => string.Empty
             };
         }
+        public static int GetDuration(Server form, serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => Convert.ToInt32(form.tb_ca_dura.Text),
+                serverType.intermediate => Convert.ToInt32(form.tb_int_dura.Text),
+                serverType.server => Convert.ToInt32(form.tb_server_dura.Text),
+                serverType.user => Convert.ToInt32(form.tb_user_dura.Text),
+                _ => 0
+            };
+        }
+        public static object GetServerList(Server form, serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => form.lb_ca_certs,
+                serverType.intermediate => form.lb_int_certs,
+                serverType.server => form.lb_server_certs,
+                serverType.user => form.lb_user_certs,
+                _ => null
+            };
+        }
         public static int GetKeySize(Server form, serverType type)
         {
             return type switch
@@ -1812,19 +1007,6 @@ public class Utils
                 _ => 0
             };
         }
-
-        public static Dictionary<string, object>? GetTargetDict(serverType type)
-        {
-            return type switch
-            {
-                serverType.ca => dictCaDetails,
-                serverType.intermediate => dictInterDetails,
-                serverType.server => dictServerDetails,
-                serverType.user => dictUserDetails,
-                _ => null
-            };
-        }
-
 
         public static void UpdateCertList(Server form, serverType type, string selectedName)
         {
@@ -1840,13 +1022,12 @@ public class Utils
             if (listBox != null)
             {
                 listBox.Items.Clear();
-                Server.ReadServers(listBox, type);
+                //Server.ReadServers(listBox, type);
+                Server.read(listBox, type);
                 listBox.Sorted = true;
                 listBox.SelectedItem = selectedName;
             }
         }
-
-
         public static Result SaveFile(string defaultFileName, string filter, string content)
         {
             try
@@ -1883,7 +1064,6 @@ public class Utils
         {
             try
             {
-
                 using (SaveFileDialog SaveFile = new SaveFileDialog())
                 {
                     SaveFile.FileName = defaultFileName + fileExtension;
@@ -1912,8 +1092,96 @@ public class Utils
                 return Result.Fail(Convert.ToString(ex));
             }
         }
+        public static byte[] GenerateSerialnumber(PL.Certs cert)
+        {
+            int cTempSerialNumber = Convert.ToInt32(cert.serialNumber);
+            cTempSerialNumber++;
+            string time = DateTime.Now.ToString("ddMMyyyy");
+            long serialNumber = long.Parse($"{cTempSerialNumber}{time}");
+            byte[] bSerialNumber = BitConverter.GetBytes(serialNumber);
+            cert.serialNumber = cTempSerialNumber;
+            return bSerialNumber;
+        }
+        public static void SavePassword(string plainPassword, string masterPassword)
+        {
+            // 1. Salt und IV generieren
+            byte[] salt = GenerateRandomBytes(SaltSize);
+            byte[] iv = GenerateRandomBytes(IvSize);
 
-        private static byte[] GenerateRandomSerialNumber(int byteLength)
+            // 2. Schlüssel aus Masterpasswort + Salt ableiten
+            byte[] key = DeriveKey(masterPassword, salt);
+
+            // 3. Passwort verschlüsseln
+            byte[] encrypted = EncryptStringToBytes_Aes(plainPassword, key, iv);
+
+            // 4. Salt + IV + verschlüsselte Daten speichern (Base64 getrennt mit :)
+            string output = $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(iv)}:{Convert.ToBase64String(encrypted)}";
+            File.WriteAllText(FilePath, output);
+        }
+        // Passwort entschlüsseln
+        public static string LoadPassword(string masterPassword)
+        {
+            if (!File.Exists(FilePath))
+                throw new FileNotFoundException("Verschlüsselte Datei nicht gefunden.");
+
+            string input = File.ReadAllText(FilePath);
+            var parts = input.Split(':');
+            if (parts.Length != 3)
+                throw new FormatException("Dateiformat ungültig.");
+
+            byte[] salt = Convert.FromBase64String(parts[0]);
+            byte[] iv = Convert.FromBase64String(parts[1]);
+            byte[] cipherText = Convert.FromBase64String(parts[2]);
+
+            byte[] key = DeriveKey(masterPassword, salt);
+            return DecryptStringFromBytes_Aes(cipherText, key, iv);
+        }
+        // Schlüssel ableiten
+        private static byte[] DeriveKey(string password, byte[] salt)
+        {
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
+            return pbkdf2.GetBytes(KeySize);
+        }
+
+        // Verschlüsselung
+        private static byte[] EncryptStringToBytes_Aes(string plainText, byte[] key, byte[] iv)
+        {
+            using var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = iv;
+
+            using var encryptor = aes.CreateEncryptor();
+            using var ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+            using var sw = new StreamWriter(cs);
+            sw.Write(plainText);
+            sw.Close();
+            return ms.ToArray();
+        }
+
+        // Entschlüsselung
+        private static string DecryptStringFromBytes_Aes(byte[] cipherText, byte[] key, byte[] iv)
+        {
+            using var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = iv;
+
+            using var decryptor = aes.CreateDecryptor();
+            using var ms = new MemoryStream(cipherText);
+            using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+            using var sr = new StreamReader(cs);
+            return sr.ReadToEnd();
+        }
+
+        private static byte[] GenerateRandomBytes(int length)
+        {
+            byte[] data = new byte[length];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(data);
+            return data;
+        }
+
+        public static byte[] GenerateRandomSerialNumber(int byteLength)
         {
             if (byteLength < 1)
                 throw new ArgumentException("Die Länge der Seriennummer muss mindestens 1 Byte sein.", nameof(byteLength));
@@ -1923,12 +1191,11 @@ public class Utils
             {
                 rng.GetBytes(serialNumber);
             }
-
-            // Sicherstellen, dass das höchste Bit nicht gesetzt ist (positiv)
             serialNumber[0] &= 0x7F;
 
             return serialNumber;
         }
+
         public enum serverType
         {
             ca,
@@ -1936,7 +1203,6 @@ public class Utils
             server,
             user
         }
-
         public enum certType
         {
             priv,
@@ -1945,24 +1211,21 @@ public class Utils
             csr,
             signed
         }
+        public enum fdqnType
+        {
+            write,
+            read
+        }
         public enum columnType
         {
             name,
             id
         }
-
-        public static List<string> ObjectToString(List<object> obj)
+        public enum info
         {
-            List<string> list = new List<string>();
-
-            foreach (object o in obj)
-            {
-                list.Add(Convert.ToString(o));
-            }
-
-            return list;
+            CertInfoWrite,
+            CertInfoRead,
+            ServerCredentialWrite
         }
     }
-
-
 }

@@ -27,11 +27,8 @@ public class DatabaseConnection
         catch (Exception ex)
         {
             MessageBox.Show($"Error: {ex.Message}");
-            
-        }
-
-
-    }
+                    }
+            }
 
     public static DatabaseConnection GetInstance()
     {
