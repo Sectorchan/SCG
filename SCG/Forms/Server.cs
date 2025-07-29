@@ -1,8 +1,4 @@
-﻿using System.Data.Common;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Windows.Forms;
-using FluentResults;
+﻿using FluentResults;
 using Microsoft.Data.Sqlite;
 using PL.Certificate;
 using static PL.Utils.Tools;
