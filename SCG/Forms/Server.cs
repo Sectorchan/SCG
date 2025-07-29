@@ -1,17 +1,11 @@
-﻿
-using System;
+﻿using System.Data.Common;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using FluentResults;
 using Microsoft.Data.Sqlite;
-using PL;
-using static PL.Utils;
-using static PL.Utils.Certs;
-using static PL.Utils.Sql;
+using PL.Certificate;
 using static PL.Utils.Tools;
-using RadioButton = System.Windows.Forms.RadioButton;
-
 
 namespace SCG.Forms;
 
@@ -19,43 +13,108 @@ public partial class Server : Form
 {
     public Server()
     {
+        //open SQL connection
+        var db = DatabaseConnection.GetInstance();
+        sqlconnection = db.GetConnection();
+
+        SetupImageList();
+        LoadTreeView();
         InitializeComponent();
     }
-
+    ImageList imageList = new ImageList();
+    TreeView treeView1 = new TreeView();
     #region Private members
 
     private readonly bool _writeFile = true;
     private readonly bool _certVerify = true;
-    private readonly string[] _fqdn = ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"];
-    private readonly string[] _idSql = ["id"];
-    private readonly string[] _sshCred = ["host_username", "host_password", "hostname"];
-    private readonly string[] _sshlocs = ["cert_filename", "cert_priv_ext", "cert_pub_ext", "cert_path"];
-
 
     private readonly string c_selfsignedPasswordPfx = "";
-    private readonly string i_selfsignedPasswordPfx = "";
-    private readonly string s_selfsignedPasswordPfx = "";
-    private readonly string _u_selfsignedPasswordPfx = "";
-
-    private const string CertPFX = "PFX files(*.pfx)|*.pfx";
-    private const string CertPEM = "PEM files(*.pem)|*.pem";
-    private const string CertDER = "DER files(*.der)|*.der";
-    private const string CertCRT = "CRT files(*.crt)|*.crt";
-    private const string CertCER = "CER files(*.cer)|*.cer";
 
     public static SqliteConnection sqlconnection;
     private readonly string _masterPassword = "test";
 
-    byte[] key = new byte[32];
-
     #endregion
+    private void SetupImageList()
+    {
+        
+        imageList.Images.Add("ca", Properties.Resources.ca);             // index 0
+        imageList.Images.Add("intermediate", Properties.Resources.intermediate); // index 1
+        imageList.Images.Add("server", Properties.Resources.server);      // index 2
+        imageList.Images.Add("user", Properties.Resources.user);          // index 3
+        
+    }
+    void LoadTreeView()
+    {
+        var cas = PL.Utils.Sql.LoadCerts("ca");
+        var intermediates = PL.Utils.Sql.LoadCerts("intermediate");
+        var servers = PL.Utils.Sql.LoadCerts("server");
+        var users = PL.Utils.Sql.LoadCerts("user");
+
+        // CA > Intermediate  Server/User
+        foreach (var ca in cas)
+        {
+            TreeNode caNode = new TreeNode(ca.name)
+            {
+                Tag = ca,
+                ImageKey = "ca",
+                SelectedImageKey = "ca"
+            };
+
+            foreach (var intermediate in intermediates)
+            {
+                if (intermediate.signed_against == ca.id.ToString())
+                {
+                    TreeNode interNode = new TreeNode(intermediate.name)
+                    {
+                        Tag = intermediate,
+                        ImageKey = "intermediate",
+                        SelectedImageKey = "intermediate"
+                    };
+
+                    // Server unter Intermediate
+                    foreach (var server in servers)
+                    {
+                        if (server.signed_against == intermediate.id.ToString())
+                        {
+                            TreeNode serverNode = new TreeNode(server.name)
+                            {
+                                Tag = server,
+                                ImageKey = "server",
+                                SelectedImageKey = "server"
+                            };
+                            interNode.Nodes.Add(serverNode);
+                        }
+                    }
+
+                    // User unter Intermediate
+                    foreach (var user in users)
+                    {
+                        if (user.signed_against == intermediate.id.ToString())
+                        {
+                            TreeNode userNode = new TreeNode(user.name)
+                            {
+                                Tag = user,
+                                ImageKey = "user",
+                                SelectedImageKey = "user"
+                            };
+                            interNode.Nodes.Add(userNode);
+                        }
+                    }
+
+                    caNode.Nodes.Add(interNode);
+                }
+            }
+
+            treeView1.Nodes.Add(caNode);
+        }
+
+        sqlconnection.Close();
+    }
+
 
     private void server_onLoad(object sender, EventArgs e)
     {
-        //open SQL connection
-        var db = DatabaseConnection.GetInstance();
-        sqlconnection = db.GetConnection();
-        PL.Certs cert = new PL.Certs();
+        //PL.Certs cert = new PL.Certs();
         #region !Visible Boxes
         lbl_ca_name.Visible = false;
         tb_ca_name.Visible = false;
@@ -82,58 +141,15 @@ public partial class Server : Form
         read(lb_user_certs, serverType.user);
         lb_user_certs.Sorted = true;
         #endregion
+        
 
-
-        ImageList imageList = new ImageList();
-        Image original = Image.FromFile(@"images\ca.png");
-        Image resized = new Bitmap(original, new Size(16, 16));
-        imageList.Images.Add("ca", resized);
-        original = Image.FromFile(@"images\intermediate.jpg");
-        resized = new Bitmap(original, new Size(16, 16));
-        imageList.Images.Add("intermediate", resized);
-        original = Image.FromFile(@"images\server.png");
-        resized = new Bitmap(original, new Size(16, 16));
-        imageList.Images.Add("server", resized);
-        original = Image.FromFile(@"images\user.png");
-        resized = new Bitmap(original, new Size(16, 16));
-        imageList.Images.Add("user", resized);
-
-        treeView1.ImageList = imageList;
-
-        TreeNode rootNode = new TreeNode($"ca", 0, 0);
-        rootNode.ImageKey = "root";
-        rootNode.SelectedImageKey = "root";
-        treeView1.Nodes.Add(rootNode);
-        rootNode = new TreeNode($"ca2", 0, 0);
-        rootNode.ImageKey = "root";
-        rootNode.SelectedImageKey = "root";
-        treeView1.Nodes.Add(rootNode);
-
-
-        #region tbd
-        //Result<List<object>> result = Utils.Sql.SelectWhereObject(serverType.ca, ["name", "id"], "name", string.Empty);
-        //if (result.IsSuccess)
-        //{
-        //    if (result.Value != null)
-        //    {
-        //        foreach (var item in result.Value)
-        //        {
-        //            TreeNode tree = new TreeNode(Convert.ToString(item));
-        //            tree.Tag = "Hey";
-        //            treeView1.Nodes.Add(tree);
-        //        }
-        //    }
-        //}
-        //Utils.Sql.SelectWhereObject(serverType.intermediate, _idSql, "", "*");
-        //treeView1.Sort();
-        #endregion
     }
 
     public static void read(dynamic control, serverType table)
     {
         try
         {
-            Utils.Sql.SeSelect(table, control);
+            PL.Utils.Sql.SeSelect(table, control);
         }
         catch (Exception)
         {
@@ -145,7 +161,7 @@ public partial class Server : Form
     {
         try
         {
-            Result<List<string>> result = Utils.Sql.SqlSelect("name", table);
+            Result<List<string>> result = PL.Utils.Sql.SqlSelect("name", table);
 
             if (result.IsSuccess)
             {
@@ -178,7 +194,7 @@ public partial class Server : Form
             fdqnType fqdnType = e.FqdnType;
             serverType serverType = e.ServerType;
 
-            PL.Certs selectedCert = PL.Certs.GetSelectedCert(this, serverType);
+            Certs selectedCert = Certs.GetSelectedCert(this, serverType);
             if (selectedCert == null)
             {
                 MessageBox.Show("No certificate selected.");
@@ -203,11 +219,11 @@ public partial class Server : Form
                 selectedCert.subj_orgaunit = tb_sub_ou.Text;
                 selectedCert.subj_commonname = tb_sub_cn.Text;
                 selectedCert.subj_email = tb_sub_email.Text;
-                Result<int> updateRow = Utils.Sql.Update(serverType, selectedCert, null, ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"]);
+                Result<int> updateRow = PL.Utils.Sql.Update(serverType, selectedCert, null, ["subj_country", "subj_state", "subj_location", "subj_organisation", "subj_orgaunit", "subj_commonname", "subj_email"]);
                 if (updateRow.IsSuccess)
                 {
                     MessageBox.Show($"Successfully updated {updateRow.Value} row(s) in the database");
-                    Utils.Tools.UpdateCertList(this, serverType, selectedCert.name); //load servers from SQL
+                    PL.Utils.Tools.UpdateCertList(this, serverType, selectedCert.name); //load servers from SQL
                 }
             }
 
@@ -220,10 +236,10 @@ public partial class Server : Form
     {
         serverType serverType = e.ServerType;
 
-        PL.Certs selectedCert = PL.Certs.GetSelectedCert(this, serverType);
+        Certs selectedCert = Certs.GetSelectedCert(this, serverType);
         if (selectedCert != null)
         {
-            string pwd = SecurePasswordStore.LoadPassword(selectedCert.host_password, _masterPassword);
+            string pwd = PL.Password.SecurePasswordStore.LoadPassword(selectedCert.host_password, _masterPassword);
 
             return;
         }
@@ -240,7 +256,7 @@ public partial class Server : Form
 
             if (serverType == serverType.ca || serverType == serverType.intermediate || serverType == serverType.server || serverType == serverType.user)
             {
-                PL.Certs cert = new PL.Certs();
+                Certs cert = new Certs();
 
                 if (certType == certType.priv)
                 {
@@ -269,86 +285,86 @@ public partial class Server : Form
                     }
                     cert.name = serverName;
 
-                    cert.keySize = Utils.Tools.GetKeySize(this, serverType);
+                    cert.keySize = PL.Utils.Tools.GetKeySize(this, serverType);
 
-                    Result<string> privateKeyPem = Utils.Certs.GeneratePrivateKey(cert.keySize);
+                    Result<string> privateKeyPem = PL.Utils.Certs.GeneratePrivateKey(cert.keySize);
                     cert.private_key = privateKeyPem.Value;
 
                     if (!privateKeyPem.IsSuccess) return;
 
-                    Result<int> insertRow = Utils.Sql.InsertInto(serverType, serverName, cert);
+                    Result<int> insertRow = PL.Utils.Sql.InsertInto(serverType, serverName, cert);
                     if (!insertRow.IsSuccess) return;
 
                     if (!_writeFile) return;
                     Form writeFileForm = new WriteFile(serverType, serverName, certType, cert);
                     writeFileForm.ShowDialog();
 
-                    Utils.Tools.UpdateCertList(this, serverType, serverName); //load servers from SQL
+                    PL.Utils.Tools.UpdateCertList(this, serverType, serverName); //load servers from SQL
 
                     MessageBox.Show($"Successfully inserted {insertRow} row(s) into the database and saved to the Harddisk");
                 }
                 else if (certType == certType.pub)
                 {
-                    PL.Certs selectedCaCert = PL.Certs.GetSelectedCert(this, serverType);
-                    Result<string> publicCert = Utils.Certs.GeneratePublicKey(selectedCaCert.name, selectedCaCert.private_key);
+                    Certs selectedCaCert = Certs.GetSelectedCert(this, serverType);
+                    Result<string> publicCert = PL.Utils.Certs.GeneratePublicKey(selectedCaCert.name, selectedCaCert.private_key);
                     selectedCaCert.public_cert = publicCert.Value;
 
-                    Result<int> insertRow = Utils.Sql.Update(serverType, selectedCaCert, null, ["public_cert", "public_createDT"]);
+                    Result<int> insertRow = PL.Utils.Sql.Update(serverType, selectedCaCert, null, ["public_cert", "public_createDT"]);
                     if (!insertRow.IsSuccess) return;
 
                     if (!_writeFile) return;
                     Form writeFileForm = new WriteFile(serverType, serverName, certType, selectedCaCert);
                     writeFileForm.ShowDialog();
 
-                    Utils.Tools.UpdateCertList(this, serverType, serverName); //load servers from SQL
+                    PL.Utils.Tools.UpdateCertList(this, serverType, serverName); //load servers from SQL
 
                     MessageBox.Show($"Successfully handled public key for {serverType} and saved to database and disk.");
                 }
                 else if (certType == certType.selfSigned)
                 {
-                    PL.Certs selectedCaCert = PL.Certs.GetSelectedCert(this, serverType);
+                    Certs selectedCaCert = Certs.GetSelectedCert(this, serverType);
                     selectedCaCert.ss_duration = Convert.ToInt32(tb_ca_dura.Text);
-                    Result<X509Certificate2> selfSigned = Utils.Certs.GenerateSelfsigned(serverType.ca, selectedCaCert);
+                    Result<X509Certificate2> selfSigned = PL.Utils.Certs.GenerateSelfsigned(serverType.ca, selectedCaCert);
                     if (selfSigned.IsSuccess)
                     {
                         selectedCaCert.ss_cert = selfSigned.Value.Export(X509ContentType.Pfx, c_selfsignedPasswordPfx);
-                        Result<int> insertRow = Utils.Sql.Update(serverType, selectedCaCert, null, ["ss_cert", "ss_createDT", "serialNumber", "ss_duration"]);
+                        Result<int> insertRow = PL.Utils.Sql.Update(serverType, selectedCaCert, null, ["ss_cert", "ss_createDT", "serialNumber", "ss_duration"]);
 
                         if (!_writeFile) return;
                         Form writeFileForm = new WriteFile(serverType, serverName, certType, selectedCaCert);
                         writeFileForm.ShowDialog();
 
-                        if (_certVerify) Utils.Certs.CheckPrivateKey(selfSigned.Value);
+                        if (_certVerify)    PL.Utils.Certs.CheckPrivateKey(selfSigned.Value);
                     }
                 }
                 else if (certType == certType.signed)
                 {
-                    PL.Certs issuerCert = null;
+                    Certs issuerCert = null;
                     if (serverType == serverType.intermediate)
                     {
-                        issuerCert = PL.Certs.GetSelectedCert(this, serverType.ca);
+                        issuerCert = Certs.GetSelectedCert(this, serverType.ca);
                     }
                     else if (serverType == serverType.server || serverType == serverType.user)
                     {
-                        issuerCert = PL.Certs.GetSelectedCert(this, serverType.intermediate);
+                        issuerCert = Certs.GetSelectedCert(this, serverType.intermediate);
                     }
                     if (issuerCert == null)
                     {
                         MessageBox.Show("No issuer certificate selected.");
                         return;
                     }
-                    PL.Certs requesterCert = PL.Certs.GetSelectedCert(this, serverType);
-                    requesterCert.ss_duration = Utils.Tools.GetDuration(this, serverType);
+                    Certs requesterCert = Certs.GetSelectedCert(this, serverType);
+                    requesterCert.ss_duration = PL.Utils.Tools.GetDuration(this, serverType);
 
-                    Result<X509Certificate2> signedCert = Utils.Certs.GenerateSigned(serverType, issuerCert, requesterCert);
+                    Result<X509Certificate2> signedCert = PL.Utils.Certs.GenerateSigned(serverType, issuerCert, requesterCert);
                     if (signedCert.IsSuccess)
                     {
-                        Result<int> insertRow = Utils.Sql.Update(serverType, requesterCert, issuerCert, ["ss_cert", "ss_duration", "signed_createDT", "signed_against", "serialNumber"]);
+                        Result<int> insertRow = PL.Utils.Sql.Update(serverType, requesterCert, issuerCert, ["ss_cert", "ss_duration", "signed_createDT", "signed_against", "serialNumber"]);
 
                         if (!_writeFile) return;
                         Form writeFileForm = new WriteFile(serverType, serverName, certType, requesterCert);
                         writeFileForm.ShowDialog();
-                        if (_certVerify) Utils.Certs.CheckPrivateKey(signedCert.Value);
+                        if (_certVerify) PL.Utils.Certs.CheckPrivateKey(signedCert.Value);
                     }
                     else
                     {
@@ -369,7 +385,6 @@ public partial class Server : Form
     private void ServerCredential(object sender, CustomClickEventArgs e)
     {
         serverType serverType = e.ServerType;
-        certType certType = e.CertType;
         bool autoUpload = Cb_autoUpload.Checked;
 
         if (string.IsNullOrWhiteSpace(Tb_hostname.Text) || string.IsNullOrWhiteSpace(Tb_username.Text) || string.IsNullOrWhiteSpace(Tb_password_st.Text) || string.IsNullOrWhiteSpace(Tb_password_nd.Text) || string.IsNullOrWhiteSpace(Tb_hostname.Text))
@@ -383,15 +398,15 @@ public partial class Server : Form
             return;
         }
 
-        PL.Certs selectedCaCert = PL.Certs.GetSelectedCert(this, serverType);
+        Certs selectedCaCert = Certs.GetSelectedCert(this, serverType);
         selectedCaCert.host_name = Tb_hostname.Text;
 
         selectedCaCert.host_username = Tb_username.Text;
-        selectedCaCert.host_password = SecurePasswordStore.SavePassword(Tb_password_st.Text, _masterPassword);
+        selectedCaCert.host_password = PL.Password.SecurePasswordStore.SavePassword(Tb_password_st.Text, _masterPassword);
         //selectedCaCert.host_password = Tb_password_st.Text;
         selectedCaCert.cert_autoupload = autoUpload ? 1 : 0;
 
-        Result<int> insertRow = Utils.Sql.Update(serverType, selectedCaCert, null, ["host_name", "host_username", "host_password", "cert_autoupload"]);
+        Result<int> insertRow = PL.Utils.Sql.Update(serverType, selectedCaCert, null, ["host_name", "host_username", "host_password", "cert_autoupload"]);
         if (!insertRow.IsSuccess) return;
         MessageBox.Show($"{insertRow} in SQL");
 
@@ -450,7 +465,7 @@ public partial class Server : Form
     {
         info certInfo = e.CertInfo;
         serverType serverType = e.ServerType;
-        PL.Certs selectedCaCert = PL.Certs.GetSelectedCert(this, serverType);
+        Certs selectedCaCert = Certs.GetSelectedCert(this, serverType);
 
         ComboBox[] comboBoxes = new[] { Cb_san1, Cb_san2, Cb_san3, Cb_san4 };
         TextBox[] textBoxes = new[] { Tb_san1, Tb_san2, Tb_san3, Tb_san4 };
@@ -495,7 +510,7 @@ public partial class Server : Form
                         selectedCaCert.san4 = string.Empty;
                     }
                 }
-                Result<int> insertRow = Utils.Sql.Update(serverType, selectedCaCert, null,
+                Result<int> insertRow = PL.Utils.Sql.Update(serverType, selectedCaCert, null,
                     ["cert_priv_filename", "cert_priv_fileext", "cert_priv_path", "cert_pub_filename", "cert_pub_fileext", "cert_pub_path",
                     "san1", "san2", "san3", "san4"]
                     );
@@ -527,28 +542,6 @@ public partial class Server : Form
                         comboBoxes[i].Text = selectedCaCertSan[i].Substring(0, selectedCaCertSan[i].IndexOf(':'));
                     }
                 }
-
-                //    if (selectedCaCert.san1.Length > 1)
-                //{
-                //    Tb_san1.Text = selectedCaCert.san1.Substring(selectedCaCert.san1.IndexOf(':') + 1);
-                //    Cb_san1.Text = selectedCaCert.san1.Substring(0, selectedCaCert.san1.IndexOf(':'));
-                //}
-                //if (selectedCaCert.san2.Length > 1)
-                //{
-                //    Tb_san2.Text = selectedCaCert.san2.Substring(selectedCaCert.san2.IndexOf(':') + 1);
-                //    Cb_san2.Text = selectedCaCert.san2.Substring(0, selectedCaCert.san2.IndexOf(':'));
-                //}
-
-                //if (selectedCaCert.san3.Length > 1)
-                //{
-                //    Tb_san3.Text = selectedCaCert.san3.Substring(selectedCaCert.san3.IndexOf(':') + 1);
-                //    Cb_san3.Text = selectedCaCert.san3.Substring(0, selectedCaCert.san3.IndexOf(':'));
-                //}
-                //if (selectedCaCert.san4.Length > 1)
-                //{
-                //    Tb_san4.Text = selectedCaCert.san4.Substring(selectedCaCert.san4.IndexOf(':') + 1);
-                //    Cb_san4.Text = selectedCaCert.san4.Substring(0, selectedCaCert.san4.IndexOf(':'));
-                //}
             }
         }
         else

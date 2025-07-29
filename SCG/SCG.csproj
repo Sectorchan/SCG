@@ -30,7 +30,22 @@
   <ItemGroup>
     <None Remove="App-Surface-Patrick.config" />
     <None Remove="databasev2-Surface-Patrick.db" />
+    <None Remove="images\intermediate.jpg" />
+    <None Remove="images\server.png" />
+    <None Remove="images\user.png" />
     <None Remove="Properties\Settings-Surface-Patrick.settings" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="images\intermediate.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="images\server.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="images\user.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -73,16 +88,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="images\ca.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="images\intermediate.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="images\server.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="images\user.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <!--<None Update="database.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

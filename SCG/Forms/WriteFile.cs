@@ -8,7 +8,7 @@ namespace SCG.Forms
     {
         #region Members
         private string _ServerName { get; set; }
-        private Certs _certs { get; set; }
+        private PL.Certificate.Certs _certs { get; set; }
         public string PrivateKeyPem { get; set; }
         public string _privateKey { get; set; }
         public string _publicKey { get; set; }
@@ -27,7 +27,7 @@ namespace SCG.Forms
         /// <param name="serverName"></param>
         /// <param name="certificate"></param>
         /// <param name="certs"></param>
-        public WriteFile(serverType serverType, string serverName, certType certificate, PL.Certs certs)
+        public WriteFile(serverType serverType, string serverName, certType certificate, PL.Certificate.Certs certs)
         {
             _ServerType = serverType;
             _ServerName = certs.name;

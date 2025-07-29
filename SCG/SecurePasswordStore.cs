@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PL;
+namespace PL.Password;
 
 public static class SecurePasswordStore
 {

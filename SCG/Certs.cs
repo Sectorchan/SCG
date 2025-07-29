@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SCG.Forms;
 using static PL.Utils.Tools;
 
-namespace PL;
+namespace PL.Certificate;
 //[DebuggerDisplay("ID = {id}, Name = {name}")]
 
 public class Certs

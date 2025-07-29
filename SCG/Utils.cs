@@ -9,10 +9,7 @@ using Renci.SshNet;
 using SCG.Forms;
 using static PL.Utils.Tools;
 using static SCG.Forms.Server;
-using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
+
 
 
 namespace PL;
@@ -155,7 +152,7 @@ public class Utils
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
         ///
-        public static Result<int> InsertInto(serverType table, string _name, PL.Certs cert)
+        public static Result<int> InsertInto(serverType table, string _name, PL.Certificate.Certs cert)
         {
             try
             {
@@ -187,12 +184,10 @@ public class Utils
             try
             {
                 string items = string.Empty;
-
                 string sql = $"SELECT * FROM {serverType}";
 
                 using var command = new SqliteCommand(sql, _connection);
                 using var reader = command.ExecuteReader();
-
 
                 if (reader.HasRows)
                 {
@@ -204,7 +199,7 @@ public class Utils
                         ss_cert = new byte[size];
                         reader.GetBytes(i_ss_cert, 0, ss_cert, 0, (int)size);  // Daten einlesen
 
-                        var item = new PL.Certs
+                        var item = new PL.Certificate.Certs
                         {
                             id = reader.GetInt32(reader.GetOrdinal("id")),
                             name = reader.GetString(reader.GetOrdinal("name")),
@@ -254,19 +249,72 @@ public class Utils
                 }
             }
             catch (Exception ex)
-            {
-                MessageBox.Show($"Error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
+            { MessageBox.Show($"Error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
 
-        /// <summary>
-        /// Performs a SQL SELECT statement
-        /// </summary>
-        /// <param name="column">Which column should be searched for</param>
-        /// <param name="table">Defines the table inside the database</param>
-        /// <returns>Result<List<string>></returns>
+        public static List<PL.Certificate.Certs> LoadCerts(string table)
+        {
+            var list = new List<PL.Certificate.Certs>();
+            string sql = $"SELECT * FROM {table}";
+            using var command = new SqliteCommand(sql, _connection);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                byte[] ss_cert = null;
+                int i_ss_cert = reader.GetOrdinal("ss_cert");
+                long size = reader.GetBytes(i_ss_cert, 0, null, 0, 0); // Größe ermitteln
+                ss_cert = new byte[size];
+                reader.GetBytes(i_ss_cert, 0, ss_cert, 0, (int)size);  // Daten einlesen
+
+                var cert = new PL.Certificate.Certs
+                {
+                    id = reader.GetInt32(reader.GetOrdinal("id")),
+                    name = reader.GetString(reader.GetOrdinal("name")),
+                    keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
+                    private_key = reader.GetString(reader.GetOrdinal("private_key")),
+                    private_createDT = reader.GetInt32(reader.GetOrdinal("private_createDT")),
+                    public_cert = reader.GetString(reader.GetOrdinal("public_cert")),
+                    public_createDT = reader.GetString(reader.GetOrdinal("public_createDT")),
+                    ss_cert = ss_cert,
+                    ss_createDT = reader.GetString(reader.GetOrdinal("ss_createDT")),
+                    ss_duration = reader.GetInt32(reader.GetOrdinal("ss_duration")),
+                    subj_country = reader.GetString(reader.GetOrdinal("subj_country")),
+                    subj_state = reader.GetString(reader.GetOrdinal("subj_state")),
+                    subj_location = reader.GetString(reader.GetOrdinal("subj_location")),
+                    subj_organisation = reader.GetString(reader.GetOrdinal("subj_organisation")),
+                    subj_orgaunit = reader.GetString(reader.GetOrdinal("subj_orgaunit")),
+                    subj_commonname = reader.GetString(reader.GetOrdinal("subj_commonname")),
+                    subj_email = reader.GetString(reader.GetOrdinal("subj_email")),
+                    serialNumber = reader.GetInt64(reader.GetOrdinal("serialNumber")),
+                    host_name = reader.GetString(reader.GetOrdinal("host_name")),
+                    host_username = reader.GetString(reader.GetOrdinal("host_username")),
+                    host_password = reader.GetString(reader.GetOrdinal("host_password")),
+
+                    signed_against = reader.GetString(reader.GetOrdinal("signed_against")),
+                    signed_createDT = reader.GetString(reader.GetOrdinal("signed_createDT")),
+
+                    cert_priv_filename = reader.GetString(reader.GetOrdinal("cert_priv_filename")),
+                    cert_priv_fileext = reader.GetString(reader.GetOrdinal("cert_priv_fileext")),
+                    cert_priv_path = reader.GetString(reader.GetOrdinal("cert_priv_path")),
+                    cert_pub_filename = reader.GetString(reader.GetOrdinal("cert_pub_filename")),
+                    cert_pub_fileext = reader.GetString(reader.GetOrdinal("cert_pub_fileext")),
+                    cert_pub_path = reader.GetString(reader.GetOrdinal("cert_pub_path")),
+                    cert_signed_filename = reader.GetString(reader.GetOrdinal("cert_signed_filename")),
+                    cert_signed_fileext = reader.GetString(reader.GetOrdinal("cert_signed_fileext")),
+                    cert_signed_path = reader.GetString(reader.GetOrdinal("cert_signed_path")),
+
+                    cert_autoupload = reader.GetInt32(reader.GetOrdinal("cert_autoupload")),
+                    san1 = reader.GetString(reader.GetOrdinal("san1")),
+                    san2 = reader.GetString(reader.GetOrdinal("san2")),
+                    san3 = reader.GetString(reader.GetOrdinal("san3")),
+                    san4 = reader.GetString(reader.GetOrdinal("san4"))
+                };
+                list.Add(cert);
+            }
+            return list;
+        }
         public static List<string> SqlSelect(string column, serverType table)
         {
             var sql = $"SELECT {column} FROM {table}";
@@ -508,68 +556,7 @@ public class Utils
 
 
         }
-        public static int Update(serverType table, string publicKey, string searchTerm, string searchColumn)
-        {
-            try
-            {
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWrite;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-
-                string sql = $"UPDATE {table} SET public_cert = @_publicKey, public_createDT = @_public_createDT WHERE {searchColumn} = @_searchTerm";
-
-                string public_createDT = DateTime.Now.ToString();
-                using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_publicKey", publicKey);
-                command.Parameters.AddWithValue("@_public_createDT", public_createDT);
-                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
-                int rowUpdated = command.ExecuteNonQuery();
-
-                return rowUpdated;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-        public static Result<int> Update(serverType table, string searchTerm, string subj_country, string subj_state, string subj_location,
-                                         string subj_organisation, string subj_orgaunit, string subj_commonname, string subj_email)
-        {
-            try
-            {
-                SqliteConnectionStringBuilder _connectionString = new SqliteConnectionStringBuilder();
-                _connectionString.Mode = SqliteOpenMode.ReadWriteCreate;
-                _connectionString.DataSource = Global.database;
-                _connectionString.Password = null;
-                string connectionString = _connectionString.ToString();
-                using var connection = new SqliteConnection(connectionString);
-                connection.Open();
-
-                string sql = $"UPDATE {table} SET subj_country = @_subj_country, subj_state = @_subj_state, subj_location = @_subj_location, subj_organisation = @_subj_organisation, subj_orgaunit = @_subj_orgaunit, subj_commonname = @_subj_commonname, subj_email = @_subj_email WHERE name = @_searchTerm";
-
-                using var command = new SqliteCommand(sql, connection);
-                command.Parameters.AddWithValue("@_subj_country", subj_country);
-                command.Parameters.AddWithValue("@_subj_state", subj_state);
-                command.Parameters.AddWithValue("@_subj_location", subj_location);
-                command.Parameters.AddWithValue("@_subj_organisation", subj_organisation);
-                command.Parameters.AddWithValue("@_subj_orgaunit", subj_orgaunit);
-                command.Parameters.AddWithValue("@_subj_commonname", subj_commonname);
-                command.Parameters.AddWithValue("@_subj_email", subj_email);
-                command.Parameters.AddWithValue("@_searchTerm", searchTerm);
-
-                int rowInserted = command.ExecuteNonQuery();
-                return Result.Ok(rowInserted);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail(ex.Message);
-            }
-        }
-        public static Result<int> Update(serverType table, PL.Certs cert, PL.Certs issuerCert, string[] columns)
+        public static Result<int> Update(serverType table, PL.Certificate.Certs cert,PL.Certificate.Certs issuerCert, string[] columns)
         {
             try
             {
@@ -580,7 +567,7 @@ public class Utils
                     {
                         if (column is "public_createDT" or "private_createDT" or "ss_createDT" or "signed_createDT")
                         {
-                            PropertyInfo property = typeof(PL.Certs).GetProperty(column);
+                            PropertyInfo property = typeof(PL.Certificate.Certs).GetProperty(column);
                             if (property != null && property.CanWrite)
                             {
                                 property.SetValue(cert, Convert.ToString(DateTime.Now));
@@ -588,7 +575,7 @@ public class Utils
                         }
                         if (column is "signed_against")
                         {
-                            PropertyInfo property = typeof(PL.Certs).GetProperty(column);
+                            PropertyInfo property = typeof(PL.Certificate.Certs).GetProperty(column);
                             if (property != null && property.CanWrite)
                             {
                                 property.SetValue(cert, Convert.ToString(issuerCert.id));
@@ -598,7 +585,7 @@ public class Utils
                         command.Parameters.Clear();
                         command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                        var prop = typeof(PL.Certs).GetProperty(column);
+                        var prop = typeof(PL.Certificate.Certs).GetProperty(column);
 
                         if (prop != null)
                         {
@@ -783,7 +770,7 @@ public class Utils
                 return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
-        public static Result<X509Certificate2> GenerateSelfsigned(serverType serverType, PL.Certs certs)
+        public static Result<X509Certificate2> GenerateSelfsigned(serverType serverType, PL.Certificate.Certs certs)
         {
             try
             {
@@ -828,7 +815,7 @@ public class Utils
             catch (Exception ex)
             { return Result.Fail(Convert.ToString(ex)); }
         }
-        public static Result<X509Certificate2> GenerateSigned(serverType serverType, PL.Certs issuer, PL.Certs requester)
+        public static Result<X509Certificate2> GenerateSigned(serverType serverType, PL.Certificate.Certs issuer, PL.Certificate.Certs requester)
         {
             X509Certificate2 issuerCertificate = new X509Certificate2(issuer.ss_cert);
             using RSA issuerPrivateKey = issuerCertificate.GetRSAPrivateKey();
@@ -927,7 +914,7 @@ public class Utils
 
             return chain;
         }
-        public static Result<X500DistinguishedName> DNBuilder(PL.Certs certs)
+        public static Result<X500DistinguishedName> DNBuilder(PL.Certificate.Certs certs)
         {
             try
             {
@@ -1092,7 +1079,7 @@ public class Utils
                 return Result.Fail(Convert.ToString(ex));
             }
         }
-        public static byte[] GenerateSerialnumber(PL.Certs cert)
+        public static byte[] GenerateSerialnumber(PL.Certificate.Certs cert)
         {
             int cTempSerialNumber = Convert.ToInt32(cert.serialNumber);
             cTempSerialNumber++;
