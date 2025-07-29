@@ -12,35 +12,64 @@ namespace SCG.Forms;
 public partial class Server : Form
 {
     public Server()
-    {
-        //open SQL connection
-        var db = DatabaseConnection.GetInstance();
-        sqlconnection = db.GetConnection();
-
-        SetupImageList();
-        LoadTreeView();
+    {        
         InitializeComponent();
     }
     ImageList imageList = new ImageList();
-    TreeView treeView1 = new TreeView();
     #region Private members
 
     private readonly bool _writeFile = true;
     private readonly bool _certVerify = true;
-
     private readonly string c_selfsignedPasswordPfx = "";
-
     public static SqliteConnection sqlconnection;
     private readonly string _masterPassword = "test";
 
     #endregion
+    private void server_onLoad(object sender, EventArgs e)
+    {
+        //open SQL connection
+        var db = DatabaseConnection.GetInstance();
+        sqlconnection = db.GetConnection();
+        //PL.Certs cert = new PL.Certs();
+        #region !Visible Boxes
+        lbl_ca_name.Visible = false;
+        tb_ca_name.Visible = false;
+        lb_ca_certs.Items.Clear();
+        read(lb_ca_certs, serverType.ca);
+        lb_ca_certs.Sorted = true;
+
+        lbl_int_name.Visible = false;
+        tb_int_name.Visible = false;
+        lb_int_certs.Items.Clear();
+        read(lb_int_certs, serverType.intermediate);
+        lb_int_certs.Sorted = true;
+
+        tb_server_name.Visible = false;
+        lbl_server_name.Visible = false;
+        lb_server_certs.Items.Clear();
+        read(lb_server_certs, serverType.server);
+        lb_server_certs.Sorted = true;
+
+        tb_user_name.Visible = false;
+        lbl_user_name.Visible = false;
+
+        lb_user_certs.Items.Clear();
+        read(lb_user_certs, serverType.user);
+        lb_user_certs.Sorted = true;
+        #endregion
+
+
+        SetupImageList();
+        LoadTreeView();
+
+    }
     private void SetupImageList()
     {
         
-        imageList.Images.Add("ca", Properties.Resources.ca);             // index 0
-        imageList.Images.Add("intermediate", Properties.Resources.intermediate); // index 1
-        imageList.Images.Add("server", Properties.Resources.server);      // index 2
-        imageList.Images.Add("user", Properties.Resources.user);          // index 3
+        imageList1.Images.Add("ca", Properties.Resources.ca);             // index 0
+        imageList1.Images.Add("intermediate", Properties.Resources.intermediate); // index 1
+        imageList1.Images.Add("server", Properties.Resources.server);      // index 2
+        imageList1.Images.Add("user", Properties.Resources.user);          // index 3
         
     }
     void LoadTreeView()
@@ -107,42 +136,7 @@ public partial class Server : Form
 
             treeView1.Nodes.Add(caNode);
         }
-
-        sqlconnection.Close();
-    }
-
-
-    private void server_onLoad(object sender, EventArgs e)
-    {
-        //PL.Certs cert = new PL.Certs();
-        #region !Visible Boxes
-        lbl_ca_name.Visible = false;
-        tb_ca_name.Visible = false;
-        lb_ca_certs.Items.Clear();
-        read(lb_ca_certs, serverType.ca);
-        lb_ca_certs.Sorted = true;
-
-        lbl_int_name.Visible = false;
-        tb_int_name.Visible = false;
-        lb_int_certs.Items.Clear();
-        read(lb_int_certs, serverType.intermediate);
-        lb_int_certs.Sorted = true;
-
-        tb_server_name.Visible = false;
-        lbl_server_name.Visible = false;
-        lb_server_certs.Items.Clear();
-        read(lb_server_certs, serverType.server);
-        lb_server_certs.Sorted = true;
-
-        tb_user_name.Visible = false;
-        lbl_user_name.Visible = false;
-
-        lb_user_certs.Items.Clear();
-        read(lb_user_certs, serverType.user);
-        lb_user_certs.Sorted = true;
-        #endregion
-        
-
+        //sqlconnection.Close();
     }
 
     public static void read(dynamic control, serverType table)

@@ -28,6 +28,7 @@ partial class Server
     /// </summary>
     private void InitializeComponent()
     {
+        components = new System.ComponentModel.Container();
         tb_ca_name = new TextBox();
         gb_default_disti_names = new GroupBox();
         Tb_san4 = new TextBox();
@@ -140,6 +141,8 @@ partial class Server
         Bt_ca_ServerCred = new CustomButton();
         Bt_int_ServerCred = new CustomButton();
         Bt_server_ServerCred = new CustomButton();
+        treeView1 = new TreeView();
+        imageList1 = new ImageList(components);
         gb_default_disti_names.SuspendLayout();
         menuStrip1.SuspendLayout();
         Lbl_remotePath_pub.SuspendLayout();
@@ -714,7 +717,7 @@ partial class Server
         menuStrip1.Items.AddRange(new ToolStripItem[] { editToolStripMenuItem });
         menuStrip1.Location = new Point(0, 0);
         menuStrip1.Name = "menuStrip1";
-        menuStrip1.Size = new Size(926, 24);
+        menuStrip1.Size = new Size(1197, 24);
         menuStrip1.TabIndex = 94;
         menuStrip1.Text = "menuStrip1";
         // 
@@ -1320,11 +1323,29 @@ partial class Server
         Bt_server_ServerCred.Text = "Server";
         Bt_server_ServerCred.UseVisualStyleBackColor = true;
         // 
+        // treeView1
+        // 
+        treeView1.Font = new Font("Segoe UI", 20F);
+        treeView1.ImageIndex = 0;
+        treeView1.ImageList = imageList1;
+        treeView1.Location = new Point(800, 367);
+        treeView1.Name = "treeView1";
+        treeView1.SelectedImageIndex = 0;
+        treeView1.Size = new Size(328, 296);
+        treeView1.TabIndex = 137;
+        // 
+        // imageList1
+        // 
+        imageList1.ColorDepth = ColorDepth.Depth32Bit;
+        imageList1.ImageSize = new Size(50, 50);
+        imageList1.TransparentColor = Color.Transparent;
+        // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(926, 710);
+        ClientSize = new Size(1197, 710);
+        Controls.Add(treeView1);
         Controls.Add(Bt_server_ServerCred);
         Controls.Add(Bt_int_ServerCred);
         Controls.Add(Bt_ca_ServerCred);
@@ -1523,4 +1544,6 @@ partial class Server
     private CustomButton Bt_int_ServerCred;
     private CustomButton Bt_server_ServerCred;
     private CheckBox Cb_autoUpload;
+    private TreeView treeView1;
+    private ImageList imageList1;
 }
