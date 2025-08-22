@@ -1,5 +1,4 @@
 ﻿using FluentResults;
-using PL;
 using static PL.Utils.Tools;
 
 namespace SCG.Forms
@@ -8,7 +7,7 @@ namespace SCG.Forms
     {
         #region Members
         private string _ServerName { get; set; }
-        private PL.Certificate.Certs _certs { get; set; }
+        private PL.Certificate.Certificate _certs { get; set; }
         public string PrivateKeyPem { get; set; }
         public string _privateKey { get; set; }
         public string _publicKey { get; set; }
@@ -19,7 +18,6 @@ namespace SCG.Forms
 
         #endregion
 
-       
         /// <summary>
         /// Write Private, Public, selfSigned, Signed
         /// </summary>
@@ -27,7 +25,7 @@ namespace SCG.Forms
         /// <param name="serverName"></param>
         /// <param name="certificate"></param>
         /// <param name="certs"></param>
-        public WriteFile(serverType serverType, string serverName, certType certificate, PL.Certificate.Certs certs)
+        public WriteFile(serverType serverType, string serverName, certType certificate, PL.Certificate.Certificate certs)
         {
             _ServerType = serverType;
             _ServerName = certs.name;
@@ -55,16 +53,14 @@ namespace SCG.Forms
                 Cb_cert_ext.SelectedIndex = 0;
                 Text = "SelfSigned Certificate";
             }
-                      else if (_Certificate == certType.signed)
+            else if (_Certificate == certType.signed)
             {
                 InitializeComponent();
                 Cb_cert_ext.Items.AddRange(["Select extension", "PFX files(*.pfx)|*.pfx", "CER files(*.cer)|*.cer"]);
                 Cb_cert_ext.SelectedIndex = 0;
                 Text = "Signed Certificate";
             }
-
         }
-
         private void Bt_write_cert_Click(object sender, EventArgs e)
         {
             string ext = Convert.ToString(Cb_cert_ext.SelectedItem);
@@ -73,52 +69,11 @@ namespace SCG.Forms
             Result<string> res2 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
             if (res2.IsSuccess)
             {
-                MessageBox.Show($"{_ServerName}-{_Certificate}{ext_out} erfolgreich abgespeichert \\n in ");
+                MessageBox.Show($"{_ServerName}-{_Certificate}{ext_out} erfolgreich abgespeichert \n in {Path.GetDirectoryName(res2.Value)} ");
+                DialogResult = DialogResult.OK;
                 Close();
             }
-            #region hide
-            //if (_Certificate == certType.priv)
-            //{
-            //    Result<string> res1 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
-            //    if (res1.IsSuccess)
-            //    { Close(); }
-            //}
-            //else if (_Certificate == certType.pub)
-            //{
-            //    Result<string> res2 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
-            //    if (res2.IsSuccess)
-            //    {
-            //        MessageBox.Show($"{_ServerName}-{_Certificate}{ext_out} erfolgreich abgespeichert \\n in ");
-            //        Close();
-            //    }
-            //}
-            //else if (_Certificate == certType.selfSigned)
-            //{
-            //    Result<string> res2 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
-            //    if (res2.IsSuccess)
-            //    {
-            //        MessageBox.Show($"{_ServerName}-{_Certificate}{ext_out} erfolgreich abgespeichert");
-            //        Close();
-            //    }
-            //}
-            //else if (_Certificate == certType.csr)
-            //{
-            //    Result<string> res3 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
-            //    if (res3.IsSuccess)
-            //    { Close(); }
-            //}
-            //else if (_Certificate == certType.signed)
-            //{
-            //    Result<string> res2 = SaveFile(_ServerName + "-" + _Certificate, ext_out, Convert.ToString(Cb_cert_ext.SelectedItem));
-            //    if (res2.IsSuccess)
-            //    {
-            //        MessageBox.Show($"{_ServerName}-{_Certificate}{ext_out} erfolgreich abgespeichert");
-            //        Close();
-            //    }
-            //}
-            #endregion
         }
-
         public Result<string> SaveFile(string defaultFileName, string defaultFileExtension, string filter)
         {
             try
@@ -133,27 +88,6 @@ namespace SCG.Forms
 
                     if (SaveFile.ShowDialog() == DialogResult.OK)
                     {
-                        //if (_Certificate == certType.priv)
-                        //{
-                        //    File.WriteAllText(SaveFile.FileName, _certs.private_key);
-                        //    return Result.Ok("Success");
-                        //}
-                        //else if (_Certificate == certType.pub)
-                        //{
-                        //    File.WriteAllText(SaveFile.FileName, _certs.public_cert);
-                        //    return Result.Ok("Success");
-                        //}
-                        //else if (_Certificate == certType.selfSigned)
-                        //{
-                        //    return Result.Ok("Success");
-                        //}
-                        //else if (_Certificate == certType.signed)
-                        //{
-                        //    return Result.Ok("Success");
-                        //}
-                        //return Result.Fail($"Certificate failed to write");
-
-
                         if (_ServerType == serverType.ca)
                         {
                             if (_Certificate == certType.priv)
@@ -204,11 +138,17 @@ namespace SCG.Forms
         private void Cb_cert_ext_SelectionChangeCommitted(object sender, EventArgs e)
         {
             if (!Cb_cert_ext.SelectedItem.Equals("Select extension"))
-            {
-                Bt_write_cert.Enabled = true;
-            }
+            { Bt_write_cert.Enabled = true; }
             else
             { Bt_write_cert.Enabled = false; }
+        }
+
+        private void WriteFile_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (DialogResult != DialogResult.OK)
+            {
+                DialogResult = DialogResult.Cancel;
+            }
         }
     }
 }

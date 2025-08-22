@@ -10,20 +10,29 @@ using static PL.Utils.Tools;
 namespace PL.Certificate;
 //[DebuggerDisplay("ID = {id}, Name = {name}")]
 
-public class Certs
+public class Certificate
 {
     public int id { get; set; }
     public string name { get; set; }
     public int keySize { get; set; }
     public string private_key { get; set; }
-    public int private_createDT { get; set; }
+    public string private_createDT { get; set; }
     public string public_cert { get; set; }
     public string public_createDT { get; set; }
     public byte[] ss_cert { get; set; }
     public string ss_createDT { get; set; }
     public string signed_against { get; set; }
     public string signed_createDT { get; set; }
-    public int ss_duration { get; set; }
+    private int _ss_duration;
+    public int ss_duration
+    {
+        get => _ss_duration;
+        set
+        {
+            _ss_duration = value;
+        }
+    }
+    //public int ss_duration { get; set; }
     public string subj_country { get; set; }
     public string subj_state { get; set; }
     public string subj_location { get; set; }
@@ -51,17 +60,7 @@ public class Certs
     public string san3 { get; set; }
     public string san4 { get; set; }
 
-    // Wichtig: ToString bestimmt, was in der ListBox angezeigt wird
-    public override string ToString()
-    {
-        return name;
-    }
-    public static Certs GetSelectedCert(ListBox listBox)
-    {
-        return listBox.SelectedItem as Certs;
-    }
-
-    public static Certs GetSelectedCert(Server form, serverType type)
+    public static Certificate GetSelectedCert(Server form, serverType type)
     {
         ListBox listBox = type switch
         {
@@ -72,8 +71,6 @@ public class Certs
             _ => null
         };
 
-        return listBox.SelectedItem as Certs;
-
+        return listBox.SelectedItem as Certificate;
     }
-
 }

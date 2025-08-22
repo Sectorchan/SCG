@@ -12,9 +12,8 @@ public class CustomButton : Button
     public serverType _serverType { get; set; }
     public fdqnType _fqdnType { get; set; }
     public info _certInfo { get; set; }
-    
+    public CustomMessageBox.CustomDialogResult _customDialogResult { get; set; }
 
-    public event EventHandler<CustomClickEventArgs>? CustomClick;
 
     protected override void OnClick(EventArgs e)
     {
@@ -23,18 +22,22 @@ public class CustomButton : Button
     }
     public CustomButton()
     {
-        Width = 75;
-        Height = 23;
-        Name = "Bt_";
-        Text = "Button";
     }
+    public CustomButton(CustomMessageBox.CustomDialogResult customDialogResult)
+
+    {
+    }
+
+    public event EventHandler<CustomClickEventArgs>? CustomClick;
 }
+
 public class CustomClickEventArgs : EventArgs
 {
     public certType CertType { get; }
     public serverType ServerType { get; }
     public fdqnType FqdnType { get; }
     public info CertInfo { get; }
+
 
     public CustomClickEventArgs(certType certType, serverType serverType, fdqnType fqdnType, info certInfo)
     {

@@ -30,29 +30,6 @@ partial class Server
     {
         components = new System.ComponentModel.Container();
         tb_ca_name = new TextBox();
-        gb_default_disti_names = new GroupBox();
-        Tb_san4 = new TextBox();
-        Tb_san3 = new TextBox();
-        Tb_san2 = new TextBox();
-        Tb_san1 = new TextBox();
-        Cb_san4 = new ComboBox();
-        Cb_san3 = new ComboBox();
-        Cb_san2 = new ComboBox();
-        Cb_san1 = new ComboBox();
-        tb_sub_email = new TextBox();
-        tb_sub_cn = new TextBox();
-        tb_sub_orga = new TextBox();
-        tb_sub_ou = new TextBox();
-        tb_sub_loc = new TextBox();
-        tb_sub_st = new TextBox();
-        tb_sub_c = new TextBox();
-        lbl_def_email = new Label();
-        lbl_def_commonName = new Label();
-        lbl_def_organisationUnit = new Label();
-        lbl_def_organisation = new Label();
-        lbl_def_location = new Label();
-        lbl_def_state = new Label();
-        lbl_def_country = new Label();
         lbl_ca_name = new Label();
         lb_ca_certs = new ListBox();
         cb_ca_keySize = new ComboBox();
@@ -94,6 +71,7 @@ partial class Server
         menuStrip1 = new MenuStrip();
         editToolStripMenuItem = new ToolStripMenuItem();
         ms_edit_config = new ToolStripMenuItem();
+        testFormToolStripMenuItem = new ToolStripMenuItem();
         Lb_cert_remotePath = new Label();
         Lbl_remotePath_pub = new GroupBox();
         Tb_pub_filename = new TextBox();
@@ -101,34 +79,6 @@ partial class Server
         Lbl_remotePath_priv = new Label();
         Tb_priv_remPath = new TextBox();
         saveFileDialog1 = new SaveFileDialog();
-        customButton1 = new CustomButton();
-        customButton2 = new CustomButton();
-        Bt_ca_pub = new CustomButton();
-        bt_ca_selfSigned = new CustomButton();
-        bt_int_pub = new CustomButton();
-        bt_int_signCA = new CustomButton();
-        Bt_int_rd_fqdn = new CustomButton();
-        Bt_int_wr_fqdn = new CustomButton();
-        Bt_ca_fqdn_write = new CustomButton();
-        Bt_ca_fqdn_read = new CustomButton();
-        Bt_server_wr_fqdn = new CustomButton();
-        Bt_server_rd_fqdn = new CustomButton();
-        Bt_user_wr_fqdn = new CustomButton();
-        Bt_user_rd_fqdn = new CustomButton();
-        customButton4 = new CustomButton();
-        customButton5 = new CustomButton();
-        Bt_server_ = new CustomButton();
-        customButton6 = new CustomButton();
-        customButton7 = new CustomButton();
-        customButton8 = new CustomButton();
-        customButton3 = new CustomButton();
-        customButton9 = new CustomButton();
-        customButton10 = new CustomButton();
-        customButton11 = new CustomButton();
-        customButton12 = new CustomButton();
-        customButton13 = new CustomButton();
-        customButton14 = new CustomButton();
-        customButton15 = new CustomButton();
         Gb_serverCredentials = new GroupBox();
         Cb_autoUpload = new CheckBox();
         Tb_password_nd = new TextBox();
@@ -138,16 +88,40 @@ partial class Server
         Lb_password = new Label();
         Lb_username = new Label();
         Lb_hostname = new Label();
-        Bt_ca_ServerCred = new CustomButton();
-        Bt_int_ServerCred = new CustomButton();
-        Bt_server_ServerCred = new CustomButton();
-        treeView1 = new TreeView();
-        imageList1 = new ImageList(components);
-        gb_default_disti_names.SuspendLayout();
+        CertificateTree = new TreeView();
+        CertificateTreeImages = new ImageList(components);
+        contextMenuStrip = new ContextMenuStrip(components);
+        createMenu = new ToolStripMenuItem();
+        create_private_key = new ExtendedToolStripMenuItem();
+        toolStripSeparator1 = new ToolStripSeparator();
+        create_public_key = new ExtendedToolStripMenuItem();
+        create_selfSign = new ToolStripMenuItem();
+        create_sign = new ToolStripMenuItem();
+        create_new = new ToolStripMenuItem();
+        create_new_ca = new ExtendedToolStripTextBox();
+        create_new_intermediate = new ToolStripTextBox();
+        create_new_server = new ToolStripTextBox();
+        create_new_user = new ToolStripMenuItem();
+        viewToolStripMenuItem = new ToolStripMenuItem();
+        view_private_key = new ToolStripMenuItem();
+        view_public_key = new ToolStripMenuItem();
+        view_fqdn = new ToolStripMenuItem();
+        view_san = new ToolStripMenuItem();
+        view_self_signed = new ToolStripMenuItem();
+        certificateInformationMenuItem1 = new ToolStripMenuItem();
+        dNToolStripMenuItem = new ToolStripMenuItem();
+        readToolStripMenuItem = new ToolStripMenuItem();
+        writeToolStripMenuItem = new ToolStripMenuItem();
+        bindingSource1 = new BindingSource(components);
+        customButton1 = new CustomButton();
         menuStrip1.SuspendLayout();
         Lbl_remotePath_pub.SuspendLayout();
         Gb_serverCredentials.SuspendLayout();
+        contextMenuStrip.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)bindingSource1).BeginInit();
         SuspendLayout();
+
+
         // 
         // tb_ca_name
         // 
@@ -155,216 +129,6 @@ partial class Server
         tb_ca_name.Name = "tb_ca_name";
         tb_ca_name.Size = new Size(100, 23);
         tb_ca_name.TabIndex = 12;
-        // 
-        // gb_default_disti_names
-        // 
-        gb_default_disti_names.Controls.Add(Tb_san4);
-        gb_default_disti_names.Controls.Add(Tb_san3);
-        gb_default_disti_names.Controls.Add(Tb_san2);
-        gb_default_disti_names.Controls.Add(Tb_san1);
-        gb_default_disti_names.Controls.Add(Cb_san4);
-        gb_default_disti_names.Controls.Add(Cb_san3);
-        gb_default_disti_names.Controls.Add(Cb_san2);
-        gb_default_disti_names.Controls.Add(Cb_san1);
-        gb_default_disti_names.Controls.Add(tb_sub_email);
-        gb_default_disti_names.Controls.Add(tb_sub_cn);
-        gb_default_disti_names.Controls.Add(tb_sub_orga);
-        gb_default_disti_names.Controls.Add(tb_sub_ou);
-        gb_default_disti_names.Controls.Add(tb_sub_loc);
-        gb_default_disti_names.Controls.Add(tb_sub_st);
-        gb_default_disti_names.Controls.Add(tb_sub_c);
-        gb_default_disti_names.Controls.Add(lbl_def_email);
-        gb_default_disti_names.Controls.Add(lbl_def_commonName);
-        gb_default_disti_names.Controls.Add(lbl_def_organisationUnit);
-        gb_default_disti_names.Controls.Add(lbl_def_organisation);
-        gb_default_disti_names.Controls.Add(lbl_def_location);
-        gb_default_disti_names.Controls.Add(lbl_def_state);
-        gb_default_disti_names.Controls.Add(lbl_def_country);
-        gb_default_disti_names.Location = new Point(278, 359);
-        gb_default_disti_names.Name = "gb_default_disti_names";
-        gb_default_disti_names.Size = new Size(500, 219);
-        gb_default_disti_names.TabIndex = 11;
-        gb_default_disti_names.TabStop = false;
-        gb_default_disti_names.Text = "Default Distinguished Names";
-        // 
-        // Tb_san4
-        // 
-        Tb_san4.Location = new Point(321, 120);
-        Tb_san4.Name = "Tb_san4";
-        Tb_san4.Size = new Size(166, 23);
-        Tb_san4.TabIndex = 22;
-        // 
-        // Tb_san3
-        // 
-        Tb_san3.Location = new Point(321, 91);
-        Tb_san3.Name = "Tb_san3";
-        Tb_san3.Size = new Size(166, 23);
-        Tb_san3.TabIndex = 21;
-        // 
-        // Tb_san2
-        // 
-        Tb_san2.Location = new Point(321, 62);
-        Tb_san2.Name = "Tb_san2";
-        Tb_san2.Size = new Size(166, 23);
-        Tb_san2.TabIndex = 20;
-        // 
-        // Tb_san1
-        // 
-        Tb_san1.Location = new Point(321, 33);
-        Tb_san1.Name = "Tb_san1";
-        Tb_san1.Size = new Size(166, 23);
-        Tb_san1.TabIndex = 19;
-        // 
-        // Cb_san4
-        // 
-        Cb_san4.FormattingEnabled = true;
-        Cb_san4.Items.AddRange(new object[] { "IP", "DNS" });
-        Cb_san4.Location = new Point(244, 120);
-        Cb_san4.Name = "Cb_san4";
-        Cb_san4.Size = new Size(71, 23);
-        Cb_san4.TabIndex = 18;
-        // 
-        // Cb_san3
-        // 
-        Cb_san3.FormattingEnabled = true;
-        Cb_san3.Items.AddRange(new object[] { "IP", "DNS" });
-        Cb_san3.Location = new Point(244, 91);
-        Cb_san3.Name = "Cb_san3";
-        Cb_san3.Size = new Size(71, 23);
-        Cb_san3.TabIndex = 17;
-        // 
-        // Cb_san2
-        // 
-        Cb_san2.FormattingEnabled = true;
-        Cb_san2.Items.AddRange(new object[] { "IP", "DNS" });
-        Cb_san2.Location = new Point(244, 62);
-        Cb_san2.Name = "Cb_san2";
-        Cb_san2.Size = new Size(71, 23);
-        Cb_san2.TabIndex = 16;
-        // 
-        // Cb_san1
-        // 
-        Cb_san1.FormattingEnabled = true;
-        Cb_san1.Items.AddRange(new object[] { "IP", "DNS" });
-        Cb_san1.Location = new Point(244, 33);
-        Cb_san1.Name = "Cb_san1";
-        Cb_san1.Size = new Size(71, 23);
-        Cb_san1.TabIndex = 15;
-        // 
-        // tb_sub_email
-        // 
-        tb_sub_email.Location = new Point(113, 180);
-        tb_sub_email.Name = "tb_sub_email";
-        tb_sub_email.Size = new Size(100, 23);
-        tb_sub_email.TabIndex = 13;
-        // 
-        // tb_sub_cn
-        // 
-        tb_sub_cn.Location = new Point(113, 154);
-        tb_sub_cn.Name = "tb_sub_cn";
-        tb_sub_cn.Size = new Size(100, 23);
-        tb_sub_cn.TabIndex = 12;
-        // 
-        // tb_sub_orga
-        // 
-        tb_sub_orga.Location = new Point(113, 130);
-        tb_sub_orga.Name = "tb_sub_orga";
-        tb_sub_orga.Size = new Size(100, 23);
-        tb_sub_orga.TabIndex = 11;
-        // 
-        // tb_sub_ou
-        // 
-        tb_sub_ou.Location = new Point(113, 106);
-        tb_sub_ou.Name = "tb_sub_ou";
-        tb_sub_ou.Size = new Size(100, 23);
-        tb_sub_ou.TabIndex = 10;
-        // 
-        // tb_sub_loc
-        // 
-        tb_sub_loc.Location = new Point(113, 81);
-        tb_sub_loc.Name = "tb_sub_loc";
-        tb_sub_loc.Size = new Size(100, 23);
-        tb_sub_loc.TabIndex = 9;
-        // 
-        // tb_sub_st
-        // 
-        tb_sub_st.Location = new Point(113, 56);
-        tb_sub_st.Name = "tb_sub_st";
-        tb_sub_st.Size = new Size(100, 23);
-        tb_sub_st.TabIndex = 8;
-        // 
-        // tb_sub_c
-        // 
-        tb_sub_c.AutoCompleteCustomSource.AddRange(new string[] { "AF", "EG", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "GQ", "AR", "AM", "AW", "AZ", "ET", "AU", "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BA", "BW", "BV", "BR", "IO", "BN", "BG", "BF", "BI", "CL", "CN", "CK", "CR", "CW", "DK", "CD", "DE", "DM", "DO", "DJ", "EC", "SV", "CI", "ER", "EE", "SZ", "FK", "FO", "FJ", "FI", "FM", "FR", "GF", "PF", "TF", "MC", "GA", "GM", "GE", "GH", "GI", "GD", "GR", "GL", "GP", "GU", "GT", "GG", "GN", "GW", "GY", "HT", "HM", "HN", "HK", "IN", "ID", "IM", "IQ", "IR", "IE", "IS", "IL", "IT", "JM", "JP", "YE", "JE", "JO", "VG", "VI", "KY", "KH", "CM", "CA", "CV", "BQ", "KZ", "QA", "KE", "KG", "KI", "UM", "CC", "CO", "KM", "XK", "HR", "CU", "KW", "LA", "LS", "LV", "LB", "LR", "LY", "LI", "LT", "LU", "MO", "MG", "MW", "MY", "MV", "ML", "MT", "MA", "MH", "MQ", "MR", "MU", "YT", "MX", "MD", "MN", "ME", "MS", "MZ", "MM", "NA", "NR", "NP", "NC", "NZ", "NI", "NL", "NE", "NG", "NU", "KP", "MP", "MK", "NF", "NO", "OM", "AT", "TL", "PK", "PS", "PW", "PA", "PG", "PY", "PE", "PH", "PN", "PL", "PT", "PR", "CG", "RE", "RW", "RO", "RU", "MF", "SB", "ZM", "WS", "SM", "BL", "ST", "SA", "SE", "CH", "SN", "RS", "SC", "SL", "ZW", "SG", "SX", "SK", "SI", "SO", "ES", "LK", "SH", "KN", "LC", "PM", "VC", "ZA", "SD", "GS", "KR", "SS", "SR", "SJ", "SY", "TJ", "TW", "TZ", "TH", "TG", "TK", "TO", "TT", "TD", "CZ", "TN", "TR", "TM", "TC", "TV", "UG", "UA", "HU", "UY", "UZ", "VU", "VA", "VE", "AE", "US", "GB", "VN", "WF", "CX", "EH", "CF", "CY" });
-        tb_sub_c.CharacterCasing = CharacterCasing.Upper;
-        tb_sub_c.Location = new Point(113, 30);
-        tb_sub_c.MaxLength = 2;
-        tb_sub_c.Name = "tb_sub_c";
-        tb_sub_c.Size = new Size(100, 23);
-        tb_sub_c.TabIndex = 7;
-        // 
-        // lbl_def_email
-        // 
-        lbl_def_email.AutoSize = true;
-        lbl_def_email.Location = new Point(66, 183);
-        lbl_def_email.Name = "lbl_def_email";
-        lbl_def_email.Size = new Size(41, 15);
-        lbl_def_email.TabIndex = 6;
-        lbl_def_email.Text = "E-Mail";
-        // 
-        // lbl_def_commonName
-        // 
-        lbl_def_commonName.AutoSize = true;
-        lbl_def_commonName.Location = new Point(14, 162);
-        lbl_def_commonName.Name = "lbl_def_commonName";
-        lbl_def_commonName.Size = new Size(93, 15);
-        lbl_def_commonName.TabIndex = 5;
-        lbl_def_commonName.Text = "Common Name";
-        // 
-        // lbl_def_organisationUnit
-        // 
-        lbl_def_organisationUnit.AutoSize = true;
-        lbl_def_organisationUnit.Location = new Point(30, 130);
-        lbl_def_organisationUnit.Name = "lbl_def_organisationUnit";
-        lbl_def_organisationUnit.Size = new Size(75, 15);
-        lbl_def_organisationUnit.TabIndex = 4;
-        lbl_def_organisationUnit.Text = "Organisation";
-        // 
-        // lbl_def_organisation
-        // 
-        lbl_def_organisation.AutoSize = true;
-        lbl_def_organisation.Location = new Point(46, 109);
-        lbl_def_organisation.Name = "lbl_def_organisation";
-        lbl_def_organisation.Size = new Size(61, 15);
-        lbl_def_organisation.TabIndex = 3;
-        lbl_def_organisation.Text = "Orga. Unit";
-        // 
-        // lbl_def_location
-        // 
-        lbl_def_location.AutoSize = true;
-        lbl_def_location.Location = new Point(54, 84);
-        lbl_def_location.Name = "lbl_def_location";
-        lbl_def_location.Size = new Size(53, 15);
-        lbl_def_location.TabIndex = 2;
-        lbl_def_location.Text = "Location";
-        // 
-        // lbl_def_state
-        // 
-        lbl_def_state.AutoSize = true;
-        lbl_def_state.Location = new Point(74, 56);
-        lbl_def_state.Name = "lbl_def_state";
-        lbl_def_state.Size = new Size(33, 15);
-        lbl_def_state.TabIndex = 1;
-        lbl_def_state.Text = "State";
-        // 
-        // lbl_def_country
-        // 
-        lbl_def_country.AutoSize = true;
-        lbl_def_country.Location = new Point(57, 33);
-        lbl_def_country.Name = "lbl_def_country";
-        lbl_def_country.Size = new Size(50, 15);
-        lbl_def_country.TabIndex = 0;
-        lbl_def_country.Text = "Country";
         // 
         // lbl_ca_name
         // 
@@ -723,7 +487,7 @@ partial class Server
         // 
         // editToolStripMenuItem
         // 
-        editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { ms_edit_config });
+        editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { ms_edit_config, testFormToolStripMenuItem });
         editToolStripMenuItem.Name = "editToolStripMenuItem";
         editToolStripMenuItem.Size = new Size(39, 20);
         editToolStripMenuItem.Text = "Edit";
@@ -731,9 +495,16 @@ partial class Server
         // ms_edit_config
         // 
         ms_edit_config.Name = "ms_edit_config";
-        ms_edit_config.Size = new Size(110, 22);
+        ms_edit_config.Size = new Size(121, 22);
         ms_edit_config.Text = "Config";
         ms_edit_config.Click += edit_config_load;
+        // 
+        // testFormToolStripMenuItem
+        // 
+        testFormToolStripMenuItem.Name = "testFormToolStripMenuItem";
+        testFormToolStripMenuItem.Size = new Size(121, 22);
+        testFormToolStripMenuItem.Text = "testForm";
+        testFormToolStripMenuItem.Click += testFormToolStripMenuItem_Click;
         // 
         // Lb_cert_remotePath
         // 
@@ -797,398 +568,6 @@ partial class Server
         Tb_priv_remPath.Name = "Tb_priv_remPath";
         Tb_priv_remPath.Size = new Size(102, 23);
         Tb_priv_remPath.TabIndex = 97;
-        // 
-        // customButton1
-        // 
-        customButton1._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton1._certType = PL.Utils.Tools.certType.priv;
-        customButton1._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton1._serverType = PL.Utils.Tools.serverType.ca;
-        customButton1.Location = new Point(27, 239);
-        customButton1.Name = "customButton1";
-        customButton1.Size = new Size(75, 23);
-        customButton1.TabIndex = 104;
-        customButton1.Text = "privTest";
-        customButton1.UseVisualStyleBackColor = true;
-        customButton1.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton2
-        // 
-        customButton2._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton2._certType = PL.Utils.Tools.certType.priv;
-        customButton2._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton2._serverType = PL.Utils.Tools.serverType.intermediate;
-        customButton2.Location = new Point(294, 239);
-        customButton2.Name = "customButton2";
-        customButton2.Size = new Size(75, 23);
-        customButton2.TabIndex = 105;
-        customButton2.Text = "privTest";
-        customButton2.UseVisualStyleBackColor = true;
-        customButton2.CustomClick += CustomButton2_CustomClick;
-        // 
-        // Bt_ca_pub
-        // 
-        Bt_ca_pub._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_ca_pub._certType = PL.Utils.Tools.certType.pub;
-        Bt_ca_pub._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_ca_pub._serverType = PL.Utils.Tools.serverType.ca;
-        Bt_ca_pub.Location = new Point(113, 239);
-        Bt_ca_pub.Name = "Bt_ca_pub";
-        Bt_ca_pub.Size = new Size(75, 23);
-        Bt_ca_pub.TabIndex = 106;
-        Bt_ca_pub.Text = "pubTest";
-        Bt_ca_pub.UseVisualStyleBackColor = true;
-        Bt_ca_pub.CustomClick += CustomButton2_CustomClick;
-        // 
-        // bt_ca_selfSigned
-        // 
-        bt_ca_selfSigned._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        bt_ca_selfSigned._certType = PL.Utils.Tools.certType.selfSigned;
-        bt_ca_selfSigned._fqdnType = PL.Utils.Tools.fdqnType.write;
-        bt_ca_selfSigned._serverType = PL.Utils.Tools.serverType.ca;
-        bt_ca_selfSigned.Location = new Point(27, 268);
-        bt_ca_selfSigned.Name = "bt_ca_selfSigned";
-        bt_ca_selfSigned.Size = new Size(75, 23);
-        bt_ca_selfSigned.TabIndex = 108;
-        bt_ca_selfSigned.Text = "ssTest";
-        bt_ca_selfSigned.UseVisualStyleBackColor = true;
-        bt_ca_selfSigned.CustomClick += CustomButton2_CustomClick;
-        // 
-        // bt_int_pub
-        // 
-        bt_int_pub._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        bt_int_pub._certType = PL.Utils.Tools.certType.pub;
-        bt_int_pub._fqdnType = PL.Utils.Tools.fdqnType.write;
-        bt_int_pub._serverType = PL.Utils.Tools.serverType.intermediate;
-        bt_int_pub.Location = new Point(375, 239);
-        bt_int_pub.Name = "bt_int_pub";
-        bt_int_pub.Size = new Size(75, 23);
-        bt_int_pub.TabIndex = 109;
-        bt_int_pub.Text = "pubTest";
-        bt_int_pub.UseVisualStyleBackColor = true;
-        bt_int_pub.CustomClick += CustomButton2_CustomClick;
-        // 
-        // bt_int_signCA
-        // 
-        bt_int_signCA._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        bt_int_signCA._certType = PL.Utils.Tools.certType.signed;
-        bt_int_signCA._fqdnType = PL.Utils.Tools.fdqnType.write;
-        bt_int_signCA._serverType = PL.Utils.Tools.serverType.intermediate;
-        bt_int_signCA.Location = new Point(294, 268);
-        bt_int_signCA.Name = "bt_int_signCA";
-        bt_int_signCA.Size = new Size(75, 23);
-        bt_int_signCA.TabIndex = 110;
-        bt_int_signCA.Text = "signTest";
-        bt_int_signCA.UseVisualStyleBackColor = true;
-        bt_int_signCA.CustomClick += CustomButton2_CustomClick;
-        // 
-        // Bt_int_rd_fqdn
-        // 
-        Bt_int_rd_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_int_rd_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_int_rd_fqdn._fqdnType = PL.Utils.Tools.fdqnType.read;
-        Bt_int_rd_fqdn._serverType = PL.Utils.Tools.serverType.intermediate;
-        Bt_int_rd_fqdn.Location = new Point(294, 297);
-        Bt_int_rd_fqdn.Name = "Bt_int_rd_fqdn";
-        Bt_int_rd_fqdn.Size = new Size(75, 23);
-        Bt_int_rd_fqdn.TabIndex = 111;
-        Bt_int_rd_fqdn.Text = "rd fqdn";
-        Bt_int_rd_fqdn.UseVisualStyleBackColor = true;
-        Bt_int_rd_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_int_wr_fqdn
-        // 
-        Bt_int_wr_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_int_wr_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_int_wr_fqdn._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_int_wr_fqdn._serverType = PL.Utils.Tools.serverType.intermediate;
-        Bt_int_wr_fqdn.Location = new Point(378, 297);
-        Bt_int_wr_fqdn.Name = "Bt_int_wr_fqdn";
-        Bt_int_wr_fqdn.Size = new Size(75, 23);
-        Bt_int_wr_fqdn.TabIndex = 112;
-        Bt_int_wr_fqdn.Text = "wr fqdn";
-        Bt_int_wr_fqdn.UseVisualStyleBackColor = true;
-        Bt_int_wr_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_ca_fqdn_write
-        // 
-        Bt_ca_fqdn_write._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_ca_fqdn_write._certType = PL.Utils.Tools.certType.priv;
-        Bt_ca_fqdn_write._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_ca_fqdn_write._serverType = PL.Utils.Tools.serverType.ca;
-        Bt_ca_fqdn_write.Location = new Point(111, 297);
-        Bt_ca_fqdn_write.Name = "Bt_ca_fqdn_write";
-        Bt_ca_fqdn_write.Size = new Size(75, 23);
-        Bt_ca_fqdn_write.TabIndex = 114;
-        Bt_ca_fqdn_write.Text = "wr fqdn";
-        Bt_ca_fqdn_write.UseVisualStyleBackColor = true;
-        Bt_ca_fqdn_write.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_ca_fqdn_read
-        // 
-        Bt_ca_fqdn_read._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_ca_fqdn_read._certType = PL.Utils.Tools.certType.priv;
-        Bt_ca_fqdn_read._fqdnType = PL.Utils.Tools.fdqnType.read;
-        Bt_ca_fqdn_read._serverType = PL.Utils.Tools.serverType.ca;
-        Bt_ca_fqdn_read.Location = new Point(27, 297);
-        Bt_ca_fqdn_read.Name = "Bt_ca_fqdn_read";
-        Bt_ca_fqdn_read.Size = new Size(75, 23);
-        Bt_ca_fqdn_read.TabIndex = 113;
-        Bt_ca_fqdn_read.Text = "rd fqdn";
-        Bt_ca_fqdn_read.UseVisualStyleBackColor = true;
-        Bt_ca_fqdn_read.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_server_wr_fqdn
-        // 
-        Bt_server_wr_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_server_wr_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_server_wr_fqdn._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_server_wr_fqdn._serverType = PL.Utils.Tools.serverType.server;
-        Bt_server_wr_fqdn.Location = new Point(634, 297);
-        Bt_server_wr_fqdn.Name = "Bt_server_wr_fqdn";
-        Bt_server_wr_fqdn.Size = new Size(75, 23);
-        Bt_server_wr_fqdn.TabIndex = 116;
-        Bt_server_wr_fqdn.Text = "wr fqdn";
-        Bt_server_wr_fqdn.UseVisualStyleBackColor = true;
-        Bt_server_wr_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_server_rd_fqdn
-        // 
-        Bt_server_rd_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_server_rd_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_server_rd_fqdn._fqdnType = PL.Utils.Tools.fdqnType.read;
-        Bt_server_rd_fqdn._serverType = PL.Utils.Tools.serverType.server;
-        Bt_server_rd_fqdn.Location = new Point(550, 297);
-        Bt_server_rd_fqdn.Name = "Bt_server_rd_fqdn";
-        Bt_server_rd_fqdn.Size = new Size(75, 23);
-        Bt_server_rd_fqdn.TabIndex = 115;
-        Bt_server_rd_fqdn.Text = "rd fqdn";
-        Bt_server_rd_fqdn.UseVisualStyleBackColor = true;
-        Bt_server_rd_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_user_wr_fqdn
-        // 
-        Bt_user_wr_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_user_wr_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_user_wr_fqdn._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_user_wr_fqdn._serverType = PL.Utils.Tools.serverType.user;
-        Bt_user_wr_fqdn.Location = new Point(846, 297);
-        Bt_user_wr_fqdn.Name = "Bt_user_wr_fqdn";
-        Bt_user_wr_fqdn.Size = new Size(75, 23);
-        Bt_user_wr_fqdn.TabIndex = 118;
-        Bt_user_wr_fqdn.Text = "wr fqdn";
-        Bt_user_wr_fqdn.UseVisualStyleBackColor = true;
-        Bt_user_wr_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // Bt_user_rd_fqdn
-        // 
-        Bt_user_rd_fqdn._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_user_rd_fqdn._certType = PL.Utils.Tools.certType.priv;
-        Bt_user_rd_fqdn._fqdnType = PL.Utils.Tools.fdqnType.read;
-        Bt_user_rd_fqdn._serverType = PL.Utils.Tools.serverType.user;
-        Bt_user_rd_fqdn.Location = new Point(759, 297);
-        Bt_user_rd_fqdn.Name = "Bt_user_rd_fqdn";
-        Bt_user_rd_fqdn.Size = new Size(75, 23);
-        Bt_user_rd_fqdn.TabIndex = 117;
-        Bt_user_rd_fqdn.Text = "rd fqdn";
-        Bt_user_rd_fqdn.UseVisualStyleBackColor = true;
-        Bt_user_rd_fqdn.CustomClick += CustomButton1_CustomClick;
-        // 
-        // customButton4
-        // 
-        customButton4._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton4._certType = PL.Utils.Tools.certType.signed;
-        customButton4._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton4._serverType = PL.Utils.Tools.serverType.server;
-        customButton4.Location = new Point(550, 268);
-        customButton4.Name = "customButton4";
-        customButton4.Size = new Size(75, 23);
-        customButton4.TabIndex = 121;
-        customButton4.Text = "signTest";
-        customButton4.UseVisualStyleBackColor = true;
-        customButton4.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton5
-        // 
-        customButton5._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton5._certType = PL.Utils.Tools.certType.pub;
-        customButton5._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton5._serverType = PL.Utils.Tools.serverType.server;
-        customButton5.Location = new Point(631, 239);
-        customButton5.Name = "customButton5";
-        customButton5.Size = new Size(75, 23);
-        customButton5.TabIndex = 120;
-        customButton5.Text = "pubTest";
-        customButton5.UseVisualStyleBackColor = true;
-        customButton5.CustomClick += CustomButton2_CustomClick;
-        // 
-        // Bt_server_
-        // 
-        Bt_server_._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        Bt_server_._certType = PL.Utils.Tools.certType.priv;
-        Bt_server_._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_server_._serverType = PL.Utils.Tools.serverType.server;
-        Bt_server_.Location = new Point(550, 239);
-        Bt_server_.Name = "Bt_server_";
-        Bt_server_.Size = new Size(75, 23);
-        Bt_server_.TabIndex = 119;
-        Bt_server_.Text = "privTest";
-        Bt_server_.UseVisualStyleBackColor = true;
-        Bt_server_.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton6
-        // 
-        customButton6._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton6._certType = PL.Utils.Tools.certType.signed;
-        customButton6._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton6._serverType = PL.Utils.Tools.serverType.user;
-        customButton6.Location = new Point(759, 268);
-        customButton6.Name = "customButton6";
-        customButton6.Size = new Size(75, 23);
-        customButton6.TabIndex = 124;
-        customButton6.Text = "signTest";
-        customButton6.UseVisualStyleBackColor = true;
-        customButton6.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton7
-        // 
-        customButton7._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton7._certType = PL.Utils.Tools.certType.pub;
-        customButton7._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton7._serverType = PL.Utils.Tools.serverType.user;
-        customButton7.Location = new Point(846, 239);
-        customButton7.Name = "customButton7";
-        customButton7.Size = new Size(75, 23);
-        customButton7.TabIndex = 123;
-        customButton7.Text = "pubTest";
-        customButton7.UseVisualStyleBackColor = true;
-        customButton7.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton8
-        // 
-        customButton8._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton8._certType = PL.Utils.Tools.certType.priv;
-        customButton8._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton8._serverType = PL.Utils.Tools.serverType.user;
-        customButton8.Location = new Point(759, 239);
-        customButton8.Name = "customButton8";
-        customButton8.Size = new Size(75, 23);
-        customButton8.TabIndex = 122;
-        customButton8.Text = "privTest";
-        customButton8.UseVisualStyleBackColor = true;
-        customButton8.CustomClick += CustomButton2_CustomClick;
-        // 
-        // customButton3
-        // 
-        customButton3._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton3._certType = PL.Utils.Tools.certType.priv;
-        customButton3._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton3._serverType = PL.Utils.Tools.serverType.ca;
-        customButton3.Location = new Point(27, 326);
-        customButton3.Name = "customButton3";
-        customButton3.Size = new Size(75, 23);
-        customButton3.TabIndex = 125;
-        customButton3.Text = "rdCertInfo";
-        customButton3.UseVisualStyleBackColor = true;
-        customButton3.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton9
-        // 
-        customButton9._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton9._certType = PL.Utils.Tools.certType.priv;
-        customButton9._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton9._serverType = PL.Utils.Tools.serverType.ca;
-        customButton9.Location = new Point(111, 326);
-        customButton9.Name = "customButton9";
-        customButton9.Size = new Size(75, 23);
-        customButton9.TabIndex = 126;
-        customButton9.Text = "wrCertInfo";
-        customButton9.UseVisualStyleBackColor = true;
-        customButton9.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton10
-        // 
-        customButton10._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton10._certType = PL.Utils.Tools.certType.priv;
-        customButton10._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton10._serverType = PL.Utils.Tools.serverType.intermediate;
-        customButton10.Location = new Point(378, 326);
-        customButton10.Name = "customButton10";
-        customButton10.Size = new Size(75, 23);
-        customButton10.TabIndex = 128;
-        customButton10.Text = "wrCertInfo";
-        customButton10.UseVisualStyleBackColor = true;
-        customButton10.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton11
-        // 
-        customButton11._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton11._certType = PL.Utils.Tools.certType.priv;
-        customButton11._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton11._serverType = PL.Utils.Tools.serverType.intermediate;
-        customButton11.Location = new Point(294, 326);
-        customButton11.Name = "customButton11";
-        customButton11.Size = new Size(75, 23);
-        customButton11.TabIndex = 127;
-        customButton11.Text = "rdCertInfo";
-        customButton11.UseVisualStyleBackColor = true;
-        customButton11.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton12
-        // 
-        customButton12._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton12._certType = PL.Utils.Tools.certType.priv;
-        customButton12._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton12._serverType = PL.Utils.Tools.serverType.server;
-        customButton12.Location = new Point(634, 326);
-        customButton12.Name = "customButton12";
-        customButton12.Size = new Size(75, 23);
-        customButton12.TabIndex = 130;
-        customButton12.Text = "wrCertInfo";
-        customButton12.UseVisualStyleBackColor = true;
-        customButton12.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton13
-        // 
-        customButton13._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton13._certType = PL.Utils.Tools.certType.priv;
-        customButton13._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton13._serverType = PL.Utils.Tools.serverType.server;
-        customButton13.Location = new Point(550, 326);
-        customButton13.Name = "customButton13";
-        customButton13.Size = new Size(75, 23);
-        customButton13.TabIndex = 129;
-        customButton13.Text = "rdCertInfo";
-        customButton13.UseVisualStyleBackColor = true;
-        customButton13.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton14
-        // 
-        customButton14._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton14._certType = PL.Utils.Tools.certType.priv;
-        customButton14._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton14._serverType = PL.Utils.Tools.serverType.user;
-        customButton14.Location = new Point(846, 326);
-        customButton14.Name = "customButton14";
-        customButton14.Size = new Size(75, 23);
-        customButton14.TabIndex = 132;
-        customButton14.Text = "wrCertInfo";
-        customButton14.UseVisualStyleBackColor = true;
-        customButton14.CustomClick += certificateInfo_CustomClick;
-        // 
-        // customButton15
-        // 
-        customButton15._certInfo = PL.Utils.Tools.info.CertInfoWrite;
-        customButton15._certType = PL.Utils.Tools.certType.priv;
-        customButton15._fqdnType = PL.Utils.Tools.fdqnType.write;
-        customButton15._serverType = PL.Utils.Tools.serverType.user;
-        customButton15.Location = new Point(762, 326);
-        customButton15.Name = "customButton15";
-        customButton15.Size = new Size(75, 23);
-        customButton15.TabIndex = 131;
-        customButton15.Text = "rdCertInfo";
-        customButton15.UseVisualStyleBackColor = true;
-        customButton15.CustomClick += certificateInfo_CustomClick;
         // 
         // Gb_serverCredentials
         // 
@@ -1282,102 +661,196 @@ partial class Server
         Lb_hostname.Text = "Hostname:";
         Lb_hostname.TextAlign = ContentAlignment.TopRight;
         // 
-        // Bt_ca_ServerCred
+        // CertificateTree
         // 
-        Bt_ca_ServerCred._certInfo = PL.Utils.Tools.info.ServerCredentialWrite;
-        Bt_ca_ServerCred._certType = PL.Utils.Tools.certType.priv;
-        Bt_ca_ServerCred._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_ca_ServerCred._serverType = PL.Utils.Tools.serverType.ca;
-        Bt_ca_ServerCred.Location = new Point(113, 268);
-        Bt_ca_ServerCred.Name = "Bt_ca_ServerCred";
-        Bt_ca_ServerCred.Size = new Size(75, 23);
-        Bt_ca_ServerCred.TabIndex = 134;
-        Bt_ca_ServerCred.Text = "Server";
-        Bt_ca_ServerCred.UseVisualStyleBackColor = true;
-        Bt_ca_ServerCred.CustomClick += ServerCredential;
+        CertificateTree.Font = new Font("Segoe UI", 20F);
+        CertificateTree.ImageIndex = 0;
+        CertificateTree.ImageList = CertificateTreeImages;
+        CertificateTree.Location = new Point(800, 367);
+        CertificateTree.Name = "CertificateTree";
+        CertificateTree.SelectedImageIndex = 0;
+        CertificateTree.Size = new Size(385, 296);
+        CertificateTree.TabIndex = 137;
+        CertificateTree.MouseUp += contextMenuStrip_MouseUp;
         // 
-        // Bt_int_ServerCred
+        // CertificateTreeImages
         // 
-        Bt_int_ServerCred._certInfo = PL.Utils.Tools.info.ServerCredentialWrite;
-        Bt_int_ServerCred._certType = PL.Utils.Tools.certType.priv;
-        Bt_int_ServerCred._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_int_ServerCred._serverType = PL.Utils.Tools.serverType.intermediate;
-        Bt_int_ServerCred.Location = new Point(378, 268);
-        Bt_int_ServerCred.Name = "Bt_int_ServerCred";
-        Bt_int_ServerCred.Size = new Size(75, 23);
-        Bt_int_ServerCred.TabIndex = 135;
-        Bt_int_ServerCred.Text = "Server";
-        Bt_int_ServerCred.UseVisualStyleBackColor = true;
-        Bt_int_ServerCred.CustomClick += ServerCredential;
+        CertificateTreeImages.ColorDepth = ColorDepth.Depth32Bit;
+        CertificateTreeImages.ImageSize = new Size(50, 50);
+        CertificateTreeImages.TransparentColor = Color.Transparent;
         // 
-        // Bt_server_ServerCred
+        // contextMenuStrip
         // 
-        Bt_server_ServerCred._certInfo = PL.Utils.Tools.info.ServerCredentialWrite;
-        Bt_server_ServerCred._certType = PL.Utils.Tools.certType.priv;
-        Bt_server_ServerCred._fqdnType = PL.Utils.Tools.fdqnType.write;
-        Bt_server_ServerCred._serverType = PL.Utils.Tools.serverType.server;
-        Bt_server_ServerCred.Location = new Point(631, 268);
-        Bt_server_ServerCred.Name = "Bt_server_ServerCred";
-        Bt_server_ServerCred.Size = new Size(75, 23);
-        Bt_server_ServerCred.TabIndex = 136;
-        Bt_server_ServerCred.Text = "Server";
-        Bt_server_ServerCred.UseVisualStyleBackColor = true;
+        contextMenuStrip.ImageScalingSize = new Size(20, 20);
+        contextMenuStrip.Items.AddRange(new ToolStripItem[] { createMenu, viewToolStripMenuItem, certificateInformationMenuItem1 });
+        contextMenuStrip.Name = "CAcontextMenuStrip";
+        contextMenuStrip.Size = new Size(195, 70);
         // 
-        // treeView1
+        // createMenu
         // 
-        treeView1.Font = new Font("Segoe UI", 20F);
-        treeView1.ImageIndex = 0;
-        treeView1.ImageList = imageList1;
-        treeView1.Location = new Point(800, 367);
-        treeView1.Name = "treeView1";
-        treeView1.SelectedImageIndex = 0;
-        treeView1.Size = new Size(328, 296);
-        treeView1.TabIndex = 137;
+        createMenu.DropDownItems.AddRange(new ToolStripItem[] { create_private_key, toolStripSeparator1, create_public_key, create_selfSign, create_sign, create_new });
+        createMenu.Name = "createMenu";
+        createMenu.Size = new Size(194, 22);
+        createMenu.Text = "Create";
         // 
-        // imageList1
+        // create_private_key
         // 
-        imageList1.ColorDepth = ColorDepth.Depth32Bit;
-        imageList1.ImageSize = new Size(50, 50);
-        imageList1.TransparentColor = Color.Transparent;
+        create_private_key.Name = "create_private_key";
+        create_private_key.serverType = PL.Utils.Tools.serverType.ca;
+        create_private_key.Size = new Size(132, 22);
+        create_private_key.Text = "Private Key";
+        create_private_key.Click += ToolStripClick;
+        // 
+        // toolStripSeparator1
+        // 
+        toolStripSeparator1.Name = "toolStripSeparator1";
+        toolStripSeparator1.Size = new Size(129, 6);
+        // 
+        // create_public_key
+        // 
+        create_public_key.Name = "create_public_key";
+        create_public_key.serverType = PL.Utils.Tools.serverType.ca;
+        create_public_key.Size = new Size(132, 22);
+        create_public_key.Text = "Public Key";
+        create_public_key.Click += ToolStripClick;
+        // 
+        // create_selfSign
+        // 
+        create_selfSign.Name = "create_selfSign";
+        create_selfSign.Size = new Size(132, 22);
+        create_selfSign.Text = "Self Sign";
+        create_selfSign.Click += ToolStripClick;
+        // 
+        // create_sign
+        // 
+        create_sign.Name = "create_sign";
+        create_sign.Size = new Size(132, 22);
+        create_sign.Text = "Sign";
+        create_sign.Click += ToolStripClick;
+        // 
+        // create_new
+        // 
+        create_new.DropDownItems.AddRange(new ToolStripItem[] { create_new_ca, create_new_intermediate, create_new_server, create_new_user });
+        create_new.Name = "create_new";
+        create_new.Size = new Size(132, 22);
+        create_new.Text = "New";
+        // 
+        // create_new_ca
+        // 
+        create_new_ca.Name = "create_new_ca";
+        create_new_ca.serverType = PL.Utils.Tools.serverType.ca;
+        create_new_ca.Size = new Size(360, 23);
+        create_new_ca.Text = "CA";
+        create_new_ca.KeyDown += create_new_ca_KeyDown;
+        create_new_ca.MouseUp += create_new_ca_MouseUp;
+        // 
+        // create_new_intermediate
+        // 
+        create_new_intermediate.Name = "create_new_intermediate";
+        create_new_intermediate.Size = new Size(240, 23);
+        create_new_intermediate.Text = "Intermediate";
+        // 
+        // create_new_server
+        // 
+        create_new_server.Name = "create_new_server";
+        create_new_server.Size = new Size(300, 23);
+        create_new_server.Text = "Server";
+        // 
+        // create_new_user
+        // 
+        create_new_user.Name = "create_new_user";
+        create_new_user.Size = new Size(420, 22);
+        create_new_user.Text = "User";
+        // 
+        // viewToolStripMenuItem
+        // 
+        viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { view_private_key, view_public_key, view_fqdn, view_san, view_self_signed });
+        viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+        viewToolStripMenuItem.Size = new Size(194, 22);
+        viewToolStripMenuItem.Text = "View";
+        // 
+        // view_private_key
+        // 
+        view_private_key.Name = "view_private_key";
+        view_private_key.Size = new Size(134, 22);
+        view_private_key.Text = "Private Key";
+        view_private_key.Click += View_Keys;
+        // 
+        // view_public_key
+        // 
+        view_public_key.Name = "view_public_key";
+        view_public_key.Size = new Size(134, 22);
+        view_public_key.Text = "Public Key";
+        view_public_key.Click += View_Keys;
+        // 
+        // view_fqdn
+        // 
+        view_fqdn.Name = "view_fqdn";
+        view_fqdn.Size = new Size(134, 22);
+        view_fqdn.Text = "FQDN";
+        view_fqdn.Click += View_Keys;
+        // 
+        // view_san
+        // 
+        view_san.Name = "view_san";
+        view_san.Size = new Size(134, 22);
+        view_san.Text = "SAN";
+        view_san.Click += View_Keys;
+        // 
+        // view_self_signed
+        // 
+        view_self_signed.Name = "view_self_signed";
+        view_self_signed.Size = new Size(134, 22);
+        view_self_signed.Text = "Self-Signed";
+        view_self_signed.Click += View_Keys;
+        // 
+        // certificateInformationMenuItem1
+        // 
+        certificateInformationMenuItem1.DropDownItems.AddRange(new ToolStripItem[] { dNToolStripMenuItem });
+        certificateInformationMenuItem1.Name = "certificateInformationMenuItem1";
+        certificateInformationMenuItem1.Size = new Size(194, 22);
+        certificateInformationMenuItem1.Text = "Certificate Information";
+        // 
+        // dNToolStripMenuItem
+        // 
+        dNToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { readToolStripMenuItem, writeToolStripMenuItem });
+        dNToolStripMenuItem.Name = "dNToolStripMenuItem";
+        dNToolStripMenuItem.Size = new Size(91, 22);
+        dNToolStripMenuItem.Text = "DN";
+        // 
+        // readToolStripMenuItem
+        // 
+        readToolStripMenuItem.Name = "readToolStripMenuItem";
+        readToolStripMenuItem.Size = new Size(102, 22);
+        readToolStripMenuItem.Text = "Read";
+        // 
+        // writeToolStripMenuItem
+        // 
+        writeToolStripMenuItem.Name = "writeToolStripMenuItem";
+        writeToolStripMenuItem.Size = new Size(102, 22);
+        writeToolStripMenuItem.Text = "Write";
+        // 
+        // customButton1
+        // 
+        customButton1._certInfo = PL.Utils.Tools.info.CertInfoWrite;
+        customButton1._certType = PL.Utils.Tools.certType.priv;
+        customButton1._fqdnType = PL.Utils.Tools.fdqnType.write;
+        customButton1._serverType = PL.Utils.Tools.serverType.ca;
+        customButton1.Location = new Point(500, 400);
+        customButton1.Name = "customButton1";
+        customButton1.Size = new Size(75, 23);
+        customButton1.TabIndex = 138;
+        customButton1.Text = "customButton1";
+        customButton1.UseVisualStyleBackColor = true;
         // 
         // Server
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1197, 710);
-        Controls.Add(treeView1);
-        Controls.Add(Bt_server_ServerCred);
-        Controls.Add(Bt_int_ServerCred);
-        Controls.Add(Bt_ca_ServerCred);
-        Controls.Add(Gb_serverCredentials);
-        Controls.Add(customButton14);
-        Controls.Add(customButton15);
-        Controls.Add(customButton12);
-        Controls.Add(customButton13);
-        Controls.Add(customButton10);
-        Controls.Add(customButton11);
-        Controls.Add(customButton9);
-        Controls.Add(customButton3);
-        Controls.Add(customButton6);
-        Controls.Add(customButton7);
-        Controls.Add(customButton8);
-        Controls.Add(customButton4);
-        Controls.Add(customButton5);
-        Controls.Add(Bt_server_);
-        Controls.Add(Bt_user_wr_fqdn);
-        Controls.Add(Bt_user_rd_fqdn);
-        Controls.Add(Bt_server_wr_fqdn);
-        Controls.Add(Bt_server_rd_fqdn);
-        Controls.Add(Bt_ca_fqdn_write);
-        Controls.Add(Bt_ca_fqdn_read);
-        Controls.Add(Bt_int_wr_fqdn);
-        Controls.Add(Bt_int_rd_fqdn);
-        Controls.Add(bt_int_signCA);
-        Controls.Add(bt_int_pub);
-        Controls.Add(bt_ca_selfSigned);
-        Controls.Add(Bt_ca_pub);
-        Controls.Add(customButton2);
         Controls.Add(customButton1);
+        Controls.Add(CertificateTree);
+        Controls.Add(Gb_serverCredentials);
         Controls.Add(Lbl_remotePath_pub);
         Controls.Add(menuStrip1);
         Controls.Add(cb_new_user);
@@ -1411,42 +884,27 @@ partial class Server
         Controls.Add(cb_new_ca);
         Controls.Add(lb_ca_certs);
         Controls.Add(tb_ca_name);
-        Controls.Add(gb_default_disti_names);
         Controls.Add(lbl_ca_name);
         MainMenuStrip = menuStrip1;
         Margin = new Padding(2);
         Name = "Server";
         Text = "server";
         Load += server_onLoad;
-        gb_default_disti_names.ResumeLayout(false);
-        gb_default_disti_names.PerformLayout();
         menuStrip1.ResumeLayout(false);
         menuStrip1.PerformLayout();
         Lbl_remotePath_pub.ResumeLayout(false);
         Lbl_remotePath_pub.PerformLayout();
         Gb_serverCredentials.ResumeLayout(false);
         Gb_serverCredentials.PerformLayout();
+        contextMenuStrip.ResumeLayout(false);
+        ((System.ComponentModel.ISupportInitialize)bindingSource1).EndInit();
         ResumeLayout(false);
         PerformLayout();
     }
 
     #endregion
+    public CustomButton cB;
     public TextBox tb_ca_name;
-    private GroupBox gb_default_disti_names;
-    private TextBox tb_sub_email;
-    private TextBox tb_sub_cn;
-    private TextBox tb_sub_orga;
-    private TextBox tb_sub_ou;
-    private TextBox tb_sub_loc;
-    private TextBox tb_sub_st;
-    private TextBox tb_sub_c;
-    private Label lbl_def_email;
-    private Label lbl_def_commonName;
-    private Label lbl_def_organisationUnit;
-    private Label lbl_def_organisation;
-    private Label lbl_def_location;
-    private Label lbl_def_state;
-    private Label lbl_def_country;
     private Label lbl_ca_name;
     private Label lbl_ca_keySize;
     public TextBox tb_ca_dura;
@@ -1491,47 +949,10 @@ partial class Server
     private Label Lb_cert_remotePath;
     private GroupBox Lbl_remotePath_pub;
     private SaveFileDialog saveFileDialog1;
-    private Button button_custom;
-    private CustomButton customButton1;
-    private CustomButton customButton2;
-    private CustomButton Bt_ca_pub;
-    private CustomButton bt_ca_selfSigned;
-    private CustomButton bt_int_pub;
-    private CustomButton bt_int_signCA;
-    private CustomButton Bt_int_rd_fqdn;
-    private CustomButton Bt_int_wr_fqdn;
-    private CustomButton Bt_ca_fqdn_write;
-    private CustomButton Bt_ca_fqdn_read;
-    private CustomButton Bt_server_wr_fqdn;
-    private CustomButton Bt_server_rd_fqdn;
-    private CustomButton Bt_user_wr_fqdn;
-    private CustomButton Bt_user_rd_fqdn;
-    private CustomButton customButton4;
-    private CustomButton customButton5;
-    private CustomButton Bt_server_;
-    private CustomButton customButton6;
-    private CustomButton customButton7;
-    private CustomButton customButton8;
     private Label Lbl_remotePath_priv;
     public TextBox Tb_priv_remPath;
     public TextBox Tb_pub_filename;
     private Label Lbl_filename_pub;
-    private CustomButton customButton3;
-    private CustomButton customButton9;
-    private CustomButton customButton10;
-    private CustomButton customButton11;
-    private CustomButton customButton12;
-    private CustomButton customButton13;
-    private CustomButton customButton14;
-    private CustomButton customButton15;
-    private TextBox Tb_san4;
-    private TextBox Tb_san3;
-    private TextBox Tb_san2;
-    private TextBox Tb_san1;
-    private ComboBox Cb_san4;
-    private ComboBox Cb_san3;
-    private ComboBox Cb_san2;
-    private ComboBox Cb_san1;
     private GroupBox Gb_serverCredentials;
     private Label Lb_password;
     private Label Lb_username;
@@ -1540,10 +961,32 @@ partial class Server
     private TextBox Tb_password_st;
     private TextBox Tb_username;
     private TextBox Tb_hostname;
-    private CustomButton Bt_ca_ServerCred;
-    private CustomButton Bt_int_ServerCred;
-    private CustomButton Bt_server_ServerCred;
     private CheckBox Cb_autoUpload;
-    private TreeView treeView1;
-    private ImageList imageList1;
+    private TreeView CertificateTree;
+    private ImageList CertificateTreeImages;
+    private ContextMenuStrip contextMenuStrip;
+    private ToolStripMenuItem createMenu;
+    private ToolStripSeparator toolStripSeparator1;
+    private ToolStripMenuItem create_selfSign;
+    private ToolStripMenuItem certificateInformationMenuItem1;
+    private ToolStripMenuItem dNToolStripMenuItem;
+    private ToolStripMenuItem readToolStripMenuItem;
+    private ToolStripMenuItem writeToolStripMenuItem;
+    private ToolStripMenuItem create_sign;
+    private ToolStripMenuItem viewToolStripMenuItem;
+    private ToolStripMenuItem view_private_key;
+    private ToolStripMenuItem view_public_key;
+    private ToolStripMenuItem view_fqdn;
+    private ToolStripMenuItem view_san;
+    private ToolStripMenuItem create_new;
+    private ToolStripMenuItem create_new_user;
+    private ToolStripMenuItem view_self_signed;
+    private ToolStripTextBox create_new_intermediate;
+    private ToolStripTextBox create_new_server;
+    private ExtendedToolStripTextBox create_new_ca;
+    private ExtendedToolStripMenuItem create_private_key;
+    private ExtendedToolStripMenuItem create_public_key;
+    private ToolStripMenuItem testFormToolStripMenuItem;
+    private BindingSource bindingSource1;
+    private CustomButton customButton1;
 }

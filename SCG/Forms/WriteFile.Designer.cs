@@ -70,8 +70,8 @@ partial class WriteFile
         Controls.Add(Lb_cert_ext);
         Controls.Add(Bt_write_cert);
         Controls.Add(Cb_cert_ext);
-        //Name = "WriteFile";
-        //Text = "WriteFile2";
+        Name = "WriteFile";
+        FormClosed += WriteFile_FormClosed;
         Load += WriteFile_Load;
         ResumeLayout(false);
         PerformLayout();

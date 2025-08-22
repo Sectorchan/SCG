@@ -84,9 +84,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ApplicationSettings.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="images\ca.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

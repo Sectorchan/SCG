@@ -152,21 +152,20 @@ public class Utils
         /// <param name="privbits">Default 4096, the same as on CreatePrivKey. Make sure thats the same parameter</param>
         /// <returns>Returns the amount of entries that written to the SQL database.</returns>
         ///
-        public static Result<int> InsertInto(serverType table, string _name, PL.Certificate.Certs cert)
+        public static Result<int> InsertInto(serverType table, string _name, PL.Certificate.Certificate cert)
         {
             try
             {
-
-                string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
+                string sql = $"INSERT INTO {table} (name) VALUES (@_name)";
+                //string sql = $"INSERT INTO {table} (name, keySize, private_key, private_createDT) VALUES (@_name, @_keySize, @_private_key, @_priv_createDT)";
 
                 using var command = new SqliteCommand(sql, _connection);
                 command.Parameters.AddWithValue("@_name", cert.name);
-                command.Parameters.AddWithValue("@_keySize", cert.keySize);
-                command.Parameters.AddWithValue("@_private_key", cert.private_key);
-                command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
+                //command.Parameters.AddWithValue("@_keySize", cert.keySize);
+                //command.Parameters.AddWithValue("@_private_key", cert.private_key);
+                //command.Parameters.AddWithValue("@_priv_createDT", DateTime.Now.ToString());
 
                 return Result.Ok(command.ExecuteNonQuery());
-
             }
             catch (Exception ex)
             {
@@ -199,13 +198,13 @@ public class Utils
                         ss_cert = new byte[size];
                         reader.GetBytes(i_ss_cert, 0, ss_cert, 0, (int)size);  // Daten einlesen
 
-                        var item = new PL.Certificate.Certs
+                        var item = new PL.Certificate.Certificate
                         {
                             id = reader.GetInt32(reader.GetOrdinal("id")),
                             name = reader.GetString(reader.GetOrdinal("name")),
                             keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
                             private_key = reader.GetString(reader.GetOrdinal("private_key")),
-                            private_createDT = reader.GetInt32(reader.GetOrdinal("private_createDT")),
+                            private_createDT = reader.GetString(reader.GetOrdinal("private_createDT")),
                             public_cert = reader.GetString(reader.GetOrdinal("public_cert")),
                             public_createDT = reader.GetString(reader.GetOrdinal("public_createDT")),
                             ss_cert = ss_cert,
@@ -253,9 +252,9 @@ public class Utils
         }
 
 
-        public static List<PL.Certificate.Certs> LoadCerts(string table)
+        public static List<PL.Certificate.Certificate> LoadCerts(string table)
         {
-            var list = new List<PL.Certificate.Certs>();
+            var list = new List<PL.Certificate.Certificate>();
             string sql = $"SELECT * FROM {table}";
             using var command = new SqliteCommand(sql, _connection);
             using var reader = command.ExecuteReader();
@@ -268,13 +267,13 @@ public class Utils
                 ss_cert = new byte[size];
                 reader.GetBytes(i_ss_cert, 0, ss_cert, 0, (int)size);  // Daten einlesen
 
-                var cert = new PL.Certificate.Certs
+                var cert = new PL.Certificate.Certificate
                 {
                     id = reader.GetInt32(reader.GetOrdinal("id")),
                     name = reader.GetString(reader.GetOrdinal("name")),
                     keySize = reader.GetInt32(reader.GetOrdinal("keySize")),
                     private_key = reader.GetString(reader.GetOrdinal("private_key")),
-                    private_createDT = reader.GetInt32(reader.GetOrdinal("private_createDT")),
+                    private_createDT = reader.GetString(reader.GetOrdinal("private_createDT")),
                     public_cert = reader.GetString(reader.GetOrdinal("public_cert")),
                     public_createDT = reader.GetString(reader.GetOrdinal("public_createDT")),
                     ss_cert = ss_cert,
@@ -556,7 +555,7 @@ public class Utils
 
 
         }
-        public static Result<int> Update(serverType table, PL.Certificate.Certs cert,PL.Certificate.Certs issuerCert, string[] columns)
+        public static Result<int> Update(serverType table, PL.Certificate.Certificate cert,PL.Certificate.Certificate issuerCert, string[] columns)
         {
             try
             {
@@ -567,7 +566,7 @@ public class Utils
                     {
                         if (column is "public_createDT" or "private_createDT" or "ss_createDT" or "signed_createDT")
                         {
-                            PropertyInfo property = typeof(PL.Certificate.Certs).GetProperty(column);
+                            PropertyInfo property = typeof(PL.Certificate.Certificate).GetProperty(column);
                             if (property != null && property.CanWrite)
                             {
                                 property.SetValue(cert, Convert.ToString(DateTime.Now));
@@ -575,7 +574,7 @@ public class Utils
                         }
                         if (column is "signed_against")
                         {
-                            PropertyInfo property = typeof(PL.Certificate.Certs).GetProperty(column);
+                            PropertyInfo property = typeof(PL.Certificate.Certificate).GetProperty(column);
                             if (property != null && property.CanWrite)
                             {
                                 property.SetValue(cert, Convert.ToString(issuerCert.id));
@@ -585,7 +584,7 @@ public class Utils
                         command.Parameters.Clear();
                         command.CommandText = $"UPDATE {table} SET {column} = @_value WHERE name = @_searchTerm";
 
-                        var prop = typeof(PL.Certificate.Certs).GetProperty(column);
+                        var prop = typeof(PL.Certificate.Certificate).GetProperty(column);
 
                         if (prop != null)
                         {
@@ -770,7 +769,7 @@ public class Utils
                 return Result.Fail($"Exceptionmessage {Convert.ToString(ex)}");
             }
         }
-        public static Result<X509Certificate2> GenerateSelfsigned(serverType serverType, PL.Certificate.Certs certs)
+        public static Result<X509Certificate2> GenerateSelfsigned(serverType serverType, PL.Certificate.Certificate certs)
         {
             try
             {
@@ -815,7 +814,7 @@ public class Utils
             catch (Exception ex)
             { return Result.Fail(Convert.ToString(ex)); }
         }
-        public static Result<X509Certificate2> GenerateSigned(serverType serverType, PL.Certificate.Certs issuer, PL.Certificate.Certs requester)
+        public static Result<X509Certificate2> GenerateSigned(serverType serverType, PL.Certificate.Certificate issuer, PL.Certificate.Certificate requester)
         {
             X509Certificate2 issuerCertificate = new X509Certificate2(issuer.ss_cert);
             using RSA issuerPrivateKey = issuerCertificate.GetRSAPrivateKey();
@@ -914,7 +913,7 @@ public class Utils
 
             return chain;
         }
-        public static Result<X500DistinguishedName> DNBuilder(PL.Certificate.Certs certs)
+        public static Result<X500DistinguishedName> DNBuilder(PL.Certificate.Certificate certs)
         {
             try
             {
@@ -962,6 +961,17 @@ public class Utils
             };
         }
         public static int GetDuration(Server form, serverType type)
+        {
+            return type switch
+            {
+                serverType.ca => Convert.ToInt32(form.tb_ca_dura.Text),
+                serverType.intermediate => Convert.ToInt32(form.tb_int_dura.Text),
+                serverType.server => Convert.ToInt32(form.tb_server_dura.Text),
+                serverType.user => Convert.ToInt32(form.tb_user_dura.Text),
+                _ => 0
+            };
+        }
+        public static int GetNewServer(Server form, serverType type)
         {
             return type switch
             {
@@ -1079,7 +1089,7 @@ public class Utils
                 return Result.Fail(Convert.ToString(ex));
             }
         }
-        public static byte[] GenerateSerialnumber(PL.Certificate.Certs cert)
+        public static byte[] GenerateSerialnumber(PL.Certificate.Certificate cert)
         {
             int cTempSerialNumber = Convert.ToInt32(cert.serialNumber);
             cTempSerialNumber++;
